@@ -1,0 +1,10 @@
+{
+  "name": "@trainer-app/api",
+  "version": "1.0.0",
+  "description": "Shared API client for FastAPI backend",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {}
+}

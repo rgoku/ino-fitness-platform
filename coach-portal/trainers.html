@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Trainer Portal - INÖ Fitness</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 2rem auto; }
+    label { display:block; margin-top: 0.5rem }
+    textarea { width:100%; height:120px }
+    input, select, button { padding:0.5rem; margin-top:0.25rem }
+    .card { border:1px solid #ddd; padding:1rem; margin-bottom:1rem }
+  </style>
+</head>
+<body>
+  <h1>Trainer Portal</h1>
+  <p>Use this simple page to structure diet plans and workouts for clients. This is a lightweight UI that calls the API (requires a valid bearer token).</p>
+
+  <div class="card">
+    <h2>Create Diet Plan</h2>
+    <label>Client ID <input id="clientId" /></label>
+    <label>Plan Name <input id="planName" /></label>
+    <label>Calories <input id="calories" type="number" value="2000" /></label>
+    <label>Description <textarea id="planDesc"></textarea></label>
+    <button id="createPlan">Create Plan (AI)</button>
+    <pre id="createPlanResult"></pre>
+  </div>
+
+  <div class="card">
+    <h2>Quick Reminder</h2>
+    <label>Client ID <input id="rClientId" /></label>
+    <label>Title <input id="rTitle" value="Drink Water" /></label>
+    <label>Remind At (ISO) <input id="rAt" value="" placeholder="2025-11-22T12:00:00" /></label>
+    <label>Message <input id="rMessage" value="Take a quick sip of water and stretch." /></label>
+    <button id="createReminder">Send Reminder</button>
+    <pre id="createReminderResult"></pre>
+  </div>
+
+  <script>
+    const API_BASE = '/api/v1';
+    // You must set a valid Bearer token for authenticated endpoints
+    const AUTH_TOKEN = '';
+
+    document.getElementById('createPlan').addEventListener('click', async () => {
+      const clientId = document.getElementById('clientId').value;
+      const planName = document.getElementById('planName').value || 'Coach Plan';
+      const calories = Number(document.getElementById('calories').value || 2000);
+      const desc = document.getElementById('planDesc').value || '';
+
+      // This example calls the AI diet generation endpoint; replace with your auth flow
+      const body = {
+        biometrics: { age: 30, weight: 70, height: 175, goal: 'muscle gain' },
+        preferences: { restrictions: [], cuisines: [] }
+      };
+
+      const res = await fetch(API_BASE + '/diet/plans/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + AUTH_TOKEN
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+      document.getElementById('createPlanResult').textContent = JSON.stringify(data, null, 2);
+    });
+
+    document.getElementById('createReminder').addEventListener('click', async () => {
+      const clientId = document.getElementById('rClientId').value;
+      const title = document.getElementById('rTitle').value;
+      const at = document.getElementById('rAt').value;
+      const msg = document.getElementById('rMessage').value;
+
+      const url = API_BASE + '/reminders';
+      const params = new URLSearchParams();
+      params.append('title', title);
+      params.append('remind_at', at);
+      params.append('message', msg);
+
+      const res = await fetch(url + '?' + params.toString(), {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + AUTH_TOKEN
+        }
+      });
+      const data = await res.json();
+      document.getElementById('createReminderResult').textContent = JSON.stringify(data, null, 2);
+    });
+  </script>
+</body>
+</html>

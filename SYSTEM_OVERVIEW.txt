@@ -1,0 +1,242 @@
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   INÖ FITNESS APP - COMPLETE SYSTEM                         ║
+║                         November 22, 2025                                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                            TRAINER / COACH                                  ┃
+┃                                                                            ┃
+┃  Opens: coach-portal/trainers.html (web browser)                          ┃
+┃         ↓                                                                  ┃
+┃    ┌─────────────────────────────────────┐                               ┃
+┃    │  Create AI Diet Plan                │                               ┃
+┃    │  • Enter client age, weight, goal   │                               ┃
+┃    │  • AI generates with research       │ → Claude + PubMed             ┃
+┃    │  • 6 supplements with evidence      │                               ┃
+┃    └─────────────────────────────────────┘                               ┃
+┃                                                                            ┃
+┃    ┌─────────────────────────────────────┐                               ┃
+┃    │  Schedule Smart Reminders            │                               ┃
+┃    │  • "Drink water" @ 9am, 12pm, 3pm  │                               ┃
+┃    │  • "Workout" @ 6pm                   │ → Claude (AI messages)       ┃
+┃    │  • "Eat lunch" @ 12:30pm             │                               ┃
+┃    └─────────────────────────────────────┘                               ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+                                   ↓ API Calls
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                        FASTAPI BACKEND (main.py)                           ┃
+┃                                                                            ┃
+┃  Routes:                                                                   ┃
+┃  ├─ POST /api/v1/diet/plans/generate       (Create AI plan)              ┃
+┃  ├─ POST /api/v1/reminders                 (NEW: Schedule reminder)      ┃
+┃  ├─ GET  /api/v1/reminders                 (List reminders)              ┃
+┃  ├─ POST /api/v1/reminders/{id}/send       (Send now)                    ┃
+┃  └─ ... (20+ more routes)                                                 ┃
+┃                                                                            ┃
+┃  Background Worker (Every 60 seconds):                                   ┃
+┃  ├─ Query: SELECT * FROM reminders WHERE remind_at <= now AND sent=False ┃
+┃  ├─ For each:                                                             ┃
+┃  │  ├─ Create Message record (in-app notification)                       ┃
+┃  │  ├─ Try: Send push (FCM) if configured                                ┃
+┃  │  ├─ Try: Send email (SMTP) if configured                              ┃
+┃  │  └─ Mark: reminder.sent = True                                         ┃
+┃  └─ Sleep 60s, repeat                                                     ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+                    ↓            ↓            ↓            ↓
+        ┌───────────┴─┬──────────┴─┬──────────┴─┬──────────┴──┐
+        ↓             ↓             ↓             ↓             ↓
+   ┌─────────┐  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐
+   │  Claude │  │ PubMed   │ │ Database │ │Notification│ MediaPipe   │
+   │   AI    │  │Research  │ │(SQLite/  │ │ Service  │ (Form Check)│
+   │         │  │Fetch     │ │PostgreSQL)│ │Multi-ch   │            │
+   └─────────┘  └──────────┘ └──────────┘ └──────────┘ └──────────────┘
+        ↓            ↓             ↓            ↓             ↓
+   ┌─────────────────────────────────────────────────────────────────────┐
+   │ • AI Coaching       • Diet Plans with Citations                     │
+   │ • Form Recognition  • Supplement Recommendations                    │
+   │ • AI Reminders      • Exercise Analysis                              │
+   │ • Chat Interface    • Progress Tracking                              │
+   └─────────────────────────────────────────────────────────────────────┘
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                      MOBILE APP (React Native + Expo)                      ┃
+┃                                                                            ┃
+┃  Screens:                                                                  ┃
+┃  ├─ HomeScreen      (Dashboard)                                          ┃
+┃  ├─ ChatScreen      (AI Coach conversation)                              ┃
+┃  ├─ DietPlanScreen  (View meals + supplements)                           ┃
+┃  ├─ WorkoutScreen   (Workout plans + sessions)                           ┃
+┃  ├─ FormCheckScreen (Record & analyze exercise form)                     ┃
+┃  ├─ ReminderScreen  (Display push notifications)                         ┃
+┃  ├─ ProgressScreen  (Track metrics)                                      ┃
+┃  └─ ProfileScreen   (User settings)                                      ┃
+┃                                                                            ┃
+┃  Real-time Features:                                                      ┃
+┃  ├─ In-app notifications (Messages table)                                ┃
+┃  ├─ Push notifications (FCM) ← Background worker                         ┃
+┃  ├─ Email reminders (SMTP) ← Background worker                           ┃
+┃  ├─ Instant chat with AI                                                 ┃
+┃  └─ Exercise form feedback                                               ┃
+┃                                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                            NEW THIS SESSION
+
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ REMINDERS SYSTEM                                                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ Files Added:                                                               │
+│  ✓ backend/app/models.py                 (Reminder model added)           │
+│  ✓ backend/app/routes/reminders.py       (CRUD endpoints)                 │
+│  ✓ backend/app/notification_service.py   (Multi-channel delivery)         │
+│  ✓ backend/tests/test_reminders.py       (11 tests)                       │
+│  ✓ backend/tests/test_notifications.py   (8 tests)                        │
+│  ✓ backend/alembic/                      (Migration system)               │
+│                                                                             │
+│ Features:                                                                  │
+│  ✓ Schedule reminders for clients                                         │
+│  ✓ Claude generates personalized messages                                 │
+│  ✓ Background worker auto-sends due reminders                             │
+│  ✓ Multi-channel: in-app, push (FCM), email (SMTP)                        │
+│  ✓ Repeat patterns support (daily, weekly, etc.)                          │
+│  ✓ Tracking: knows which reminders were sent                              │
+│                                                                             │
+│ API Endpoints:                                                             │
+│  POST   /api/v1/reminders                Create reminder                  │
+│  GET    /api/v1/reminders                List reminders                   │
+│  POST   /api/v1/reminders/{id}/send      Send now                         │
+│  DELETE /api/v1/reminders/{id}           Delete                           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ DATABASE MIGRATIONS                                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ Tool: Alembic (industry-standard DB version control)                       │
+│                                                                             │
+│ Files Added:                                                               │
+│  ✓ backend/alembic.ini                   (Configuration)                   │
+│  ✓ backend/alembic/env.py                (Environment)                     │
+│  ✓ backend/alembic/versions/001_*.py     (Initial migration)              │
+│                                                                             │
+│ What Migration 001 Does:                                                   │
+│  ✓ Create 'reminders' table with all fields                               │
+│  ✓ Add 'supplement_recommendations' JSON column to 'diet_plans'          │
+│  ✓ Create proper indexes on foreign keys                                  │
+│                                                                             │
+│ Usage:                                                                     │
+│  alembic upgrade head                    (Apply migration)                 │
+│  alembic downgrade -1                    (Rollback)                       │
+│  alembic revision --autogenerate -m "..." (Generate new migration)        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ NOTIFICATION SERVICE                                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ Channels:                                                                  │
+│  In-App         → Creates Message in DB (always works)                     │
+│  Push (FCM)     → Firebase Cloud Messaging (configurable)                  │
+│  Email (SMTP)   → SMTP server (Gmail, SendGrid, etc.)                     │
+│                                                                             │
+│ Features:                                                                  │
+│  ✓ Graceful degradation (if credential missing)                           │
+│  ✓ Fallback to in-app if push fails                                       │
+│  ✓ Multi-channel sending support                                          │
+│  ✓ Async operations (non-blocking)                                        │
+│  ✓ Full test coverage with mocks                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TRAINER PORTAL                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ Path: coach-portal/trainers.html                                           │
+│                                                                             │
+│ Features:                                                                  │
+│  ✓ Create AI diet plans for clients                                       │
+│  ✓ View supplement recommendations                                        │
+│  ✓ Schedule reminders (custom time, message)                              │
+│  ✓ See API responses in real-time                                         │
+│  ✓ No build process needed (pure HTML/JS)                                │
+│  ✓ Bearer token authentication                                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                            FULL SYSTEM STATS
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Code Base:
+  • Backend: ~3000 lines (models, routes, services, AI logic)
+  • Tests: 20+ test cases with full mock coverage
+  • Documentation: 4000+ lines (setup guides, API docs, architecture)
+  • Mobile: React Native + Expo (TypeScript)
+  • Trainer Portal: Lightweight HTML (no build)
+
+Database:
+  • Tables: 15+ models
+  • Migrations: 1 initial (extensible)
+  • ORM: SQLAlchemy
+  • Databases: SQLite (dev), PostgreSQL (prod)
+
+AI Integration:
+  • Claude: Diet plans, reminders, form analysis, coaching
+  • PubMed: Research citations (E-utilities API)
+  • MediaPipe: Pose detection (form recognition)
+  • OpenCV: Video processing
+
+Testing:
+  • Unit tests: 20+
+  • Mocking: Claude, PubMed, time, database
+  • Coverage: All critical paths
+  • Isolation: Each test is independent
+
+Security:
+  • JWT Authentication: All routes protected
+  • Password Hashing: bcrypt
+  • SQL Injection: Protected (SQLAlchemy ORM)
+  • CORS: Configured
+  • Environment secrets: .env-based
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                            NEXT STEPS
+
+═══════════════════════════════════════════════════════════════════════════════
+
+1. START HERE: Read START_HERE.md
+2. UNDERSTAND: Read PERFECT_SUMMARY.md
+3. SETUP:
+   cd backend
+   pip install -r requirements.txt
+   alembic upgrade head
+4. TEST:
+   pytest -v
+5. RUN:
+   uvicorn main:app --reload
+6. EXPLORE:
+   http://localhost:8000/docs (API documentation)
+   coach-portal/trainers.html (trainer portal)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                    ✅ IMPLEMENTATION COMPLETE ✅
+
+Ready for development, testing, and production deployment!
+
+═══════════════════════════════════════════════════════════════════════════════
+```

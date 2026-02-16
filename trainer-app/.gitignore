@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Expo
+.expo
+.expo-shared
+dist
+
+# Next.js
+.next
+out
+.vercel
+
+# Build outputs
+build
+dist
+.turbo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__
+*.pyc
+.venv
+venv/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
