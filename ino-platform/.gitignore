@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Docker
+pgdata/
+miniodata/
+
+# Logs
+*.log
+
+# Test
+coverage/
+.pytest_cache/
+htmlcov/

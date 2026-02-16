@@ -18,13 +18,15 @@
       "**/*"
     ],
     "ios": {
-      "supportsTabletMode": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ino.aifitnesscoach"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ino.aifitnesscoach"
     },
     "web": {
       "favicon": "./assets/favicon.png"

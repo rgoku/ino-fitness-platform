@@ -7,13 +7,16 @@ AI-powered fitness platform with workout tracking, diet plans, form analysis, an
 - **New here?** → Read [START_HERE_FINAL.md](START_HERE_FINAL.md)
 - **Overview** → [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)
 - **Setup** → [PRODUCTION_SETUP_GUIDE.md](PRODUCTION_SETUP_GUIDE.md)
+- **iOS & Android** → [docs/MOBILE_IOS_ANDROID.md](docs/MOBILE_IOS_ANDROID.md)
 - **Full app info** → [COMPLETE_APP_INFORMATION.md](COMPLETE_APP_INFORMATION.md)
+- **INO Platform (coach stack)** → [INO_PLATFORM_INTEGRATION.md](INO_PLATFORM_INTEGRATION.md)
 
 ## What’s included
 
 - **Mobile app** (React Native + Expo) – Home, workouts, diet, form check, food photo, AI chat, progress, profile
 - **Backend API** (FastAPI) – Auth, workouts, diet, reminders, AI coach, form analysis
 - **Database** (Supabase/SQLite) – Users, plans, sessions, meals, progress, reminders
+- **ino-platform** (`ino-platform/`) – Coach Command Center (React + Vite), fit-mobile (Expo), landing, FastAPI API with Postgres/Redis/MinIO — see [INO_PLATFORM_INTEGRATION.md](INO_PLATFORM_INTEGRATION.md)
 
 ## Run locally
 
@@ -24,12 +27,13 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-**Mobile**
+**Mobile** (iOS and Android)
 ```bash
 cd mobile
 npm install
 npx expo start
 ```
+Then press `i` for iOS simulator or `a` for Android emulator, or scan the QR code with Expo Go. See [docs/MOBILE_IOS_ANDROID.md](docs/MOBILE_IOS_ANDROID.md) for details.
 
 ## Docs
 
@@ -42,6 +46,8 @@ npx expo start
 | [COMPLETE_CODEBASE_GUIDE.md](COMPLETE_CODEBASE_GUIDE.md) | Technical deep dive |
 | [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) | Pre-launch tasks |
 | [MONETIZATION_STRATEGY.md](MONETIZATION_STRATEGY.md) | Revenue models |
+| [INO_PLATFORM_INTEGRATION.md](INO_PLATFORM_INTEGRATION.md) | ino-platform setup and integration |
+| [docs/MOBILE_IOS_ANDROID.md](docs/MOBILE_IOS_ANDROID.md) | Run and build on iOS and Android |
 
 ## Tech stack
 
