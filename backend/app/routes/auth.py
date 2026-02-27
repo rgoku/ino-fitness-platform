@@ -1,23 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
-from datetime import datetime, timedelta
-from passlib.context import CryptContext
-from jose import JWTError, jwt
-from typing import Optional
-import os
 
 from app.models import User
 from app.database import get_db
+from app.core.security import pwd_context, create_access_token, get_current_user
 from app.middleware.rate_limit import limiter
 
 router = APIRouter()
-
-# Apply rate limiting to router
-router.state.limiter = limiter
-
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserRegister(BaseModel):
     email: EmailStr
@@ -85,7 +75,7 @@ async def login(
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(
-    current_user: User = Depends(lambda: None)
+    current_user: User = Depends(get_current_user),
 ):
     """Refresh JWT token"""
     access_token = create_access_token(current_user.id)
@@ -112,15 +102,3 @@ async def apple_signin(
         "token_type": "bearer"
     }
 
-def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None):
-    """Create JWT access token"""
-    if expires_delta is None:
-        expires_delta = timedelta(hours=int(os.getenv("JWT_EXPIRATION_HOURS", 24)))
-    
-    expire = datetime.utcnow() + expires_delta
-    to_encode = {"sub": user_id, "exp": expire}
-    
-    SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
-    
-    return encoded_jwt

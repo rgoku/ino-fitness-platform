@@ -30,18 +30,15 @@ export default function MessagesPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Messages</h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          Communicate with your clients
-        </p>
-      </div>
+      <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">
+        Messages
+      </h1>
 
       <Card className="flex h-[calc(100vh-220px)] min-h-[500px] overflow-hidden">
         {/* Conversation list */}
-        <div className="w-80 shrink-0 border-r border-border overflow-y-auto">
-          <div className="p-3 border-b border-border">
-            <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Conversations</h2>
+        <div className="w-80 shrink-0 border-r border-[var(--color-border)] overflow-y-auto">
+          <div className="p-3 border-b border-[var(--color-border)]">
+            <h2 className="text-sm font-medium text-[var(--color-text-primary)]">Conversations</h2>
           </div>
           {convsLoading ? (
             <div className="p-3 space-y-3">
@@ -62,9 +59,12 @@ export default function MessagesPage() {
               onSelect={setSelectedClientId}
             />
           ) : (
-            <div className="p-4">
-              <p className="text-sm text-[var(--color-text-tertiary)]">No conversations yet</p>
-            </div>
+            <EmptyState
+              icon={MessageSquare}
+              title="No conversations"
+              description="Messages from clients will appear here."
+              className="py-8"
+            />
           )}
         </div>
 
@@ -72,7 +72,7 @@ export default function MessagesPage() {
         <div className="flex flex-1 flex-col">
           {selectedClientId && selectedConv ? (
             <>
-              <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+              <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-4 py-3">
                 <Avatar name={selectedConv.clientName} size="sm" />
                 <p className="font-medium text-[var(--color-text-primary)]">
                   {selectedConv.clientName}
@@ -98,8 +98,8 @@ export default function MessagesPage() {
             <div className="flex flex-1 items-center justify-center">
               <EmptyState
                 icon={MessageSquare}
-                title="Select a conversation"
-                description="Choose a client from the list to start messaging."
+                title="Pick a thread"
+                description="Select a client on the left to view their conversation."
               />
             </div>
           )}

@@ -27,12 +27,11 @@ export default function ClientsPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Clients</h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          Manage your coaching roster
-        </p>
-      </div>
+      <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">
+        Clients{filtered.length > 0 && (
+          <span className="ml-2 text-base font-normal text-[var(--color-text-tertiary)]">{filtered.length}</span>
+        )}
+      </h1>
 
       <ClientToolbar
         search={search}
@@ -51,9 +50,9 @@ export default function ClientsPage() {
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Users}
-          title={search ? 'No clients found' : 'No clients yet'}
-          description={search ? 'Try a different search term.' : 'Add your first client to get started.'}
-          action={!search ? { label: 'Add Client', onClick: () => setAddOpen(true) } : undefined}
+          title={search ? 'No matches' : 'Your roster is empty'}
+          description={search ? `Nothing matching "${search}"` : 'Once you add clients, they\'ll show up here.'}
+          action={!search ? { label: 'Add your first client', onClick: () => setAddOpen(true) } : undefined}
         />
       ) : view === 'list' ? (
         <ClientList clients={filtered} />

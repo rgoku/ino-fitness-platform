@@ -8,9 +8,18 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION || 'v1';
 const BASE_URL = `${API_URL}/api/${API_VERSION}`;
 
+function isNetworkError(error: any): boolean {
+  return (
+    !error.response &&
+    (error.code === 'NETWORK_ERROR' ||
+      error.code === 'ERR_NETWORK' ||
+      error.message === 'Network Error')
+  );
+}
+
 class ApiService {
   private client: AxiosInstance;
-  private isOnline: boolean = true;
+  private _isOnline: boolean = true;
 
   constructor() {
     this.client = axios.create({
@@ -21,9 +30,8 @@ class ApiService {
       },
     });
 
-    // Monitor network status
-    NetInfo.addEventListener(state => {
-      this.isOnline = state.isConnected ?? false;
+    NetInfo.addEventListener((state) => {
+      this._isOnline = state.isConnected ?? false;
     });
 
     // Request interceptor to add auth token
@@ -35,16 +43,13 @@ class ApiService {
         }
         return config;
       },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
     // Response interceptor for error handling
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        // Report to Sentry
         if (error.response?.status && error.response.status >= 500) {
           Sentry.captureException(error, {
             tags: {
@@ -53,9 +58,7 @@ class ApiService {
             },
           });
         }
-
         if (error.response?.status === 401) {
-          // Unauthorized - clear token and redirect to login
           await AsyncStorage.removeItem('auth_token');
         }
         return Promise.reject(error);
@@ -63,15 +66,18 @@ class ApiService {
     );
   }
 
+  get isOnline(): boolean {
+    return this._isOnline;
+  }
+
   async get<T>(url: string, config?: any): Promise<T> {
     try {
       const response = await this.client.get<T>(url, config);
       return response.data;
     } catch (error: any) {
-      if (!this.isOnline && error.code === 'NETWORK_ERROR') {
-        // Queue for offline processing
-        await offlineQueue.queueRequest('GET', url);
-        throw new Error('Request queued for offline processing');
+      // GETs are not queued; callers use cache when offline
+      if (!this.isOnline || isNetworkError(error)) {
+        throw new Error('Offline');
       }
       throw error;
     }
@@ -82,10 +88,9 @@ class ApiService {
       const response = await this.client.post<T>(url, data, config);
       return response.data;
     } catch (error: any) {
-      if (!this.isOnline && error.code === 'NETWORK_ERROR') {
-        // Queue for offline processing
+      if (!this.isOnline || isNetworkError(error)) {
         await offlineQueue.queueRequest('POST', url, data);
-        throw new Error('Request queued for offline processing');
+        throw new Error('Offline');
       }
       throw error;
     }
@@ -96,9 +101,9 @@ class ApiService {
       const response = await this.client.put<T>(url, data, config);
       return response.data;
     } catch (error: any) {
-      if (!this.isOnline && error.code === 'NETWORK_ERROR') {
+      if (!this.isOnline || isNetworkError(error)) {
         await offlineQueue.queueRequest('PUT', url, data);
-        throw new Error('Request queued for offline processing');
+        throw new Error('Offline');
       }
       throw error;
     }
@@ -109,9 +114,9 @@ class ApiService {
       const response = await this.client.patch<T>(url, data, config);
       return response.data;
     } catch (error: any) {
-      if (!this.isOnline && error.code === 'NETWORK_ERROR') {
+      if (!this.isOnline || isNetworkError(error)) {
         await offlineQueue.queueRequest('PATCH', url, data);
-        throw new Error('Request queued for offline processing');
+        throw new Error('Offline');
       }
       throw error;
     }
@@ -122,9 +127,9 @@ class ApiService {
       const response = await this.client.delete<T>(url, config);
       return response.data;
     } catch (error: any) {
-      if (!this.isOnline && error.code === 'NETWORK_ERROR') {
+      if (!this.isOnline || isNetworkError(error)) {
         await offlineQueue.queueRequest('DELETE', url);
-        throw new Error('Request queued for offline processing');
+        throw new Error('Offline');
       }
       throw error;
     }

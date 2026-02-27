@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { User } from '../types';
 import { authService } from '../services/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,11 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [hasOnboarded, setHasOnboarded] = useState(false);
 
-  useEffect(() => {
-    checkAuthState();
-  }, []);
-
-  const checkAuthState = async () => {
+  const checkAuthState = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('auth_token');
       if (token) {
@@ -39,67 +35,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const login = async (email: string, password: string) => {
+  useEffect(() => {
+    checkAuthState();
+  }, [checkAuthState]);
+
+  const login = useCallback(async (email: string, password: string) => {
     const userData = await authService.login(email, password);
     setUser(userData);
     setHasOnboarded(userData.hasOnboarded);
-  };
+  }, []);
 
-  const signup = async (email: string, password: string, name: string) => {
+  const signup = useCallback(async (email: string, password: string, name: string) => {
     const userData = await authService.signup(email, password, name);
     setUser(userData);
     setHasOnboarded(userData.hasOnboarded);
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await authService.logout();
     setUser(null);
     setHasOnboarded(false);
-  };
+  }, []);
 
-  const appleSignIn = async () => {
+  const appleSignIn = useCallback(async () => {
     const userData = await authService.appleSignIn();
     setUser(userData);
     setHasOnboarded(userData.hasOnboarded);
-  };
+  }, []);
 
-  const biometricLogin = async () => {
+  const biometricLogin = useCallback(async () => {
     const userData = await authService.biometricLogin();
     setUser(userData);
     setHasOnboarded(userData.hasOnboarded);
-  };
+  }, []);
 
-  const completeOnboarding = async (biometrics: any) => {
+  const completeOnboarding = useCallback(async (biometrics: any) => {
     if (user) {
       await authService.completeOnboarding(user.id, biometrics);
       setHasOnboarded(true);
     }
-  };
+  }, [user]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        hasOnboarded,
-        login,
-        signup,
-        logout,
-        appleSignIn,
-        biometricLogin,
-        completeOnboarding,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      hasOnboarded,
+      login,
+      signup,
+      logout,
+      appleSignIn,
+      biometricLogin,
+      completeOnboarding,
+    }),
+    [user, loading, hasOnboarded, login, signup, logout, appleSignIn, biometricLogin, completeOnboarding]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (undefined === context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

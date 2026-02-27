@@ -1,0 +1,42 @@
+# Git and env
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+!.env.docker.example
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv
+env
+.pytest_cache
+.mypy_cache
+.coverage
+htmlcov
+
+# IDE and OS
+.idea
+.vscode
+*.swp
+.DS_Store
+Thumbs.db
+
+# Tests and docs (not needed in container)
+tests
+*.md
+docs
+
+# Docker (avoid recursive copy)
+Dockerfile*
+docker-compose*
+.docker
+
+# Misc
+*.log
+node_modules

@@ -44,15 +44,25 @@
       "expo-camera",
       "expo-image-picker",
       "expo-media-library",
+      "expo-notifications",
       [
         "expo-build-properties",
         {
-          "ios": { "deploymentTarget": "13.4" },
-          "android": { "minSdkVersion": 23, "compileSdkVersion": 34, "targetSdkVersion": 34 }
+          "ios": {
+            "deploymentTarget": "13.4"
+          },
+          "android": {
+            "minSdkVersion": 23,
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34
+          }
         }
       ]
     ],
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "extra": {
       "eas": {
         "projectId": "your-project-id"
@@ -60,4 +70,3 @@
     }
   }
 }
-

@@ -1,16 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy.orm import Session
-from datetime import datetime
-from typing import List
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models import User, DietPlan, Meal, FoodEntry
 from app.database import get_db
 from app.auth import get_current_user
 from app.ai_service import AIService
+from app.domain.ai.budget import check_and_increment
 from app.middleware.rate_limit import limiter
 
 router = APIRouter()
-router.state.limiter = limiter
 ai_service = AIService()
 
 @router.post("/plans/generate")
@@ -21,6 +19,10 @@ async def generate_diet_plan(
     db: Session = Depends(get_db)
 ):
     """Generate evidence-based AI-powered diet plan backed by PubMed research"""
+    tier = getattr(current_user, "subscription_tier", "free") or "free"
+    allowed, reason = check_and_increment(current_user.id, tier, "generate_diet_plan")
+    if not allowed:
+        raise HTTPException(status_code=429, detail=reason)
     try:
         plan_data = await ai_service.generate_diet_plan(
             user_id=current_user.id,
@@ -88,7 +90,12 @@ async def get_diet_plans(
     db: Session = Depends(get_db)
 ):
     """Get all diet plans for user"""
-    plans = db.query(DietPlan).filter(DietPlan.user_id == user_id).all()
+    plans = (
+        db.query(DietPlan)
+        .options(selectinload(DietPlan.meals))
+        .filter(DietPlan.user_id == user_id)
+        .all()
+    )
     return plans
 
 @router.post("/analyze-food")
@@ -167,15 +174,20 @@ async def get_plan_research_details(
 ):
     """Get detailed research backing for a diet plan"""
     try:
-        plan = db.query(DietPlan).filter(
-            DietPlan.id == plan_id,
-            DietPlan.user_id == current_user.id
-        ).first()
-        
+        plan = (
+            db.query(DietPlan)
+            .options(joinedload(DietPlan.meals))
+            .filter(
+                DietPlan.id == plan_id,
+                DietPlan.user_id == current_user.id
+            )
+            .first()
+        )
+
         if not plan:
             raise HTTPException(status_code=404, detail="Diet plan not found")
-        
-        meals = db.query(Meal).filter(Meal.diet_plan_id == plan_id).all()
+
+        meals = plan.meals
         
         return {
             "plan_id": plan.id,
@@ -205,7 +217,6 @@ async def get_plan_research_details(
 async def get_nutrition_research(
     topic: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
 ):
     """Search PubMed for nutrition research on a specific topic"""
     try:
@@ -221,18 +232,3 @@ async def get_nutrition_research(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    """Manually log food entry"""
-    entry = FoodEntry(
-        user_id=user_id,
-        food_name=food_data.get("food_name"),
-        meal_type=food_data.get("meal_type"),
-        calories=food_data.get("calories"),
-        protein=food_data.get("protein"),
-        carbs=food_data.get("carbs"),
-        fat=food_data.get("fat"),
-        quantity=food_data.get("quantity", 1),
-        unit=food_data.get("unit", "serving")
-    )
-    db.add(entry)
-    db.commit()
-    return {"entry_id": entry.id}

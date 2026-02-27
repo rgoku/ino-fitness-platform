@@ -105,16 +105,42 @@ async def cancel_subscription(
 
 
 @router.post("/webhook")
-async def stripe_webhook(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
-    """Handle Stripe webhook events."""
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events — verify, deduplicate, dispatch to Celery."""
+    import logging
+    import redis as redis_lib
+    import stripe
+    from app.core.config import settings as cfg
+    from app.tasks.billing_tasks import process_stripe_event
+
+    logger = logging.getLogger(__name__)
+
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
 
-    # In production: event = stripe.Webhook.construct_event(payload, sig, webhook_secret)
-    # Then dispatch based on event.type:
-    # - checkout.session.completed → create Subscription, set coach.plan_tier
-    # - invoice.paid → extend current_period_end
-    # - invoice.payment_failed → set status = "past_due"
-    # - customer.subscription.deleted → set status = "canceled"
+    # 1. Verify signature
+    try:
+        event = stripe.Webhook.construct_event(payload, sig, cfg.STRIPE_WEBHOOK_SECRET)
+    except stripe.error.SignatureVerificationError:
+        logger.warning("stripe webhook signature verification failed")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid signature")
 
+    # 2. Idempotency check (prevent duplicate processing)
+    try:
+        r = redis_lib.from_url(cfg.REDIS_URL, decode_responses=True)
+        idempotency_key = f"stripe:webhook:{event.id}"
+        if r.get(idempotency_key):
+            return {"received": True, "duplicate": True}
+        r.setex(idempotency_key, 86400, "processing")
+        r.close()
+    except Exception:
+        pass  # fail open — process even if Redis is down
+
+    # 3. Dispatch to Celery for async processing (fast return to Stripe)
+    process_stripe_event.apply_async(
+        args=[event.type, event.data.object],
+        priority=0,
+    )
+
+    logger.info("stripe webhook dispatched", extra={"event_type": event.type, "event_id": event.id})
     return {"received": True}

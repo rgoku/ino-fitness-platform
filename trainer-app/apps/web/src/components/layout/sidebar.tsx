@@ -6,12 +6,13 @@ import {
   LayoutDashboard,
   Users,
   Dumbbell,
+  Leaf,
   ClipboardCheck,
   MessageSquare,
   BarChart3,
   Settings,
-  ChevronLeft,
-  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   LogOut,
   X,
 } from 'lucide-react';
@@ -24,9 +25,13 @@ const navItems = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard },
   { label: 'Clients', href: '/clients', icon: Users },
   { label: 'Programs', href: '/programs', icon: Dumbbell },
+  { label: 'Nutrition', href: '/nutrition', icon: Leaf },
   { label: 'Check-ins', href: '/check-ins', icon: ClipboardCheck },
   { label: 'Messages', href: '/messages', icon: MessageSquare },
   { label: 'Analytics', href: '/analytics', icon: BarChart3 },
+];
+
+const bottomItems = [
   { label: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -37,99 +42,144 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile overlay */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 flex h-screen flex-col border-r border-border bg-surface transition-all duration-200',
-          isCollapsed ? 'w-16' : 'w-60',
+          'fixed top-0 left-0 z-50 flex h-screen flex-col bg-[var(--color-surface-secondary)] transition-all duration-200 ease-in-out',
+          isCollapsed ? 'w-[52px]' : 'w-[240px]',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full',
           'lg:translate-x-0 lg:static'
         )}
       >
-        {/* Header */}
-        <div className={cn('flex h-14 items-center border-b border-border px-4', isCollapsed && 'justify-center px-2')}>
+        {/* Logo */}
+        <div className={cn(
+          'flex h-11 items-center px-3 shrink-0',
+          isCollapsed ? 'justify-center' : 'gap-2'
+        )}>
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[5px] bg-[var(--color-text-primary)] text-[var(--color-surface)]">
+            <span className="text-xs font-bold">I</span>
+          </div>
           {!isCollapsed && (
-            <span className="text-lg font-bold tracking-tight text-brand-500">
-              INO
+            <span className="text-sm font-semibold text-[var(--color-text-primary)] tracking-tight">
+              INO Coach
             </span>
           )}
-          {isCollapsed && (
-            <span className="text-lg font-bold text-brand-500">I</span>
-          )}
-
-          {/* Mobile close */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="ml-auto rounded-md p-1 text-[var(--color-text-secondary)] hover:bg-surface-secondary lg:hidden"
+            className="ml-auto rounded-sm p-0.5 text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-hover)] lg:hidden"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-3">
-          {navItems.map((item) => {
-            const isActive =
-              item.href === '/'
-                ? pathname === '/'
-                : pathname.startsWith(item.href);
+        {/* Main Navigation */}
+        <nav className="flex-1 overflow-y-auto px-1.5 py-1">
+          <div className="space-y-[2px]">
+            {navItems.map((item) => {
+              const isActive =
+                item.href === '/'
+                  ? pathname === '/'
+                  : pathname.startsWith(item.href);
 
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    'group flex items-center gap-2.5 rounded-[5px] px-2 py-[5px] text-sm transition-colors duration-75',
+                    isActive
+                      ? 'bg-[var(--color-surface-hover)] text-[var(--color-text-primary)] font-medium'
+                      : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]',
+                    isCollapsed && 'justify-center px-0'
+                  )}
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  <item.icon size={18} strokeWidth={1.8} className="shrink-0" />
+                  {!isCollapsed && <span>{item.label}</span>}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Bottom Section */}
+        <div className="px-1.5 pb-1 space-y-[2px]">
+          {bottomItems.map((item) => {
+            const isActive = pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'group flex items-center gap-2.5 rounded-[5px] px-2 py-[5px] text-sm transition-colors duration-75',
                   isActive
-                    ? 'bg-brand-500/10 text-brand-500'
-                    : 'text-[var(--color-text-secondary)] hover:bg-surface-secondary hover:text-[var(--color-text-primary)]',
-                  isCollapsed && 'justify-center px-2'
+                    ? 'bg-[var(--color-surface-hover)] text-[var(--color-text-primary)] font-medium'
+                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-primary)]',
+                  isCollapsed && 'justify-center px-0'
                 )}
                 title={isCollapsed ? item.label : undefined}
               >
-                <item.icon size={20} className="shrink-0" />
+                <item.icon size={18} strokeWidth={1.8} className="shrink-0" />
                 {!isCollapsed && <span>{item.label}</span>}
               </Link>
             );
           })}
-        </nav>
 
-        {/* Collapse toggle (desktop only) */}
-        <button
-          onClick={toggle}
-          className="hidden items-center justify-center border-t border-border py-3 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] lg:flex"
-        >
-          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </button>
+          {/* Collapse toggle */}
+          <button
+            onClick={toggle}
+            className={cn(
+              'hidden w-full items-center gap-2.5 rounded-[5px] px-2 py-[5px] text-sm text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-secondary)] transition-colors duration-75 lg:flex',
+              isCollapsed && 'justify-center px-0'
+            )}
+            title={isCollapsed ? 'Expand' : 'Collapse'}
+          >
+            {isCollapsed ? (
+              <ChevronsRight size={18} strokeWidth={1.8} />
+            ) : (
+              <>
+                <ChevronsLeft size={18} strokeWidth={1.8} className="shrink-0" />
+                <span>Collapse</span>
+              </>
+            )}
+          </button>
+        </div>
 
-        {/* User section */}
-        <div className={cn('border-t border-border p-3', isCollapsed && 'p-2')}>
-          <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-500/20 text-xs font-semibold text-brand-500">
+        {/* User */}
+        <div className={cn(
+          'border-t border-[var(--color-border)] px-2 py-2',
+          isCollapsed && 'px-1'
+        )}>
+          <div className={cn(
+            'flex items-center gap-2.5 rounded-[5px] px-1.5 py-1.5',
+            'hover:bg-[var(--color-surface-hover)] transition-colors duration-75 cursor-pointer',
+            isCollapsed && 'justify-center px-0'
+          )}>
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-pink-500 text-[10px] font-semibold text-white">
               {user ? getInitials(user.name) : '?'}
             </div>
             {!isCollapsed && (
-              <div className="flex-1 overflow-hidden">
-                <p className="truncate text-sm font-medium text-[var(--color-text-primary)]">
-                  {user?.name}
-                </p>
-                <p className="truncate text-xs text-[var(--color-text-tertiary)]">
-                  {user?.email}
-                </p>
-              </div>
-            )}
-            {!isCollapsed && (
-              <button className="rounded-md p-1 text-[var(--color-text-tertiary)] hover:text-red-500">
-                <LogOut size={16} />
-              </button>
+              <>
+                <div className="flex-1 overflow-hidden">
+                  <p className="truncate text-sm text-[var(--color-text-primary)] leading-tight">
+                    {user?.name ?? 'Coach'}
+                  </p>
+                </div>
+                <button
+                  className="rounded-sm p-0.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]"
+                  title="Log out"
+                >
+                  <LogOut size={14} strokeWidth={1.8} />
+                </button>
+              </>
             )}
           </div>
         </div>

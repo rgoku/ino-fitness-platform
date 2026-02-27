@@ -79,8 +79,9 @@ async def create_workout(
 
 @router.get("/{workout_id}")
 async def get_workout(
-    workout_id: str, db: Annotated[AsyncSession, Depends(get_db)],
-    user: Annotated[dict, Depends(get_current_user)] = None,
+    workout_id: str,
+    user: Annotated[dict, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     result = await db.execute(
         select(Workout).where(Workout.id == workout_id).options(selectinload(Workout.exercises))
@@ -88,6 +89,22 @@ async def get_workout(
     workout = result.scalar_one_or_none()
     if not workout:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Workout not found")
+
+    # Ownership: user must be the coach who created it, or a client assigned to it
+    user_id = user["id"]
+    is_coach = (await db.execute(
+        select(Coach).where(Coach.id == workout.coach_id, Coach.user_id == user_id)
+    )).scalar_one_or_none()
+    if not is_coach:
+        is_client_assigned = (await db.execute(
+            select(WorkoutAssignment).join(Client, Client.id == WorkoutAssignment.client_id).where(
+                WorkoutAssignment.workout_id == workout.id,
+                Client.user_id == user_id,
+            )
+        )).scalar_one_or_none()
+        if not is_client_assigned:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Access denied")
+
     return _serialize_workout(workout)
 
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,37 +8,30 @@ import {
   Alert,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { apiService } from '../services/apiService';
 
-const ProfileScreen = () => {
+const ProfileScreen = React.memo(() => {
   const { user, logout } = useAuth();
-  const [loading, setLoading] = useState(false);
 
-  const handleLogout = async () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to logout');
-            }
-          },
+  const handleLogout = useCallback(() => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout();
+          } catch {
+            Alert.alert('Error', 'Failed to logout');
+          }
         },
-      ]
-    );
-  };
+      },
+    ]);
+  }, [logout]);
 
-  const handleManageSubscription = () => {
-    // Navigate to subscription management
+  const handleManageSubscription = useCallback(() => {
     Alert.alert('Subscription', 'Subscription management coming soon');
-  };
+  }, []);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -74,7 +67,9 @@ const ProfileScreen = () => {
       </TouchableOpacity>
     </ScrollView>
   );
-};
+});
+
+ProfileScreen.displayName = 'ProfileScreen';
 
 const styles = StyleSheet.create({
   container: {

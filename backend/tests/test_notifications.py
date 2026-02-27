@@ -54,7 +54,7 @@ async def test_push_notification_success():
         mock_response.status_code = 200
         mock_response.json.return_value = {"message_id": "msg_123"}
         
-        with patch('app.notification_service.requests.post', return_value=mock_response):
+        with patch('app.domain.notifications.service.requests.post', return_value=mock_response):
             result = await notif.send(
                 "user_123",
                 "Workout Reminder",

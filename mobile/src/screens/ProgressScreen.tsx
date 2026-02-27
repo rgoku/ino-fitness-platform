@@ -1,46 +1,97 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
 import { ProgressEntry, Streak, Trophy } from '../types';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
+import * as offlineCache from '../services/offlineCache';
+import type { ProgressStatsCache } from '../services/offlineCache';
 
 const screenWidth = Dimensions.get('window').width;
 
-const ProgressScreen = () => {
+const CHART_CONFIG = {
+  backgroundColor: '#000000',
+  backgroundGradientFrom: '#1C1C1E',
+  backgroundGradientTo: '#1C1C1E',
+  decimalPlaces: 1,
+  color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+  style: { borderRadius: 16 },
+};
+
+const ProgressScreen = React.memo(() => {
   const { user } = useAuth();
   const [progress, setProgress] = useState<ProgressEntry[]>([]);
   const [streak, setStreak] = useState<Streak | null>(null);
   const [trophies, setTrophies] = useState<Trophy[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(false);
 
-  useEffect(() => {
-    loadProgressData();
-  }, []);
-
-  const loadProgressData = async () => {
+  const loadProgressData = useCallback(async (fromCacheOnly = false) => {
+    if (!user?.id) return;
+    const cached = await offlineCache.getCached<ProgressStatsCache>(offlineCache.CACHE_KEYS.PROGRESS_STATS);
+    if (cached) {
+      setProgress(cached.progress);
+      setStreak(cached.streak);
+      setTrophies(cached.trophies);
+      setIsOffline(false);
+    }
+    if (fromCacheOnly) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     try {
       const [progressData, streakData, trophiesData] = await Promise.all([
-        apiService.get<ProgressEntry[]>(`/progress/${user?.id}`),
-        apiService.get<Streak>(`/streaks/${user?.id}`),
-        apiService.get<Trophy[]>(`/trophies/${user?.id}`),
+        apiService.get<ProgressEntry[]>(`/progress/${user.id}`),
+        apiService.get<Streak>(`/streaks/${user.id}`),
+        apiService.get<Trophy[]>(`/trophies/${user.id}`),
       ]);
       setProgress(progressData);
       setStreak(streakData);
       setTrophies(trophiesData);
-    } catch (error) {
-      console.error('Error loading progress data:', error);
+      await offlineCache.setCached(offlineCache.CACHE_KEYS.PROGRESS_STATS, {
+        progress: progressData,
+        streak: streakData,
+        trophies: trophiesData,
+      });
+      setIsOffline(false);
+    } catch (error: any) {
+      if (error?.message === 'Offline' && cached) {
+        setIsOffline(true);
+      } else {
+        console.error('Error loading progress data:', error);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadProgressData();
+  }, [loadProgressData]);
+
+  useEffect(() => {
+    const unsub = offlineCache.onReconnect(() => loadProgressData());
+    return unsub;
+  }, [loadProgressData]);
+
+  const chartData = useMemo(() => {
+    const withWeight = progress.filter((p) => null != p.weight);
+    return {
+      labels: withWeight
+        .slice(-7)
+        .map((p) => new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+      datasets: [{ data: withWeight.slice(-7).map((p) => p.weight as number) }],
+    };
+  }, [progress]);
 
   if (loading) {
     return (
@@ -50,30 +101,16 @@ const ProgressScreen = () => {
     );
   }
 
-  const weightData = progress
-    .filter(p => p.weight)
-    .map(p => p.weight!)
-    .slice(-7);
-
-  const weightLabels = progress
-    .filter(p => p.weight)
-    .map(p => new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))
-    .slice(-7);
-
-  const chartConfig = {
-    backgroundColor: '#000000',
-    backgroundGradientFrom: '#1C1C1E',
-    backgroundGradientTo: '#1C1C1E',
-    decimalPlaces: 1,
-    color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-    style: {
-      borderRadius: 16,
-    },
-  };
+  const weightData = chartData.datasets[0].data;
+  const weightLabels = chartData.labels;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {isOffline && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineBannerText}>Showing cached stats. Will sync when back online.</Text>
+        </View>
+      )}
       {streak && (
         <View style={styles.streakCard}>
           <Text style={styles.streakNumber}>{streak.currentStreak}</Text>
@@ -86,17 +123,10 @@ const ProgressScreen = () => {
         <View style={styles.chartCard}>
           <Text style={styles.chartTitle}>Weight Progress (kg)</Text>
           <LineChart
-            data={{
-              labels: weightLabels,
-              datasets: [
-                {
-                  data: weightData,
-                },
-              ],
-            }}
+            data={chartData}
             width={screenWidth - 60}
             height={220}
-            chartConfig={chartConfig}
+            chartConfig={CHART_CONFIG}
             bezier
             style={styles.chart}
           />
@@ -119,7 +149,9 @@ const ProgressScreen = () => {
       </View>
     </ScrollView>
   );
-};
+});
+
+ProgressScreen.displayName = 'ProgressScreen';
 
 const styles = StyleSheet.create({
   container: {
@@ -205,6 +237,17 @@ const styles = StyleSheet.create({
   trophyDate: {
     fontSize: 10,
     color: '#8E8E93',
+  },
+  offlineBanner: {
+    backgroundColor: '#3A3A3C',
+    padding: 10,
+    marginBottom: 12,
+    borderRadius: 8,
+  },
+  offlineBannerText: {
+    color: '#8E8E93',
+    fontSize: 12,
+    textAlign: 'center',
   },
 });
 

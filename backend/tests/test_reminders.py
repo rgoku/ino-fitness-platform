@@ -7,9 +7,9 @@ from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock, AsyncMock
 from sqlalchemy.orm import Session
 
-from app.models import Reminder, Message, User
-from app.database import SessionLocal, Base, engine
-from app.ai_service import AIService
+from app.infrastructure.database.models import Reminder, Message, User
+from app.infrastructure.database import SessionLocal, Base, engine
+from app.domain.ai import AIService
 
 # Create test database tables
 @pytest.fixture(scope="session", autouse=True)

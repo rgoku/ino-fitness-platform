@@ -49,7 +49,7 @@ export default function FormCheckScreen({ navigation, route }: any) {
     try {
       setIsRecording(true);
       const recording = await cameraRef.current.recordAsync();
-      setRecordedUri(recording.uri);
+      if (recording?.uri) setRecordedUri(recording.uri);
     } catch (error) {
       Alert.alert('Error', 'Failed to start recording');
       setIsRecording(false);

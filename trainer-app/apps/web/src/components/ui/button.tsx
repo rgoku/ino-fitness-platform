@@ -28,11 +28,13 @@ export function Button({
   size = 'md',
   loading,
   disabled,
+  type = 'button',
   children,
   ...props
 }: ButtonProps) {
   return (
     <button
+      type={type}
       className={cn(
         'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-ring',
         'disabled:pointer-events-none disabled:opacity-50',

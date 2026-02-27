@@ -2,7 +2,6 @@
 
 import { cn } from '@/lib/utils';
 import { LucideIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface StatCardProps {
@@ -17,53 +16,46 @@ interface StatCardProps {
 export function StatCard({ label, value, icon: Icon, trend, iconColor, loading }: StatCardProps) {
   if (loading) {
     return (
-      <Card className="p-5">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-10 w-10 rounded-lg" />
-          <div className="flex-1">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="mt-2 h-7 w-16" />
-          </div>
-        </div>
-      </Card>
+      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+        <Skeleton className="h-3 w-20 mb-3" />
+        <Skeleton className="h-8 w-16" />
+      </div>
     );
   }
 
   const TrendIcon = trend?.direction === 'up' ? TrendingUp : trend?.direction === 'down' ? TrendingDown : Minus;
 
   return (
-    <Card className="p-5 transition-shadow hover:shadow-card-hover">
-      <div className="flex items-center gap-4">
+    <div className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-colors duration-100 hover:bg-[var(--color-surface-secondary)]">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-medium text-[var(--color-text-secondary)]">
+          {label}
+        </p>
         <div
           className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-lg',
-            iconColor || 'bg-brand-500/10 text-brand-500'
+            'flex h-7 w-7 items-center justify-center rounded-md',
+            iconColor || 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-secondary)]'
           )}
         >
-          <Icon size={20} />
-        </div>
-        <div className="flex-1">
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-tertiary)]">
-            {label}
-          </p>
-          <div className="mt-0.5 flex items-baseline gap-2">
-            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{value}</p>
-            {trend && (
-              <span
-                className={cn(
-                  'inline-flex items-center gap-0.5 text-xs font-medium',
-                  trend.direction === 'up' && 'text-emerald-500',
-                  trend.direction === 'down' && 'text-red-500',
-                  trend.direction === 'neutral' && 'text-[var(--color-text-tertiary)]'
-                )}
-              >
-                <TrendIcon size={12} />
-                {trend.value}
-              </span>
-            )}
-          </div>
+          <Icon size={15} strokeWidth={1.8} />
         </div>
       </div>
-    </Card>
+      <div className="flex items-baseline gap-2">
+        <p className="text-2xl font-semibold text-[var(--color-text-primary)] tracking-tight">{value}</p>
+        {trend && (
+          <span
+            className={cn(
+              'inline-flex items-center gap-0.5 text-xs',
+              trend.direction === 'up' && 'text-emerald-600 dark:text-emerald-400',
+              trend.direction === 'down' && 'text-red-600 dark:text-red-400',
+              trend.direction === 'neutral' && 'text-[var(--color-text-tertiary)]'
+            )}
+          >
+            <TrendIcon size={12} strokeWidth={2} />
+            {trend.value}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }

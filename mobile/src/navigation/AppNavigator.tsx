@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, memo } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../context/AuthContext';
@@ -18,22 +18,28 @@ import WorkoutSessionScreen from '../screens/WorkoutSessionScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function MainTabs() {
+const TAB_SCREEN_OPTIONS = {
+  tabBarActiveTintColor: '#007AFF',
+  tabBarInactiveTintColor: '#8E8E93',
+  tabBarStyle: {
+    backgroundColor: '#000000',
+    borderTopColor: '#1C1C1E',
+  },
+  headerStyle: {
+    backgroundColor: '#000000',
+  },
+  headerTintColor: '#FFFFFF',
+};
+
+const STACK_SCREEN_OPTIONS = {
+  headerStyle: { backgroundColor: '#000000' },
+  headerTintColor: '#FFFFFF',
+  contentStyle: { backgroundColor: '#000000' },
+};
+
+const MainTabs = memo(function MainTabs() {
   return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
-        tabBarStyle: {
-          backgroundColor: '#000000',
-          borderTopColor: '#1C1C1E',
-        },
-        headerStyle: {
-          backgroundColor: '#000000',
-        },
-        headerTintColor: '#FFFFFF',
-      }}
-    >
+    <Tab.Navigator screenOptions={TAB_SCREEN_OPTIONS}>
       <Tab.Screen 
         name="Home" 
         component={HomeScreen}
@@ -76,27 +82,17 @@ function MainTabs() {
       />
     </Tab.Navigator>
   );
-}
+});
 
 export default function AppNavigator() {
   const { user, loading, hasOnboarded } = useAuth();
 
   if (loading) {
-    return null; // Or a loading screen
+    return null;
   }
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: '#000000',
-        },
-        headerTintColor: '#FFFFFF',
-        contentStyle: {
-          backgroundColor: '#000000',
-        },
-      }}
-    >
+    <Stack.Navigator screenOptions={STACK_SCREEN_OPTIONS}>
       {!user ? (
         <>
           <Stack.Screen 

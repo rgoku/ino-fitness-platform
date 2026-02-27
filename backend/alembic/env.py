@@ -23,7 +23,7 @@ database_url = os.getenv("DATABASE_URL", "sqlite:///./ino_fitness.db")
 config.set_main_option("sqlalchemy.url", database_url)
 
 # add your model's MetaData object here for 'autogenerate' support
-from app.models import Base
+from app.infrastructure.database.models import Base
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

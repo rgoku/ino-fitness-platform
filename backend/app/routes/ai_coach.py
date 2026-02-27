@@ -5,11 +5,19 @@ from app.models import User, Message
 from app.database import get_db
 from app.auth import get_current_user
 from app.ai_service import AIService
+from app.domain.ai.budget import check_and_increment
 from app.middleware.rate_limit import limiter
 
 router = APIRouter()
-router.state.limiter = limiter
 ai_service = AIService()
+
+
+def _enforce_budget(user: User, task_type: str) -> None:
+    """Check AI budget before calling Claude. Raises 429 if exceeded."""
+    tier = getattr(user, "subscription_tier", "free") or "free"
+    allowed, reason = check_and_increment(user.id, tier, task_type)
+    if not allowed:
+        raise HTTPException(status_code=429, detail=reason)
 
 @router.post("/chat")
 @limiter.limit("30/hour")
@@ -22,6 +30,7 @@ async def chat_with_ai(
     db: Session = Depends(get_db)
 ):
     """Chat with AI fitness coach"""
+    _enforce_budget(current_user, "ai_chat")
     try:
         response = await ai_service.chat_with_ai_coach(user_id, content, context)
         
@@ -57,6 +66,7 @@ async def get_motivation(
     db: Session = Depends(get_db)
 ):
     """Get motivational message"""
+    _enforce_budget(current_user, "motivation")
     try:
         motivation = await ai_service.get_motivation(user_id)
         return {"message": motivation}
@@ -88,6 +98,7 @@ async def get_nutrition_advice(
     db: Session = Depends(get_db)
 ):
     """Get AI nutrition advice"""
+    _enforce_budget(current_user, "supplement_evidence")
     try:
         # Basic nutrition advice via AI service (if available)
         advice = "Focus on lean protein and whole grains for this meal"
@@ -175,6 +186,7 @@ async def ask_question(
     db: Session = Depends(get_db)
 ):
     """Ask AI coach a question"""
+    _enforce_budget(current_user, "ai_chat")
     try:
         response = await ai_service.chat_with_ai_coach(user_id, question, category)
         

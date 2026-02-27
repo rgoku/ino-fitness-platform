@@ -13,45 +13,44 @@ export function TopBar() {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-surface/80 px-4 backdrop-blur-md lg:px-6">
-      {/* Mobile menu button */}
+    <header className="sticky top-0 z-30 flex h-11 items-center gap-3 bg-[var(--color-surface)] px-4 lg:px-6">
+      {/* Mobile menu */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="rounded-md p-1.5 text-[var(--color-text-secondary)] hover:bg-surface-secondary lg:hidden"
+        className="rounded-[5px] p-1 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] lg:hidden"
       >
-        <Menu size={20} />
+        <Menu size={18} strokeWidth={1.8} />
       </button>
 
       {/* Search */}
-      <div className="relative flex-1 max-w-md">
+      <div className="relative flex-1 max-w-sm">
         <Search
-          size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]"
+          size={15}
+          strokeWidth={1.8}
+          className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-tertiary)]"
         />
         <input
           type="text"
-          placeholder="Search clients, programs..."
+          placeholder="Search..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className={cn(
-            'w-full rounded-lg border border-border bg-surface-secondary py-1.5 pl-9 pr-3 text-sm',
+            'w-full rounded-md border-0 bg-[var(--color-surface-tertiary)] py-1 pl-8 pr-3 text-sm',
             'text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)]',
-            'focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500'
+            'focus:bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]'
           )}
         />
       </div>
 
-      <div className="flex items-center gap-1">
-        {/* Theme toggle */}
+      <div className="flex items-center gap-0.5">
         <button
           onClick={toggleTheme}
-          className="rounded-lg p-2 text-[var(--color-text-secondary)] hover:bg-surface-secondary hover:text-[var(--color-text-primary)] transition-colors"
+          className="rounded-[5px] p-1.5 text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-text-secondary)] transition-colors duration-75"
           title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
         >
-          {resolvedTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          {resolvedTheme === 'dark' ? <Sun size={16} strokeWidth={1.8} /> : <Moon size={16} strokeWidth={1.8} />}
         </button>
 
-        {/* Notifications */}
         <NotificationPanel />
       </div>
     </header>

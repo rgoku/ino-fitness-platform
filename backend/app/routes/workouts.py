@@ -1,18 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Query, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from datetime import datetime, timedelta
-from typing import List
-import json
 
 from app.models import User, WorkoutPlan, Exercise, WorkoutSession
-from app.schemas import WorkoutPlanCreate, ExerciseCreate
 from app.database import get_db
 from app.auth import get_current_user
 from app.ai_service import AIService
+from app.domain.ai.budget import check_and_increment
 from app.middleware.rate_limit import limiter
 
 router = APIRouter()
-router.state.limiter = limiter
 ai_service = AIService()
 
 @router.post("/plans/generate")
@@ -22,6 +19,10 @@ async def generate_workout_plan(
     db: Session = Depends(get_db)
 ):
     """Generate an AI-powered workout plan based on user biometrics"""
+    tier = getattr(current_user, "subscription_tier", "free") or "free"
+    allowed, reason = check_and_increment(current_user.id, tier, "generate_workout")
+    if not allowed:
+        raise HTTPException(status_code=429, detail=reason)
     try:
         # Use AI service to generate personalized plan
         plan_data = await ai_service.generate_workout_plan(
@@ -72,7 +73,12 @@ async def get_workout_plans(
     db: Session = Depends(get_db)
 ):
     """Get all workout plans for a user"""
-    plans = db.query(WorkoutPlan).filter(WorkoutPlan.user_id == user_id).all()
+    plans = (
+        db.query(WorkoutPlan)
+        .options(selectinload(WorkoutPlan.exercises))
+        .filter(WorkoutPlan.user_id == user_id)
+        .all()
+    )
     return plans
 
 @router.get("/plans/{plan_id}")
@@ -82,7 +88,12 @@ async def get_workout_plan(
     db: Session = Depends(get_db)
 ):
     """Get a specific workout plan with exercises"""
-    plan = db.query(WorkoutPlan).filter(WorkoutPlan.id == plan_id).first()
+    plan = (
+        db.query(WorkoutPlan)
+        .options(joinedload(WorkoutPlan.exercises))
+        .filter(WorkoutPlan.id == plan_id)
+        .first()
+    )
     if not plan or plan.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Workout plan not found")
     return plan
@@ -226,8 +237,12 @@ async def get_workout_sessions(
     db: Session = Depends(get_db)
 ):
     """Get recent workout sessions"""
-    sessions = db.query(WorkoutSession).filter(
-        WorkoutSession.user_id == user_id
-    ).order_by(WorkoutSession.date.desc()).limit(limit).all()
-    
+    sessions = (
+        db.query(WorkoutSession)
+        .options(selectinload(WorkoutSession.workout_plan))
+        .filter(WorkoutSession.user_id == user_id)
+        .order_by(WorkoutSession.date.desc())
+        .limit(limit)
+        .all()
+    )
     return sessions

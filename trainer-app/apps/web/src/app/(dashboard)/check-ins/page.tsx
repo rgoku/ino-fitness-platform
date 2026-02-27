@@ -11,12 +11,11 @@ export default function CheckInsPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Check-ins</h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          Review client workout submissions
-        </p>
-      </div>
+      <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">
+        Check-ins{checkIns && checkIns.length > 0 && (
+          <span className="ml-2 text-base font-normal text-[var(--color-text-tertiary)]">{checkIns.length} pending</span>
+        )}
+      </h1>
 
       {isLoading ? (
         <div className="space-y-4">
@@ -27,8 +26,8 @@ export default function CheckInsPage() {
       ) : !checkIns || checkIns.length === 0 ? (
         <EmptyState
           icon={ClipboardCheck}
-          title="No check-ins to review"
-          description="Client workout logs will appear here."
+          title="All caught up"
+          description="Nothing to review right now. New check-ins land here as clients log their sessions."
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

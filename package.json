@@ -3,10 +3,7 @@
   "version": "1.0.0",
   "description": "INÖ Fitness App - Monorepo",
   "private": true,
-  "workspaces": [
-    "mobile",
-    "coach-portal"
-  ],
+  "workspaces": ["mobile", "coach-portal"],
   "scripts": {
     "mobile": "cd mobile && npm start",
     "mobile:ios": "cd mobile && npm run ios",
@@ -15,14 +12,11 @@
     "coach-portal": "cd coach-portal && npm start",
     "install:all": "npm install && cd mobile && npm install && cd ../coach-portal && npm install && cd ../backend && pip install -r requirements.txt"
   },
-  "keywords": [
-    "fitness",
-    "ai",
-    "health",
-    "workout",
-    "nutrition"
-  ],
+  "keywords": ["fitness", "ai", "health", "workout", "nutrition"],
   "author": "INÖ Team",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "react": "18.2.0",
+    "@types/react": "~18.2.45"
+  }
 }
-

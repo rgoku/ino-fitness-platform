@@ -58,7 +58,6 @@
 | **LAUNCH_CHECKLIST.md** | Pre-launch tasks | 20 min | ⭐⭐ |
 | **MONETIZATION_STRATEGY.md** | Revenue models | 25 min | ⭐ |
 | **CODE_SNIPPETS.md** | Copy-paste ready code | 15 min | ⭐ |
-| **RESOURCE_GUIDE.md** | Index of everything | 10 min | ⭐ |
 
 ---
 

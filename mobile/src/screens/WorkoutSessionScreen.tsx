@@ -12,6 +12,8 @@ import {
 import { WorkoutPlan, Exercise, WorkoutSession, ExerciseSession } from '../types';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
+import * as offlineCache from '../services/offlineCache';
+import { offlineQueue } from '../services/offlineQueue';
 
 const WorkoutSessionScreen = ({ route, navigation }: any) => {
   const { workoutPlanId } = route.params || {};
@@ -23,17 +25,21 @@ const WorkoutSessionScreen = ({ route, navigation }: any) => {
   const [started, setStarted] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [exerciseSessions, setExerciseSessions] = useState<{ [key: string]: ExerciseSession }>({});
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
     loadWorkoutData();
   }, [workoutPlanId]);
 
   const loadWorkoutData = async () => {
+    const cachedPlan = await offlineCache.getCached<WorkoutPlan>(offlineCache.CACHE_KEYS.WORKOUT_PLAN);
+    const cachedSession = workoutPlanId
+      ? await offlineCache.getCached<WorkoutSession>(offlineCache.CACHE_KEYS.WORKOUT_SESSION(workoutPlanId))
+      : null;
     try {
       const plan = await apiService.get<WorkoutPlan>(`/workout-plans/${workoutPlanId}`);
       setWorkoutPlan(plan);
-      
-      // Check for existing session
+      setIsOffline(false);
       try {
         const session = await apiService.get<WorkoutSession>(`/workout-sessions/today/${workoutPlanId}`);
         setWorkoutSession(session);
@@ -42,11 +48,25 @@ const WorkoutSessionScreen = ({ route, navigation }: any) => {
           acc[ex.exerciseId] = ex;
           return acc;
         }, {} as { [key: string]: ExerciseSession }));
+        await offlineCache.setCached(offlineCache.CACHE_KEYS.WORKOUT_SESSION(workoutPlanId), session);
       } catch {
-        // No existing session, create new one
+        // No existing session
       }
-    } catch (error) {
-      console.error('Error loading workout data:', error);
+    } catch (error: any) {
+      if (error?.message === 'Offline' && cachedPlan?.id === workoutPlanId) {
+        setWorkoutPlan(cachedPlan);
+        setIsOffline(true);
+        if (cachedSession) {
+          setWorkoutSession(cachedSession);
+          setStarted(true);
+          setExerciseSessions(cachedSession.exercises.reduce((acc, ex) => {
+            acc[ex.exerciseId] = ex;
+            return acc;
+          }, {} as { [key: string]: ExerciseSession }));
+        }
+      } else {
+        console.error('Error loading workout data:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -61,27 +81,43 @@ const WorkoutSessionScreen = ({ route, navigation }: any) => {
       });
       setWorkoutSession(session);
       setStarted(true);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to start workout');
-      console.error(error);
+      await offlineCache.setCached(offlineCache.CACHE_KEYS.WORKOUT_SESSION(workoutPlan.id), session);
+    } catch (error: any) {
+      if (error?.message === 'Offline') {
+        await offlineQueue.queueRequest('POST', '/workout-sessions', { workoutPlanId: workoutPlan.id });
+        Alert.alert('Offline', 'Workout will start when you\'re back online.');
+      } else {
+        Alert.alert('Error', 'Failed to start workout');
+        console.error(error);
+      }
     }
   };
 
   const completeWorkout = async () => {
     if (!workoutSession) return;
 
+    const duration = Math.floor((Date.now() - new Date(workoutSession.date).getTime()) / 1000 / 60);
+    const payload = { completed: true, duration, exercises: Object.values(exerciseSessions) };
+    setCompleted(true);
+
     try {
-      const duration = Math.floor((Date.now() - new Date(workoutSession.date).getTime()) / 1000 / 60);
-      await apiService.patch(`/workout-sessions/${workoutSession.id}`, {
+      await apiService.patch(`/workout-sessions/${workoutSession.id}`, payload);
+      await offlineCache.setCached(offlineCache.CACHE_KEYS.WORKOUT_SESSION(workoutPlan!.id), {
+        ...workoutSession,
         completed: true,
         duration,
         exercises: Object.values(exerciseSessions),
       });
-      setCompleted(true);
       Alert.alert('Great job!', 'Workout completed successfully!');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to complete workout');
-      console.error(error);
+    } catch (error: any) {
+      if (error?.message === 'Offline') {
+        await offlineQueue.queueRequest('PATCH', `/workout-sessions/${workoutSession.id}`, payload);
+        Alert.alert('Completed!', 'Workout will sync when you\'re back online.');
+      } else {
+        setCompleted(false);
+        Alert.alert('Error', 'Failed to save completion. Please try again.');
+        console.error(error);
+      }
     }
   };
 

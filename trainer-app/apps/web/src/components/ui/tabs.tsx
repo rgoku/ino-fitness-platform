@@ -11,24 +11,24 @@ interface TabsProps {
 
 export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
   return (
-    <div className={cn('flex gap-1 border-b border-border', className)}>
+    <div className={cn('flex border-b border-border', className)}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
           className={cn(
-            'relative px-4 py-2.5 text-sm font-medium transition-colors',
+            'relative flex-1 min-w-0 px-2 py-2.5 text-xs font-medium transition-colors text-center',
             activeTab === tab.id
               ? 'text-brand-500'
               : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
           )}
         >
-          <span className="flex items-center gap-1.5">
-            {tab.label}
-            {tab.count !== undefined && (
+          <span className="flex items-center justify-center gap-1">
+            <span className="truncate">{tab.label}</span>
+            {undefined !== tab.count && (
               <span
                 className={cn(
-                  'rounded-full px-1.5 py-0.5 text-xs',
+                  'rounded-full px-1.5 py-0.5 text-[10px] shrink-0',
                   activeTab === tab.id
                     ? 'bg-brand-500/10 text-brand-500'
                     : 'bg-surface-tertiary text-[var(--color-text-tertiary)]'

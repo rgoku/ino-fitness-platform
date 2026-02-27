@@ -17,10 +17,10 @@ export function RecentActivity() {
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-center gap-3">
-              <Skeleton className="h-8 w-8 rounded-full" />
+            <div key={i} className="flex items-center gap-3 p-1.5">
+              <Skeleton className="h-7 w-7 rounded-full" />
               <div className="flex-1">
                 <Skeleton className="h-3 w-24" />
                 <Skeleton className="mt-1.5 h-3 w-36" />
@@ -36,7 +36,7 @@ export function RecentActivity() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Activity size={16} className="text-brand-500" />
+          <Activity size={14} strokeWidth={2} className="text-[var(--color-accent)]" />
           Recent Activity
         </CardTitle>
       </CardHeader>
@@ -44,16 +44,16 @@ export function RecentActivity() {
         {!sets || sets.length === 0 ? (
           <EmptyState
             icon={Dumbbell}
-            title="No activity yet"
-            description="Client workout logs will appear here."
+            title="Quiet day"
+            description="Logged sets show up here as your clients train."
             className="py-6"
           />
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {sets.map((set) => (
               <div
                 key={set.id}
-                className="flex items-center gap-3 rounded-lg p-2"
+                className="flex items-center gap-3 rounded-md p-1.5 -mx-1"
               >
                 <Avatar name={set.client_name} size="sm" />
                 <div className="flex-1 min-w-0">
@@ -65,7 +65,7 @@ export function RecentActivity() {
                     {set.weight ? ` — ${set.weight}kg x ${set.reps}` : ` — ${set.reps} reps`}
                   </p>
                 </div>
-                <span className="shrink-0 text-xs text-[var(--color-text-tertiary)]">
+                <span className="shrink-0 text-[11px] text-[var(--color-text-tertiary)]">
                   {formatRelativeTime(set.completed_at)}
                 </span>
               </div>

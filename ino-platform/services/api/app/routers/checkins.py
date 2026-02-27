@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,11 +15,11 @@ router = APIRouter()
 
 
 class ReadinessInput(BaseModel):
-    sleep_quality: int
-    energy_level: int
-    stress_level: int
-    soreness: int
-    notes: str = ""
+    sleep_quality: int = Field(ge=1, le=5)
+    energy_level: int = Field(ge=1, le=5)
+    stress_level: int = Field(ge=1, le=5)
+    soreness: int = Field(ge=1, le=5)
+    notes: str = Field(default="", max_length=2000)
 
 
 class WeeklyInput(BaseModel):

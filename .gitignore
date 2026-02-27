@@ -33,6 +33,19 @@ build/
 .mypy_cache/
 .pytest_cache/
 
+# Next.js
+.next/
+out/
+
+# Turbo
+.turbo/
+
+# Claude Code
+.claude/
+
+# TypeScript build info
+*.tsbuildinfo
+
 # Expo
 .expo/
 .expo-shared/
@@ -72,4 +85,8 @@ coverage/
 *.tmp
 *.temp
 .cache/
+
+# Package lock files (keep package-lock.json but ignore others)
+yarn.lock
+pnpm-lock.yaml
 

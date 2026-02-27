@@ -47,42 +47,40 @@ async def get_coach_stats(
 ):
     now = datetime.now(timezone.utc)
     thirty_days = now - timedelta(days=30)
-    sixty_days = now - timedelta(days=60)
 
-    # Active clients
-    active = (await db.execute(
-        select(func.count()).where(Client.coach_id == coach.id, Client.status.in_(["active", "at_risk"]))
-    )).scalar() or 0
-
-    # At-risk count
-    at_risk = (await db.execute(
-        select(func.count()).where(Client.coach_id == coach.id, Client.status == "at_risk")
-    )).scalar() or 0
-
-    # Avg adherence (last 30 days)
-    total_assigned = (await db.execute(
-        select(func.count()).select_from(WorkoutAssignment).join(Client).where(
-            Client.coach_id == coach.id, WorkoutAssignment.scheduled_date >= thirty_days,
-        )
-    )).scalar() or 0
-    total_completed = (await db.execute(
-        select(func.count()).select_from(WorkoutAssignment).join(Client).where(
-            Client.coach_id == coach.id, WorkoutAssignment.scheduled_date >= thirty_days,
-            WorkoutAssignment.completed_at.isnot(None),
-        )
-    )).scalar() or 0
-    avg_adherence = round((total_completed / total_assigned * 100) if total_assigned > 0 else 0, 1)
-
-    # Retention: clients active now vs 30 days ago
-    active_30d = (await db.execute(
-        select(func.count()).where(Client.coach_id == coach.id, Client.start_date <= thirty_days, Client.status != "churned")
-    )).scalar() or 0
-    total_30d = (await db.execute(
-        select(func.count()).where(Client.coach_id == coach.id, Client.start_date <= thirty_days)
-    )).scalar() or 0
+    # --- Query 1: all client counts in a single round-trip ----------------
+    client_row = (await db.execute(
+        select(
+            func.count().filter(Client.status.in_(["active", "at_risk"])).label("active"),
+            func.count().filter(Client.status == "at_risk").label("at_risk"),
+            func.count().filter(Client.start_date <= thirty_days).label("total_30d"),
+            func.count().filter(
+                Client.start_date <= thirty_days, Client.status != "churned"
+            ).label("active_30d"),
+        ).where(Client.coach_id == coach.id)
+    )).one()
+    active = client_row.active
+    at_risk = client_row.at_risk
+    total_30d = client_row.total_30d
+    active_30d = client_row.active_30d
     retention = round((active_30d / total_30d * 100) if total_30d > 0 else 100, 1)
 
-    # Pending video reviews
+    # --- Query 2: adherence + pending videos in a single round-trip -------
+    adherence_row = (await db.execute(
+        select(
+            func.count().label("total_assigned"),
+            func.count().filter(
+                WorkoutAssignment.completed_at.isnot(None)
+            ).label("total_completed"),
+        ).select_from(WorkoutAssignment).join(Client).where(
+            Client.coach_id == coach.id,
+            WorkoutAssignment.scheduled_date >= thirty_days,
+        )
+    )).one()
+    total_assigned = adherence_row.total_assigned
+    total_completed = adherence_row.total_completed
+    avg_adherence = round((total_completed / total_assigned * 100) if total_assigned > 0 else 0, 1)
+
     pending_videos = (await db.execute(
         select(func.count()).where(VideoReview.coach_id == coach.id, VideoReview.status == "pending")
     )).scalar() or 0
@@ -93,6 +91,6 @@ async def get_coach_stats(
         "retention_rate": retention,
         "at_risk_count": at_risk,
         "pending_video_reviews": pending_videos,
-        "monthly_revenue": 0,       # populated from Stripe via billing service
+        "monthly_revenue": 0,
         "revenue_change": 0,
     }

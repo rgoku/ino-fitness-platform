@@ -1,5 +1,6 @@
 fastapi==0.111.0
 uvicorn[standard]==0.30.0
+gunicorn==22.0.0
 pydantic[email]==2.7.0
 pydantic-settings==2.3.0
 sqlalchemy[asyncio]==2.0.30
@@ -13,3 +14,6 @@ stripe==9.0.0
 redis==5.0.0
 celery==5.4.0
 httpx==0.27.0
+structlog==24.1.0
+sentry-sdk[fastapi]==1.40.0
+anthropic==0.39.0

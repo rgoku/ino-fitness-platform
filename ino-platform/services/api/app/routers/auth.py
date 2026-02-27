@@ -1,25 +1,49 @@
 """Authentication endpoints — real DB queries."""
-from typing import Annotated
+import re
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.security import create_access_token, create_refresh_token, decode_token, get_current_user
+from app.core.security import (
+    blacklist_token, create_access_token, create_refresh_token,
+    decode_token, get_current_user,
+)
 from app.models import User, Coach, Client
 from services.auth.service import hash_password, verify_password, generate_coach_code
 
 router = APIRouter()
+
+# Minimum 8 chars, at least one uppercase, one lowercase, one digit, one special char
+_PASSWORD_RE = re.compile(
+    r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?`~])"
+    r".{8,128}$"
+)
 
 
 class SignupRequest(BaseModel):
     email: EmailStr
     password: str
     name: str
-    role: str = "coach"
+    role: Literal["coach", "client"] = "coach"
+
+    @field_validator("password")
+    @classmethod
+    def password_complexity(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        if len(v) > 128:
+            raise ValueError("Password must be at most 128 characters")
+        if not _PASSWORD_RE.match(v):
+            raise ValueError(
+                "Password must contain at least one uppercase letter, "
+                "one lowercase letter, one digit, and one special character"
+            )
+        return v
 
 
 class LoginRequest(BaseModel):
@@ -108,6 +132,15 @@ async def refresh(body: RefreshRequest, db: Annotated[AsyncSession, Depends(get_
     access = create_access_token(str(user.id), user.role)
     refresh_tok = create_refresh_token(str(user.id))
     return TokenResponse(access_token=access, refresh_token=refresh_tok, expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+
+
+@router.post("/logout")
+async def logout(user: Annotated[dict, Depends(get_current_user)]):
+    """Revoke the current access token by blacklisting its JTI."""
+    jti = user.get("jti", "")
+    if jti:
+        blacklist_token(jti, settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    return {"logged_out": True}
 
 
 @router.get("/me", response_model=UserResponse)

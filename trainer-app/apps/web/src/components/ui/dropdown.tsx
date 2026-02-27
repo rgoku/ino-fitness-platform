@@ -31,7 +31,7 @@ export function Dropdown({ trigger, children, align = 'left', className }: Dropd
       {open && (
         <div
           className={cn(
-            'absolute top-full z-50 mt-1 min-w-[180px] rounded-lg border border-border bg-surface p-1 shadow-overlay animate-fade-in',
+            'absolute top-full z-50 mt-1 min-w-[180px] rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-1 shadow-overlay animate-fade-in',
             align === 'right' ? 'right-0' : 'left-0',
             className
           )}
@@ -52,10 +52,10 @@ export function DropdownItem({ className, destructive, ...props }: DropdownItemP
   return (
     <button
       className={cn(
-        'flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors',
+        'flex w-full items-center gap-2 rounded-[5px] px-3 py-1.5 text-sm transition-colors duration-75',
         destructive
           ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
-          : 'text-[var(--color-text-primary)] hover:bg-surface-secondary',
+          : 'text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]',
         className
       )}
       {...props}

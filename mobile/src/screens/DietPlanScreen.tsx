@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,49 +6,130 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  FlatList,
 } from 'react-native';
 import { DietPlan, Meal } from '../types';
 import { apiService } from '../services/apiService';
-import { useAuth } from '../context/AuthContext';
+import * as offlineCache from '../services/offlineCache';
+import { offlineQueue } from '../services/offlineQueue';
 
-const DietPlanScreen = () => {
-  const { user } = useAuth();
+const MealCard = React.memo(({ item, onSwapMeal }: { item: Meal; onSwapMeal?: (mealId: string, alternativeId: string) => void }) => {
+  const handleSwap = onSwapMeal && item.alternativeMeals?.[0]
+    ? () => onSwapMeal(item.id, item.alternativeMeals![0].id)
+    : undefined;
+  return (
+    <View style={styles.mealCard}>
+      <Text style={styles.mealType}>{item.type?.toUpperCase() ?? 'MEAL'}</Text>
+      <Text style={styles.mealName}>{item.name}</Text>
+      <View style={styles.macrosRow}>
+        <Text style={styles.macroText}>{Math.round(item.macros?.calories ?? 0)} cal</Text>
+        <Text style={styles.macroText}>P: {Math.round(item.macros?.protein ?? 0)}g</Text>
+        <Text style={styles.macroText}>C: {Math.round(item.macros?.carbs ?? 0)}g</Text>
+        <Text style={styles.macroText}>F: {Math.round(item.macros?.fat ?? 0)}g</Text>
+      </View>
+      {item.swappable && item.alternativeMeals && item.alternativeMeals.length > 0 && handleSwap && (
+        <TouchableOpacity style={styles.swapButton} onPress={handleSwap}>
+          <Text style={styles.swapButtonText}>Swap Meal</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+});
+MealCard.displayName = 'MealCard';
+
+const DietPlanScreen = React.memo(() => {
   const [dietPlan, setDietPlan] = useState<DietPlan | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDay, setSelectedDay] = useState(new Date().toLocaleDateString('en-US', { weekday: 'long' }));
+  const [isOffline, setIsOffline] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(() =>
+    new Date().toLocaleDateString('en-US', { weekday: 'long' })
+  );
 
-  useEffect(() => {
-    loadDietPlan();
-  }, []);
-
-  const loadDietPlan = async () => {
+  const loadDietPlan = useCallback(async (fromCacheOnly = false) => {
+    const cached = await offlineCache.getCached<DietPlan>(offlineCache.CACHE_KEYS.DIET_PLAN);
+    if (cached) {
+      setDietPlan(cached);
+      setIsOffline(false);
+    }
+    if (fromCacheOnly) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     try {
-      const plan = await apiService.get<DietPlan>(`/diet-plans/current`);
+      const plan = await apiService.get<DietPlan>('/diet-plans/current');
       setDietPlan(plan);
-    } catch (error) {
-      console.error('Error loading diet plan:', error);
+      await offlineCache.setCached(offlineCache.CACHE_KEYS.DIET_PLAN, plan);
+      setIsOffline(false);
+    } catch (error: any) {
+      if (error?.message === 'Offline' && cached) {
+        setIsOffline(true);
+      } else {
+        console.error('Error loading diet plan:', error);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const generateGroceryList = () => {
+  useEffect(() => {
+    loadDietPlan();
+  }, [loadDietPlan]);
+
+  useEffect(() => {
+    const unsub = offlineCache.onReconnect(() => loadDietPlan());
+    return unsub;
+  }, [loadDietPlan]);
+
+  const generateGroceryList = useCallback(() => {
     // Navigate to grocery list screen
-    // This would aggregate all ingredients from the weekly plan
-  };
+  }, []);
 
-  const swapMeal = async (mealId: string, alternativeMealId: string) => {
-    try {
-      await apiService.post(`/diet-plans/${dietPlan?.id}/swap-meal`, {
-        mealId,
-        alternativeMealId,
-      });
-      loadDietPlan();
-    } catch (error) {
-      console.error('Error swapping meal:', error);
-    }
-  };
+  const swapMeal = useCallback(
+    async (mealId: string, alternativeMealId: string) => {
+      if (!dietPlan?.id) return;
+      let alternativeMeal: Meal | undefined;
+      for (const day of Object.values(dietPlan.weeklyPlan)) {
+        const meal = day.find((m) => m.id === mealId);
+        if (meal?.alternativeMeals) {
+          alternativeMeal = meal.alternativeMeals.find((m) => m.id === alternativeMealId);
+          break;
+        }
+      }
+      const prevPlan = dietPlan;
+      if (alternativeMeal) {
+        const optimisticPlan: DietPlan = {
+          ...dietPlan,
+          weeklyPlan: { ...dietPlan.weeklyPlan },
+        };
+        for (const day of Object.keys(optimisticPlan.weeklyPlan)) {
+          optimisticPlan.weeklyPlan[day] = optimisticPlan.weeklyPlan[day].map((m) =>
+            m.id === mealId ? alternativeMeal! : m
+          );
+        }
+        setDietPlan(optimisticPlan);
+        await offlineCache.setCached(offlineCache.CACHE_KEYS.DIET_PLAN, optimisticPlan);
+      }
+      try {
+        await apiService.post(`/diet-plans/${dietPlan.id}/swap-meal`, {
+          mealId,
+          alternativeMealId,
+        });
+        loadDietPlan();
+      } catch (error: any) {
+        if (error?.message === 'Offline') {
+          await offlineQueue.queueRequest('POST', `/diet-plans/${dietPlan.id}/swap-meal`, {
+            mealId,
+            alternativeMealId,
+          });
+        } else if (alternativeMeal) {
+          setDietPlan(prevPlan);
+          await offlineCache.setCached(offlineCache.CACHE_KEYS.DIET_PLAN, prevPlan);
+          console.error('Error swapping meal:', error);
+        }
+      }
+    },
+    [dietPlan, loadDietPlan]
+  );
 
   if (loading) {
     return (
@@ -73,6 +154,11 @@ const DietPlanScreen = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {isOffline && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineBannerText}>Showing cached plan. Changes will sync when back online.</Text>
+        </View>
+      )}
       <View style={styles.header}>
         <Text style={styles.title}>Diet Plan</Text>
         <TouchableOpacity style={styles.groceryButton} onPress={generateGroceryList}>
@@ -100,35 +186,9 @@ const DietPlanScreen = () => {
         ))}
       </View>
 
-      <FlatList
-        data={todayMeals}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.mealCard}>
-            <Text style={styles.mealType}>{item.type.toUpperCase()}</Text>
-            <Text style={styles.mealName}>{item.name}</Text>
-            <View style={styles.macrosRow}>
-              <Text style={styles.macroText}>
-                {Math.round(item.macros.calories)} cal
-              </Text>
-              <Text style={styles.macroText}>
-                P: {Math.round(item.macros.protein)}g
-              </Text>
-              <Text style={styles.macroText}>
-                C: {Math.round(item.macros.carbs)}g
-              </Text>
-              <Text style={styles.macroText}>
-                F: {Math.round(item.macros.fat)}g
-              </Text>
-            </View>
-            {item.swappable && item.alternativeMeals && (
-              <TouchableOpacity style={styles.swapButton}>
-                <Text style={styles.swapButtonText}>Swap Meal</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      />
+      {todayMeals.map((item) => (
+        <MealCard key={item.id} item={item} onSwapMeal={swapMeal} />
+      ))}
 
       {dietPlan.citations && dietPlan.citations.length > 0 && (
         <View style={styles.citationsCard}>
@@ -142,7 +202,9 @@ const DietPlanScreen = () => {
       )}
     </ScrollView>
   );
-};
+});
+
+DietPlanScreen.displayName = 'DietPlanScreen';
 
 const styles = StyleSheet.create({
   container: {
@@ -269,6 +331,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 16,
+  },
+  offlineBanner: {
+    backgroundColor: '#3A3A3C',
+    padding: 10,
+    marginBottom: 12,
+    borderRadius: 8,
+  },
+  offlineBannerText: {
+    color: '#8E8E93',
+    fontSize: 12,
+    textAlign: 'center',
   },
 });
 

@@ -37,5 +37,4 @@ async def test_get_supplement_recommendations_monkeypatched(monkeypatch):
         assert s.get("evidence_summary") is not None
         assert s.get("evidence_level") == "moderate"
 
-    assert "meta" in result
-    assert "generated_at" in result["meta"]
+    assert "generated_at" in result

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,144 +14,134 @@ import { Message } from '../types';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
 
-const ChatScreen = ({ route }: any) => {
+const MessageItem = React.memo(({ item }: { item: Message }) => {
+  const isUser = item.senderType === 'user';
+  const isAI = item.senderType === 'ai';
+  return (
+    <View
+      style={[
+        styles.messageContainer,
+        isUser ? styles.userMessageContainer : styles.otherMessageContainer,
+      ]}
+    >
+      <View
+        style={[
+          styles.messageBubble,
+          isUser ? styles.userMessage : styles.otherMessage,
+          isAI && styles.aiMessage,
+        ]}
+      >
+        {!isUser && (
+          <Text style={styles.senderLabel}>
+            {isAI ? '🤖 AI Coach' : '👨‍💼 Coach'}
+          </Text>
+        )}
+        <Text
+          style={[
+            styles.messageText,
+            isUser ? styles.userMessageText : styles.otherMessageText,
+          ]}
+        >
+          {item.content}
+        </Text>
+        <Text style={styles.timestamp}>
+          {new Date(item.timestamp).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+          })}
+        </Text>
+      </View>
+    </View>
+  );
+});
+MessageItem.displayName = 'MessageItem';
+
+const ChatScreen = React.memo(({ route }: any) => {
   const { user } = useAuth();
-  const { coachId } = route.params || {};
+  const coachId = route?.params?.coachId;
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
-  useEffect(() => {
-    loadMessages();
-    // Set up polling for new messages
-    const interval = setInterval(loadMessages, 5000);
-    return () => clearInterval(interval);
-  }, [coachId]);
-
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     try {
-      const endpoint = coachId 
-        ? `/messages?coachId=${coachId}`
-        : '/messages';
+      const endpoint = coachId ? `/messages?coachId=${coachId}` : '/messages';
       const data = await apiService.get<Message[]>(endpoint);
-      setMessages(data.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
-      
-      // Scroll to bottom when new messages arrive
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      setMessages(
+        data.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      );
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     } catch (error) {
       console.error('Error loading messages:', error);
     }
-  };
+  }, [coachId]);
 
-  const sendMessage = async () => {
+  useEffect(() => {
+    loadMessages();
+    const interval = setInterval(loadMessages, 5000);
+    return () => clearInterval(interval);
+  }, [loadMessages]);
+
+  const generateAIResponse = useCallback(
+    async (userMessage: string) => {
+      setLoading(true);
+      try {
+        const aiResponse = await apiService.post<Message>('/ai/chat', {
+          message: userMessage,
+          userId: user?.id,
+        });
+        setMessages((prev) => [...prev, aiResponse]);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      } catch (error) {
+        console.error('Error generating AI response:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user?.id]
+  );
+
+  const sendMessage = useCallback(async () => {
     if (!inputText.trim() || sending) return;
-
     const messageText = inputText.trim();
     setInputText('');
     setSending(true);
-
+    const tempMessage: Message = {
+      id: `temp-${Date.now()}`,
+      userId: user?.id || '',
+      coachId,
+      senderType: 'user',
+      content: messageText,
+      timestamp: new Date().toISOString(),
+      read: false,
+    };
+    setMessages((prev) => [...prev, tempMessage]);
     try {
-      // Optimistically add user message
-      const tempMessage: Message = {
-        id: `temp-${Date.now()}`,
-        userId: user?.id || '',
-        coachId: coachId,
-        senderType: 'user',
-        content: messageText,
-        timestamp: new Date().toISOString(),
-        read: false,
-      };
-      setMessages(prev => [...prev, tempMessage]);
-
-      // Send message to backend
       const newMessage = await apiService.post<Message>('/messages', {
-        coachId: coachId,
+        coachId,
         content: messageText,
       });
-
-      // Replace temp message with real one
-      setMessages(prev => prev.map(msg => 
-        msg.id === tempMessage.id ? newMessage : msg
-      ));
-
-      // Trigger AI response if no coach
-      if (!coachId) {
-        await generateAIResponse(messageText);
-      }
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === tempMessage.id ? newMessage : msg))
+      );
+      if (!coachId) await generateAIResponse(messageText);
     } catch (error) {
       console.error('Error sending message:', error);
-      // Remove temp message on error
-      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+      setMessages((prev) => prev.filter((msg) => msg.id !== tempMessage.id));
     } finally {
       setSending(false);
     }
-  };
+  }, [inputText, sending, user?.id, coachId, generateAIResponse]);
 
-  const generateAIResponse = async (userMessage: string) => {
-    setLoading(true);
-    try {
-      const aiResponse = await apiService.post<Message>('/ai/chat', {
-        message: userMessage,
-        userId: user?.id,
-      });
+  const renderMessage = useCallback(({ item }: { item: Message }) => {
+    return <MessageItem item={item} />;
+  }, []);
 
-      setMessages(prev => [...prev, aiResponse]);
-      
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    } catch (error) {
-      console.error('Error generating AI response:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderMessage = ({ item }: { item: Message }) => {
-    const isUser = item.senderType === 'user';
-    const isAI = item.senderType === 'ai';
-
-    return (
-      <View
-        style={[
-          styles.messageContainer,
-          isUser ? styles.userMessageContainer : styles.otherMessageContainer,
-        ]}
-      >
-        <View
-          style={[
-            styles.messageBubble,
-            isUser ? styles.userMessage : styles.otherMessage,
-            isAI && styles.aiMessage,
-          ]}
-        >
-          {!isUser && (
-            <Text style={styles.senderLabel}>
-              {isAI ? '🤖 AI Coach' : '👨‍💼 Coach'}
-            </Text>
-          )}
-          <Text
-            style={[
-              styles.messageText,
-              isUser ? styles.userMessageText : styles.otherMessageText,
-            ]}
-          >
-            {item.content}
-          </Text>
-          <Text style={styles.timestamp}>
-            {new Date(item.timestamp).toLocaleTimeString('en-US', {
-              hour: 'numeric',
-              minute: '2-digit',
-            })}
-          </Text>
-        </View>
-      </View>
-    );
-  };
+  const scrollToEnd = useCallback(() => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -174,7 +164,7 @@ const ChatScreen = ({ route }: any) => {
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
         contentContainerStyle={styles.messagesList}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onContentSizeChange={scrollToEnd}
         ListFooterComponent={
           loading ? (
             <View style={styles.loadingContainer}>
@@ -212,7 +202,7 @@ const ChatScreen = ({ route }: any) => {
       </View>
     </KeyboardAvoidingView>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -337,5 +327,6 @@ const styles = StyleSheet.create({
   },
 });
 
+ChatScreen.displayName = 'ChatScreen';
 export default ChatScreen;
 

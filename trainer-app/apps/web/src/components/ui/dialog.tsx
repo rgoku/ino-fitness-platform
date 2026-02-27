@@ -38,12 +38,13 @@ export function Dialog({ open, onClose, title, children, className }: DialogProp
       />
       <div
         ref={contentRef}
+        onClick={(e) => e.stopPropagation()}
         className={cn(
-          'relative z-10 w-full max-w-lg rounded-xl border border-border bg-surface shadow-overlay animate-scale-in',
+          'relative z-10 w-full max-w-lg max-h-[calc(100vh-2rem)] flex flex-col rounded-xl border border-border bg-surface shadow-overlay animate-scale-in',
           className
         )}
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
           <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
             {title}
           </h2>
@@ -54,7 +55,7 @@ export function Dialog({ open, onClose, title, children, className }: DialogProp
             <X size={18} />
           </button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="p-5 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>
   );

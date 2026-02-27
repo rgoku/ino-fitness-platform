@@ -27,6 +27,10 @@ class ReviewInput(BaseModel):
     annotations: list[AnnotationInput] = []
 
 
+_ALLOWED_VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/webm", "video/x-msvideo"}
+_MAX_VIDEO_SIZE = 200 * 1024 * 1024  # 200 MB
+
+
 @router.post("/upload", status_code=201)
 async def upload_video(
     exercise_name: str,
@@ -34,7 +38,19 @@ async def upload_video(
     db: Annotated[AsyncSession, Depends(get_db)],
     file: UploadFile = File(...),
 ):
-    # In production: validate type/size, upload to S3, generate thumbnail
+    # Validate content type
+    if file.content_type not in _ALLOWED_VIDEO_TYPES:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            f"Invalid file type '{file.content_type}'. Allowed: mp4, mov, webm, avi",
+        )
+
+    # Validate file size (read first chunk to check)
+    contents = await file.read()
+    if len(contents) > _MAX_VIDEO_SIZE:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Video exceeds 200 MB limit")
+    await file.seek(0)
+
     expires_at = datetime.now(timezone.utc) + timedelta(days=90)
     video = VideoReview(
         client_id=client.id, coach_id=client.coach_id,
@@ -66,12 +82,25 @@ async def list_pending(
 
 @router.get("/{video_id}")
 async def get_video(
-    video_id: str, db: Annotated[AsyncSession, Depends(get_db)],
-    user: Annotated[dict, Depends(get_current_user)] = None,
+    video_id: str,
+    user: Annotated[dict, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     video = (await db.execute(select(VideoReview).where(VideoReview.id == video_id))).scalar_one_or_none()
     if not video:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Video not found")
+
+    # Ownership check: user must be the coach or the client for this video
+    user_id = user["id"]
+    is_coach = (await db.execute(
+        select(Coach).where(Coach.id == video.coach_id, Coach.user_id == user_id)
+    )).scalar_one_or_none()
+    is_client = (await db.execute(
+        select(Client).where(Client.id == video.client_id, Client.user_id == user_id)
+    )).scalar_one_or_none()
+    if not is_coach and not is_client:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Access denied")
+
     return {
         "id": str(video.id), "exercise_name": video.exercise_name,
         "video_url": video.video_url, "status": video.status,

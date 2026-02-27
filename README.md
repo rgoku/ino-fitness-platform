@@ -9,6 +9,7 @@ AI-powered fitness platform with workout tracking, diet plans, form analysis, an
 - **Setup** → [PRODUCTION_SETUP_GUIDE.md](PRODUCTION_SETUP_GUIDE.md)
 - **iOS & Android** → [docs/MOBILE_IOS_ANDROID.md](docs/MOBILE_IOS_ANDROID.md)
 - **Full app info** → [COMPLETE_APP_INFORMATION.md](COMPLETE_APP_INFORMATION.md)
+- **Setup checklist** → [SETUP_CHECKLIST.md](SETUP_CHECKLIST.md)
 - **INO Platform (coach stack)** → [INO_PLATFORM_INTEGRATION.md](INO_PLATFORM_INTEGRATION.md)
 
 ## What’s included
@@ -46,8 +47,10 @@ Then press `i` for iOS simulator or `a` for Android emulator, or scan the QR cod
 | [COMPLETE_CODEBASE_GUIDE.md](COMPLETE_CODEBASE_GUIDE.md) | Technical deep dive |
 | [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) | Pre-launch tasks |
 | [MONETIZATION_STRATEGY.md](MONETIZATION_STRATEGY.md) | Revenue models |
+| [SETUP_CHECKLIST.md](SETUP_CHECKLIST.md) | Step-by-step setup checklist |
 | [INO_PLATFORM_INTEGRATION.md](INO_PLATFORM_INTEGRATION.md) | ino-platform setup and integration |
 | [docs/MOBILE_IOS_ANDROID.md](docs/MOBILE_IOS_ANDROID.md) | Run and build on iOS and Android |
+| [docs/REFERENCED_ASSETS.md](docs/REFERENCED_ASSETS.md) | Referenced zips, ino-platform, ino-fitness.jsx |
 
 ## Tech stack
 

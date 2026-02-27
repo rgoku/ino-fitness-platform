@@ -16,10 +16,7 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <div className="space-y-5">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Analytics</h1>
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Track your coaching performance</p>
-        </div>
+        <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">Analytics</h1>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-80 w-full rounded-xl" />
@@ -31,12 +28,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Analytics</h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          Track your coaching performance
-        </p>
-      </div>
+      <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">Analytics</h1>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <ComplianceChart data={data?.weeklyCompliance || []} />
@@ -48,7 +40,7 @@ export default function AnalyticsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
               <Trophy size={16} className="text-amber-500" />
-              Top Performers
+              Most consistent
             </CardTitle>
           </CardHeader>
           <CardContent>

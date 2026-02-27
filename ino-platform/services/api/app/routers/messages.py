@@ -2,14 +2,14 @@
 from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models import Message, User
+from app.models import Client, Coach, Message, User
 
 router = APIRouter()
 
@@ -122,12 +122,22 @@ async def send_message(
     user: Annotated[dict, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
+    sender_id = user["id"]
+
+    # Verify sender and recipient have a coach-client relationship
+    has_relationship = await _check_relationship(db, sender_id, body.recipient_id)
+    if not has_relationship:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "You can only message users you have a coaching relationship with",
+        )
+
     attachments = []
     if body.attachment_type and body.attachment_url:
         attachments = [{"type": body.attachment_type, "url": body.attachment_url}]
 
     msg = Message(
-        sender_id=user["id"], recipient_id=body.recipient_id,
+        sender_id=sender_id, recipient_id=body.recipient_id,
         content=body.content, attachments=attachments,
     )
     db.add(msg)
@@ -153,3 +163,26 @@ async def mark_read(
     for m in unread:
         m.read_at = now
     return {"marked": len(unread)}
+
+
+async def _check_relationship(db: AsyncSession, user_a_id: str, user_b_id: str) -> bool:
+    """Return True if user_a and user_b have a coach-client relationship."""
+    # Case 1: user_a is a coach and user_b is their client
+    coach_a = (await db.execute(select(Coach).where(Coach.user_id == user_a_id))).scalar_one_or_none()
+    if coach_a:
+        client_b = (await db.execute(
+            select(Client).where(Client.coach_id == coach_a.id, Client.user_id == user_b_id)
+        )).scalar_one_or_none()
+        if client_b:
+            return True
+
+    # Case 2: user_b is a coach and user_a is their client
+    coach_b = (await db.execute(select(Coach).where(Coach.user_id == user_b_id))).scalar_one_or_none()
+    if coach_b:
+        client_a = (await db.execute(
+            select(Client).where(Client.coach_id == coach_b.id, Client.user_id == user_a_id)
+        )).scalar_one_or_none()
+        if client_a:
+            return True
+
+    return False

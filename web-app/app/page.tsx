@@ -1,35 +1,6 @@
-'use client';
-
-import React, { useState } from 'react';
-import HomeScreen from '@/components/screens/HomeScreen';
-import RemindersScreen from '@/components/screens/RemindersScreen';
-import DietScreen from '@/components/screens/DietScreen';
-import ProgressScreen from '@/components/screens/ProgressScreen';
-import ChatScreen from '@/components/screens/ChatScreen';
-import ProfileScreen from '@/components/screens/ProfileScreen';
-import TabBar from '@/components/TabBar';
-
-export default function Page() {
-  const [activeTab, setActiveTab] = useState('home');
-
-  const renderScreen = () => {
-    switch (activeTab) {
-      case 'home': return <HomeScreen />;
-      case 'reminders': return <RemindersScreen />;
-      case 'diet': return <DietScreen />;
-      case 'progress': return <ProgressScreen />;
-      case 'chat': return <ChatScreen />;
-      case 'profile': return <ProfileScreen />;
-      default: return <HomeScreen />;
-    }
-  };
-
-  return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <div className="flex-1 overflow-hidden">
-        {renderScreen()}
-      </div>
-      <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
-    </div>
-  );
-}
+/**
+ * Root route (/) — INÖ Platform landing for coaches.
+ * Pricing: $129 / $249 / $399. CTA to /demo and /#pricing.
+ * Client app (INÖ Fit) lives at /fit.
+ */
+export { default } from './platform/page';

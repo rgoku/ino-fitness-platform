@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from '../lib/react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { DailyMacros, Streak, Trophy } from '../types';
@@ -14,32 +13,97 @@ import { apiService } from '../services/apiService';
 import { workoutService } from '../services/workoutService';
 import { dietService } from '../services/dietService';
 import { aiCoachService } from '../services/aiCoachService';
-import { progressService } from '../services/progressService';
 
-const { width } = Dimensions.get('window');
+const MacrosCard = React.memo(({ macros }: { macros: DailyMacros }) => (
+  <View style={styles.macrosCard}>
+    <Text style={styles.cardTitle}>Today's Macros</Text>
+    <View style={styles.macrosRow}>
+      <View style={styles.macroItem}>
+        <Text style={styles.macroValue}>{Math.round(macros.consumed.calories)}</Text>
+        <Text style={styles.macroLabel}>Calories</Text>
+        <Text style={styles.macroTarget}>/ {Math.round(macros.calories)}</Text>
+      </View>
+      <View style={styles.macroItem}>
+        <Text style={styles.macroValue}>{Math.round(macros.consumed.protein)}g</Text>
+        <Text style={styles.macroLabel}>Protein</Text>
+        <Text style={styles.macroTarget}>/ {Math.round(macros.protein)}g</Text>
+      </View>
+      <View style={styles.macroItem}>
+        <Text style={styles.macroValue}>{Math.round(macros.consumed.carbs)}g</Text>
+        <Text style={styles.macroLabel}>Carbs</Text>
+        <Text style={styles.macroTarget}>/ {Math.round(macros.carbs)}g</Text>
+      </View>
+      <View style={styles.macroItem}>
+        <Text style={styles.macroValue}>{Math.round(macros.consumed.fat)}g</Text>
+        <Text style={styles.macroLabel}>Fat</Text>
+        <Text style={styles.macroTarget}>/ {Math.round(macros.fat)}g</Text>
+      </View>
+    </View>
+  </View>
+));
 
-const HomeScreen = ({ navigation }: any) => {
+const TrophyItem = React.memo(({ trophy }: { trophy: Trophy }) => (
+  <View style={styles.trophyItem}>
+    <Text style={styles.trophyIcon}>{trophy.icon}</Text>
+    <View style={styles.trophyInfo}>
+      <Text style={styles.trophyName}>{trophy.name}</Text>
+      <Text style={styles.trophyDate}>
+        {new Date(trophy.achievedAt).toLocaleDateString()}
+      </Text>
+    </View>
+  </View>
+));
+
+const TrophiesCard = React.memo(({ trophies }: { trophies: Trophy[] }) => {
+  const slice = useMemo(() => trophies.slice(0, 3), [trophies]);
+  if (slice.length === 0) return null;
+  return (
+    <View style={styles.trophiesCard}>
+      <Text style={styles.cardTitle}>Recent Trophies</Text>
+      {slice.map((trophy: Trophy) => (
+        <React.Fragment key={trophy.id}>
+          <TrophyItem trophy={trophy} />
+        </React.Fragment>
+      ))}
+    </View>
+  );
+});
+
+const QuickActions = React.memo(({ onFoodPhoto, onWorkout }: { onFoodPhoto: () => void; onWorkout: () => void }) => (
+  <View style={styles.quickActions}>
+    <TouchableOpacity style={styles.actionButton} onPress={onFoodPhoto}>
+      <Text style={styles.actionButtonText}>📸 Scan Food</Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={styles.actionButton} onPress={onWorkout}>
+      <Text style={styles.actionButtonText}>💪 Start Workout</Text>
+    </TouchableOpacity>
+  </View>
+));
+
+const WorkoutCard = React.memo(({ onPress }: { onPress: () => void }) => (
+  <TouchableOpacity style={styles.workoutCard} onPress={onPress}>
+    <Text style={styles.workoutCardTitle}>Workout of the Day</Text>
+    <Text style={styles.workoutCardSubtitle}>Tap to view plan</Text>
+  </TouchableOpacity>
+));
+
+const HomeScreen = React.memo(({ navigation }: any) => {
   const { user } = useAuth();
-  const [macros, setMacros] = useState<DailyMacros | null>(null);
-  const [streak, setStreak] = useState<Streak | null>(null);
-  const [trophies, setTrophies] = useState<Trophy[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [motivation, setMotivation] = useState<string>('');
-  const [todayWorkout, setTodayWorkout] = useState<any>(null);
-  const [todayMeals, setTodayMeals] = useState<any>(null);
+  const [macros, setMacros] = useState(null) as [DailyMacros | null, (v: DailyMacros | null) => void];
+  const [streak, setStreak] = useState(null) as [Streak | null, (v: Streak | null) => void];
+  const [trophies, setTrophies] = useState([]) as unknown as [Trophy[], (v: Trophy[]) => void];
+  const [loading, setLoading] = useState(true) as [boolean, (v: boolean) => void];
+  const [todayWorkout, setTodayWorkout] = useState(null) as [any, (v: any) => void];
+  const [todayMeals, setTodayMeals] = useState(null) as [any, (v: any) => void];
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [user?.id]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       if (!user?.id) return;
 
       const [macrosData, streakData, trophiesData] = await Promise.all([
         apiService.get<DailyMacros>('/macros/today'),
-        apiService.get<Streak>(`/streaks/${user?.id}`),
-        apiService.get<Trophy[]>(`/trophies/${user?.id}`),
+        apiService.get<Streak>(`/streaks/${user.id}`),
+        apiService.get<Trophy[]>(`/trophies/${user.id}`),
         aiCoachService.getMotivation(user.id),
       ]);
 
@@ -47,22 +111,25 @@ const HomeScreen = ({ navigation }: any) => {
       setStreak(streakData);
       setTrophies(trophiesData);
 
-      // Load today's data
       const plans = await workoutService.getWorkoutPlans(user.id);
-      if (plans.length > 0) {
-        setTodayWorkout(plans[0]);
-      }
+      if (plans.length > 0) setTodayWorkout(plans[0]);
 
       const diets = await dietService.getDietPlans(user.id);
-      if (diets.length > 0) {
-        setTodayMeals(diets[0]);
-      }
+      if (diets.length > 0) setTodayMeals(diets[0]);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
+  const onFoodPhoto = useCallback(() => navigation.navigate('FoodPhoto'), [navigation]);
+  const onWorkout = useCallback(() => navigation.navigate('WorkoutSession'), [navigation]);
+  const onWorkoutCard = useCallback(() => navigation.navigate('Workout'), [navigation]);
 
   if (loading) {
     return (
@@ -84,76 +151,18 @@ const HomeScreen = ({ navigation }: any) => {
         )}
       </View>
 
-      {macros && (
-        <View style={styles.macrosCard}>
-          <Text style={styles.cardTitle}>Today's Macros</Text>
-          <View style={styles.macrosRow}>
-            <View style={styles.macroItem}>
-              <Text style={styles.macroValue}>{Math.round(macros.consumed.calories)}</Text>
-              <Text style={styles.macroLabel}>Calories</Text>
-              <Text style={styles.macroTarget}>/ {Math.round(macros.calories)}</Text>
-            </View>
-            <View style={styles.macroItem}>
-              <Text style={styles.macroValue}>{Math.round(macros.consumed.protein)}g</Text>
-              <Text style={styles.macroLabel}>Protein</Text>
-              <Text style={styles.macroTarget}>/ {Math.round(macros.protein)}g</Text>
-            </View>
-            <View style={styles.macroItem}>
-              <Text style={styles.macroValue}>{Math.round(macros.consumed.carbs)}g</Text>
-              <Text style={styles.macroLabel}>Carbs</Text>
-              <Text style={styles.macroTarget}>/ {Math.round(macros.carbs)}g</Text>
-            </View>
-            <View style={styles.macroItem}>
-              <Text style={styles.macroValue}>{Math.round(macros.consumed.fat)}g</Text>
-              <Text style={styles.macroLabel}>Fat</Text>
-              <Text style={styles.macroTarget}>/ {Math.round(macros.fat)}g</Text>
-            </View>
-          </View>
-        </View>
-      )}
+      {macros && <MacrosCard macros={macros} />}
 
-      <View style={styles.quickActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => navigation.navigate('FoodPhoto')}
-        >
-          <Text style={styles.actionButtonText}>📸 Scan Food</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => navigation.navigate('WorkoutSession')}
-        >
-          <Text style={styles.actionButtonText}>💪 Start Workout</Text>
-        </TouchableOpacity>
-      </View>
+      <QuickActions onFoodPhoto={onFoodPhoto} onWorkout={onWorkout} />
 
-      {trophies.length > 0 && (
-        <View style={styles.trophiesCard}>
-          <Text style={styles.cardTitle}>Recent Trophies</Text>
-          {trophies.slice(0, 3).map((trophy) => (
-            <View key={trophy.id} style={styles.trophyItem}>
-              <Text style={styles.trophyIcon}>{trophy.icon}</Text>
-              <View style={styles.trophyInfo}>
-                <Text style={styles.trophyName}>{trophy.name}</Text>
-                <Text style={styles.trophyDate}>
-                  {new Date(trophy.achievedAt).toLocaleDateString()}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
+      <TrophiesCard trophies={trophies} />
 
-      <TouchableOpacity
-        style={styles.workoutCard}
-        onPress={() => navigation.navigate('Workout')}
-      >
-        <Text style={styles.workoutCardTitle}>Workout of the Day</Text>
-        <Text style={styles.workoutCardSubtitle}>Tap to view plan</Text>
-      </TouchableOpacity>
+      <WorkoutCard onPress={onWorkoutCard} />
     </ScrollView>
   );
-};
+});
+
+export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -285,6 +294,3 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 });
-
-export default HomeScreen;
-

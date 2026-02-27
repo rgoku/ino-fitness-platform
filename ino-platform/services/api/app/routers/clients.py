@@ -1,6 +1,6 @@
 """Client management — real DB queries with filtering, pagination, adherence."""
 from datetime import datetime, timezone
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr
@@ -23,7 +23,7 @@ class ClientCreate(BaseModel):
 
 
 class ClientUpdate(BaseModel):
-    status: str | None = None
+    status: Literal["invited", "active", "at_risk", "paused", "churned"] | None = None
     goals: list[str] | None = None
     notes: str | None = None
 

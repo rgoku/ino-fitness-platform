@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,37 +6,79 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  FlatList,
 } from 'react-native';
 import { WorkoutPlan, Exercise } from '../types';
 import { apiService } from '../services/apiService';
-import { useAuth } from '../context/AuthContext';
+import * as offlineCache from '../services/offlineCache';
 
-const WorkoutPlanScreen = ({ navigation }: any) => {
-  const { user } = useAuth();
+const ExerciseRow = React.memo(({ item, index }: { item: Exercise; index: number }) => (
+  <View style={styles.exerciseCard}>
+    <Text style={styles.exerciseNumber}>{index + 1}</Text>
+    <View style={styles.exerciseInfo}>
+      <Text style={styles.exerciseName}>{item.name}</Text>
+      <Text style={styles.exerciseDetails}>
+        {item.sets} sets × {item.reps} reps
+        {null != item.weight && item.weight > 0 ? ` @ ${item.weight}kg` : ''}
+      </Text>
+      <Text style={styles.exerciseMuscles}>
+        {item.muscleGroups?.join(', ') ?? ''}
+      </Text>
+      {item.videoUrl ? (
+        <TouchableOpacity style={styles.videoButton}>
+          <Text style={styles.videoButtonText}>📹 Watch Demo</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  </View>
+));
+ExerciseRow.displayName = 'ExerciseRow';
+
+const WorkoutPlanScreen = React.memo(({ navigation }: any) => {
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(false);
 
-  useEffect(() => {
-    loadWorkoutPlan();
-  }, []);
-
-  const loadWorkoutPlan = async () => {
+  const loadWorkoutPlan = useCallback(async (fromCacheOnly = false) => {
+    const cached = await offlineCache.getCached<WorkoutPlan>(offlineCache.CACHE_KEYS.WORKOUT_PLAN);
+    if (cached) {
+      setWorkoutPlan(cached);
+      setIsOffline(false);
+    }
+    if (fromCacheOnly) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     try {
-      const plan = await apiService.get<WorkoutPlan>(`/workout-plans/current`);
+      const plan = await apiService.get<WorkoutPlan>('/workout-plans/current');
       setWorkoutPlan(plan);
-    } catch (error) {
-      console.error('Error loading workout plan:', error);
+      await offlineCache.setCached(offlineCache.CACHE_KEYS.WORKOUT_PLAN, plan);
+      setIsOffline(false);
+    } catch (error: any) {
+      if (error?.message === 'Offline' && cached) {
+        setIsOffline(true);
+      } else {
+        console.error('Error loading workout plan:', error);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const startWorkout = () => {
+  useEffect(() => {
+    loadWorkoutPlan();
+  }, [loadWorkoutPlan]);
+
+  useEffect(() => {
+    const unsub = offlineCache.onReconnect(() => loadWorkoutPlan());
+    return unsub;
+  }, [loadWorkoutPlan]);
+
+  const startWorkout = useCallback(() => {
     if (workoutPlan) {
       navigation.navigate('WorkoutSession', { workoutPlanId: workoutPlan.id });
     }
-  };
+  }, [workoutPlan, navigation]);
 
   if (loading) {
     return (
@@ -59,6 +101,11 @@ const WorkoutPlanScreen = ({ navigation }: any) => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {isOffline && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineBannerText}>Showing cached plan. Will sync when back online.</Text>
+        </View>
+      )}
       <View style={styles.header}>
         <Text style={styles.title}>{workoutPlan.name}</Text>
         <Text style={styles.duration}>{workoutPlan.duration} min</Text>
@@ -69,33 +116,13 @@ const WorkoutPlanScreen = ({ navigation }: any) => {
       </TouchableOpacity>
 
       <Text style={styles.sectionTitle}>Exercises</Text>
-      <FlatList
-        data={workoutPlan.exercises}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => (
-          <View style={styles.exerciseCard}>
-            <Text style={styles.exerciseNumber}>{index + 1}</Text>
-            <View style={styles.exerciseInfo}>
-              <Text style={styles.exerciseName}>{item.name}</Text>
-              <Text style={styles.exerciseDetails}>
-                {item.sets} sets × {item.reps} reps
-                {item.weight && ` @ ${item.weight}kg`}
-              </Text>
-              <Text style={styles.exerciseMuscles}>
-                {item.muscleGroups.join(', ')}
-              </Text>
-              {item.videoUrl && (
-                <TouchableOpacity style={styles.videoButton}>
-                  <Text style={styles.videoButtonText}>📹 Watch Demo</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        )}
-      />
+      {(workoutPlan.exercises ?? []).map((item, index) => (
+        <ExerciseRow key={item.id} item={item} index={index} />
+      ))}
     </ScrollView>
   );
-};
+});
+WorkoutPlanScreen.displayName = 'WorkoutPlanScreen';
 
 const styles = StyleSheet.create({
   container: {
@@ -196,6 +223,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     fontSize: 16,
+  },
+  offlineBanner: {
+    backgroundColor: '#3A3A3C',
+    padding: 10,
+    marginBottom: 12,
+    borderRadius: 8,
+  },
+  offlineBannerText: {
+    color: '#8E8E93',
+    fontSize: 12,
+    textAlign: 'center',
   },
 });
 

@@ -1,0 +1,133 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "services/api/**"
+      - "infra/docker/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: ino-production/api
+  ECS_CLUSTER: ino-production
+  ECS_API_SERVICE: api
+  ECS_WORKER_SERVICE: worker
+  ECS_BEAT_SERVICE: beat
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ino_test
+          POSTGRES_USER: ino
+          POSTGRES_PASSWORD: ino
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/api/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          pip install -r services/api/requirements.txt
+          pip install pytest pytest-asyncio httpx gunicorn structlog
+
+      - name: Run tests
+        working-directory: services/api
+        env:
+          DATABASE_URL: postgresql+asyncpg://ino:ino@localhost:5432/ino_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-minimum-32-chars-long
+          JWT_SECRET: test-jwt-secret-minimum-32-chars-long
+          ENVIRONMENT: test
+        run: python -m pytest tests/ -v --tb=short
+
+      - name: Type check
+        working-directory: services/api
+        run: |
+          pip install pyright
+          pyright app/ --pythonversion 3.12 || true
+
+  build-and-deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        id: build
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: sha-${{ github.sha }}
+        run: |
+          docker build \
+            -f infra/docker/api.Dockerfile \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Deploy API service
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_API_SERVICE \
+            --force-new-deployment \
+            --region $AWS_REGION
+
+      - name: Deploy Worker service
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_WORKER_SERVICE \
+            --force-new-deployment \
+            --region $AWS_REGION
+
+      - name: Deploy Beat service
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_BEAT_SERVICE \
+            --force-new-deployment \
+            --region $AWS_REGION
+
+      - name: Wait for API deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_API_SERVICE \
+            --region $AWS_REGION

@@ -36,12 +36,13 @@ declare module 'expo-local-authentication' {
 }
 
 declare module '@react-native-async-storage/async-storage' {
-  export default {
+  const AsyncStorage: {
     getItem(key: string): Promise<string | null>;
     setItem(key: string, value: string): Promise<void>;
     removeItem(key: string): Promise<void>;
     clear(): Promise<void>;
   };
+  export default AsyncStorage;
 }
 
 declare module '@react-native-firebase/app' {

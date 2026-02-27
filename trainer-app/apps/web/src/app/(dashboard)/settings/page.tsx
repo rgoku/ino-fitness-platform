@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
@@ -26,17 +26,11 @@ export default function SettingsPage() {
   const themeOptions = [
     { value: 'light' as const, label: 'Light', icon: Sun },
     { value: 'dark' as const, label: 'Dark', icon: Moon },
-    { value: 'system' as const, label: 'System', icon: Monitor },
   ];
 
   return (
     <div className="space-y-5 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Settings</h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          Manage your profile and preferences
-        </p>
-      </div>
+      <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">Settings</h1>
 
       {/* Profile */}
       <Card>
@@ -81,8 +75,8 @@ export default function SettingsPage() {
                 className={cn(
                   'flex flex-1 flex-col items-center gap-2 rounded-lg border p-4 transition-all',
                   theme === opt.value
-                    ? 'border-brand-500 bg-brand-500/5 text-brand-500'
-                    : 'border-border text-[var(--color-text-secondary)] hover:border-[var(--color-text-tertiary)]'
+                    ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-accent)]'
+                    : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-text-tertiary)]'
                 )}
               >
                 <opt.icon size={20} />

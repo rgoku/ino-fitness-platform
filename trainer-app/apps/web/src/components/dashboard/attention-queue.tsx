@@ -23,13 +23,13 @@ export function AttentionQueue() {
         <CardHeader>
           <CardTitle>Needs Attention</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-3">
-              <Skeleton className="h-9 w-9 rounded-full" />
+            <div key={i} className="flex items-center gap-3 p-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
               <div className="flex-1">
-                <Skeleton className="h-4 w-28" />
-                <Skeleton className="mt-1 h-3 w-40" />
+                <Skeleton className="h-3.5 w-28" />
+                <Skeleton className="mt-1.5 h-3 w-40" />
               </div>
             </div>
           ))}
@@ -43,10 +43,10 @@ export function AttentionQueue() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <AlertTriangle size={16} className="text-amber-500" />
+            <AlertTriangle size={14} strokeWidth={2} className="text-amber-500" />
             Needs Attention
           </CardTitle>
-          <span className="text-xs font-medium text-[var(--color-text-tertiary)]">
+          <span className="text-xs text-[var(--color-text-tertiary)]">
             {needsAttention.length} clients
           </span>
         </div>
@@ -54,21 +54,21 @@ export function AttentionQueue() {
       <CardContent>
         {needsAttention.length === 0 ? (
           <EmptyState
-            title="All clear"
-            description="No clients need immediate attention."
+            title="Everyone's on track"
+            description="No flags right now. Nice."
             className="py-6"
           />
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {needsAttention.map((client) => (
               <Link
                 key={client.id}
                 href={`/clients/${client.id}`}
-                className="group flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-surface-secondary"
+                className="group flex items-center gap-3 rounded-md p-2 -mx-1 transition-colors duration-75 hover:bg-[var(--color-surface-hover)]"
               >
                 <Avatar name={client.name} src={client.avatar_url} size="md" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                  <p className="text-sm text-[var(--color-text-primary)] truncate">
                     {client.name}
                   </p>
                   <div className="flex flex-wrap gap-1 mt-0.5">
@@ -79,16 +79,20 @@ export function AttentionQueue() {
                     ))}
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span className="text-xs text-[var(--color-text-tertiary)] flex items-center gap-1">
-                    <Clock size={10} />
+                <div className="flex flex-col items-end gap-0.5 shrink-0">
+                  <span className="text-[11px] text-[var(--color-text-tertiary)] flex items-center gap-1">
+                    <Clock size={10} strokeWidth={1.8} />
                     {formatRelativeTime(client.lastActive)}
                   </span>
                   <span className="text-xs font-medium text-[var(--color-text-secondary)]">
                     {client.compliance}%
                   </span>
                 </div>
-                <ChevronRight size={14} className="text-[var(--color-text-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight
+                  size={14}
+                  strokeWidth={1.8}
+                  className="text-[var(--color-text-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity duration-75 shrink-0"
+                />
               </Link>
             ))}
           </div>

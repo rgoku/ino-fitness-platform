@@ -17,12 +17,9 @@ export default function ProgramsPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Programs</h1>
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-            Create and manage workout templates
-          </p>
-        </div>
+        <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">
+          Programs
+        </h1>
         <Button onClick={() => setCreateOpen(true)} size="sm">
           <Plus size={14} />
           New Program
@@ -38,9 +35,9 @@ export default function ProgramsPage() {
       ) : !templates || templates.length === 0 ? (
         <EmptyState
           icon={Dumbbell}
-          title="No programs yet"
-          description="Create your first workout template to get started."
-          action={{ label: 'Create Program', onClick: () => setCreateOpen(true) }}
+          title="No templates yet"
+          description="Build a program once, assign it to any client."
+          action={{ label: 'Create your first template', onClick: () => setCreateOpen(true) }}
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
