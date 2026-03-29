@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useClientWorkouts } from '@/hooks/use-workouts';
-import { Button } from '@/components/ui/button';
 
 interface ClientWorkoutsTabProps {
   clientId: string;
