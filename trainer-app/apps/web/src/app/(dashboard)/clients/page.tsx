@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Users } from 'lucide-react';
+import { Users, Plus } from 'lucide-react';
 import { useClients } from '@/hooks/use-clients';
 import { ClientToolbar } from '@/components/clients/client-toolbar';
 import { ClientList } from '@/components/clients/client-list';
@@ -9,6 +9,7 @@ import { ClientCard } from '@/components/clients/client-card';
 import { AddClientDialog } from '@/components/clients/add-client-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 export default function ClientsPage() {
   const { data: clients, isLoading } = useClients();
@@ -26,12 +27,29 @@ export default function ClientsPage() {
   }, [clients, search]);
 
   return (
-    <div className="space-y-5">
-      <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">
-        Clients{filtered.length > 0 && (
-          <span className="ml-2 text-base font-normal text-[var(--color-text-tertiary)]">{filtered.length}</span>
-        )}
-      </h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-heading-1 text-[var(--color-text-primary)]">
+            Clients
+            {filtered.length > 0 && (
+              <span className="ml-2 text-heading-3 font-normal text-[var(--color-text-tertiary)] tabular-nums">
+                {filtered.length}
+              </span>
+            )}
+          </h1>
+          <p className="mt-1 text-body-md text-[var(--color-text-secondary)]">
+            Manage your athletes and track their progress.
+          </p>
+        </div>
+        <Button
+          icon={<Plus size={16} />}
+          onClick={() => setAddOpen(true)}
+        >
+          Add Client
+        </Button>
+      </div>
 
       <ClientToolbar
         search={search}
