@@ -82,6 +82,9 @@ export interface MockExercise {
   rest?: string;
   notes?: string;
   order_index: number;
+  video_url?: string;
+  video_type?: 'upload' | 'youtube';
+  video_thumbnail?: string;
 }
 
 export interface MockLoggedSet {
@@ -135,6 +138,9 @@ export interface MockTemplateExercise {
   rest_seconds: number;
   notes: string;
   order_index: number;
+  video_url?: string;
+  video_type?: 'upload' | 'youtube';
+  video_thumbnail?: string;
 }
 
 // --- Clients ---
