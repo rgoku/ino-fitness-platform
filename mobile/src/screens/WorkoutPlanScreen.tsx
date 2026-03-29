@@ -11,21 +11,56 @@ import { WorkoutPlan, Exercise } from '../types';
 import { apiService } from '../services/apiService';
 import * as offlineCache from '../services/offlineCache';
 
+const colors = {
+  bg: '#FAFAFA',
+  surface: '#FFFFFF',
+  surfaceTertiary: '#F1F1F1',
+  border: '#E4E4E7',
+  borderLight: '#F0F0F2',
+  textPrimary: '#09090B',
+  textSecondary: '#52525B',
+  textTertiary: '#A0A0AB',
+  accent: '#10B981',
+  accentLight: '#ECFDF5',
+  accentDark: '#059669',
+  blue: '#3B82F6',
+  blueLight: '#EFF6FF',
+  white: '#FFFFFF',
+};
+
 const ExerciseRow = React.memo(({ item, index }: { item: Exercise; index: number }) => (
   <View style={styles.exerciseCard}>
-    <Text style={styles.exerciseNumber}>{index + 1}</Text>
+    {/* Exercise Number */}
+    <View style={styles.exerciseNumber}>
+      <Text style={styles.exerciseNumberText}>{index + 1}</Text>
+    </View>
+
+    {/* Exercise Info */}
     <View style={styles.exerciseInfo}>
       <Text style={styles.exerciseName}>{item.name}</Text>
-      <Text style={styles.exerciseDetails}>
-        {item.sets} sets × {item.reps} reps
-        {null != item.weight && item.weight > 0 ? ` @ ${item.weight}kg` : ''}
-      </Text>
-      <Text style={styles.exerciseMuscles}>
-        {item.muscleGroups?.join(', ') ?? ''}
-      </Text>
+      <View style={styles.exerciseMeta}>
+        <Text style={styles.exerciseDetail}>
+          {item.sets} x {item.reps}
+        </Text>
+        {null != item.weight && item.weight > 0 && (
+          <>
+            <View style={styles.metaDot} />
+            <Text style={styles.exerciseDetail}>{item.weight}kg</Text>
+          </>
+        )}
+      </View>
+      {item.muscleGroups && item.muscleGroups.length > 0 && (
+        <View style={styles.muscleChips}>
+          {item.muscleGroups.map((group, i) => (
+            <View key={i} style={styles.muscleChip}>
+              <Text style={styles.muscleChipText}>{group}</Text>
+            </View>
+          ))}
+        </View>
+      )}
       {item.videoUrl ? (
-        <TouchableOpacity style={styles.videoButton}>
-          <Text style={styles.videoButtonText}>📹 Watch Demo</Text>
+        <TouchableOpacity style={styles.demoButton}>
+          <Text style={styles.demoButtonText}>Watch Demo</Text>
         </TouchableOpacity>
       ) : null}
     </View>
@@ -44,10 +79,7 @@ const WorkoutPlanScreen = React.memo(({ navigation }: any) => {
       setWorkoutPlan(cached);
       setIsOffline(false);
     }
-    if (fromCacheOnly) {
-      setLoading(false);
-      return;
-    }
+    if (fromCacheOnly) { setLoading(false); return; }
     setLoading(true);
     try {
       const plan = await apiService.get<WorkoutPlan>('/workout-plans/current');
@@ -55,20 +87,14 @@ const WorkoutPlanScreen = React.memo(({ navigation }: any) => {
       await offlineCache.setCached(offlineCache.CACHE_KEYS.WORKOUT_PLAN, plan);
       setIsOffline(false);
     } catch (error: any) {
-      if (error?.message === 'Offline' && cached) {
-        setIsOffline(true);
-      } else {
-        console.error('Error loading workout plan:', error);
-      }
+      if (error?.message === 'Offline' && cached) setIsOffline(true);
+      else console.error('Error loading workout plan:', error);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    loadWorkoutPlan();
-  }, [loadWorkoutPlan]);
-
+  useEffect(() => { loadWorkoutPlan(); }, [loadWorkoutPlan]);
   useEffect(() => {
     const unsub = offlineCache.onReconnect(() => loadWorkoutPlan());
     return unsub;
@@ -82,160 +108,193 @@ const WorkoutPlanScreen = React.memo(({ navigation }: any) => {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   if (!workoutPlan) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.noPlanText}>No workout plan available</Text>
-        <TouchableOpacity style={styles.generateButton}>
-          <Text style={styles.generateButtonText}>Generate AI Plan</Text>
+      <View style={[styles.container, styles.emptyState]}>
+        <View style={styles.emptyIcon}>
+          <Text style={{ fontSize: 32 }}>💪</Text>
+        </View>
+        <Text style={styles.emptyTitle}>No workout plan</Text>
+        <Text style={styles.emptyDesc}>Ask your coach to assign a plan, or generate one with AI.</Text>
+        <TouchableOpacity style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>Generate AI Plan</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {isOffline && (
-        <View style={styles.offlineBanner}>
-          <Text style={styles.offlineBannerText}>Showing cached plan. Will sync when back online.</Text>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Offline Banner */}
+        {isOffline && (
+          <View style={styles.offlineBanner}>
+            <Text style={styles.offlineBannerText}>Showing cached plan. Will sync when online.</Text>
+          </View>
+        )}
+
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerLabel}>TODAY'S WORKOUT</Text>
+          <Text style={styles.headerTitle}>{workoutPlan.name}</Text>
+          <View style={styles.headerMeta}>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaValue}>{workoutPlan.exercises?.length ?? 0}</Text>
+              <Text style={styles.metaLabel}>Exercises</Text>
+            </View>
+            <View style={styles.metaDivider} />
+            <View style={styles.metaItem}>
+              <Text style={styles.metaValue}>{workoutPlan.duration}</Text>
+              <Text style={styles.metaLabel}>Minutes</Text>
+            </View>
+          </View>
         </View>
-      )}
-      <View style={styles.header}>
-        <Text style={styles.title}>{workoutPlan.name}</Text>
-        <Text style={styles.duration}>{workoutPlan.duration} min</Text>
+
+        {/* Exercises */}
+        <View style={styles.exerciseSection}>
+          <Text style={styles.sectionLabel}>EXERCISES</Text>
+          {(workoutPlan.exercises ?? []).map((item, index) => (
+            <ExerciseRow key={item.id} item={item} index={index} />
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Floating Start Button */}
+      <View style={styles.floatingButtonContainer}>
+        <TouchableOpacity style={styles.primaryButton} onPress={startWorkout} activeOpacity={0.85}>
+          <Text style={styles.primaryButtonText}>Start Workout</Text>
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.startButton} onPress={startWorkout}>
-        <Text style={styles.startButtonText}>Start Workout</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.sectionTitle}>Exercises</Text>
-      {(workoutPlan.exercises ?? []).map((item, index) => (
-        <ExerciseRow key={item.id} item={item} index={index} />
-      ))}
-    </ScrollView>
+    </View>
   );
 });
 WorkoutPlanScreen.displayName = 'WorkoutPlanScreen';
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  content: {
-    padding: 20,
-  },
-  header: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 5,
-  },
-  duration: {
-    fontSize: 16,
-    color: '#8E8E93',
-  },
-  startButton: {
-    backgroundColor: '#007AFF',
-    padding: 20,
-    borderRadius: 12,
+  container: { flex: 1, backgroundColor: colors.bg },
+  scrollContent: { paddingBottom: 100 },
+  loadingContainer: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
+
+  // Header
+  header: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 20 },
+  headerLabel: { fontSize: 12, fontWeight: '500', letterSpacing: 0.5, color: colors.textTertiary, marginBottom: 4 },
+  headerTitle: { fontSize: 30, fontWeight: '700', color: colors.textPrimary, letterSpacing: -0.5 },
+  headerMeta: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
+    gap: 20,
+    marginTop: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
-  startButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 15,
-  },
+  metaItem: { alignItems: 'center', flex: 1 },
+  metaValue: { fontSize: 24, fontWeight: '700', color: colors.textPrimary, fontVariant: ['tabular-nums'] },
+  metaLabel: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
+  metaDivider: { width: 1, height: 32, backgroundColor: colors.borderLight },
+
+  // Section Label
+  sectionLabel: { fontSize: 12, fontWeight: '500', letterSpacing: 0.5, color: colors.textTertiary, marginBottom: 12 },
+
+  // Exercise section
+  exerciseSection: { paddingHorizontal: 24 },
+
+  // Exercise Card
   exerciseCard: {
     flexDirection: 'row',
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 15,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
   exerciseNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    marginRight: 15,
-    width: 30,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceTertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
-  exerciseInfo: {
-    flex: 1,
-  },
-  exerciseName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 5,
-  },
-  exerciseDetails: {
+  exerciseNumberText: {
     fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 5,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    fontVariant: ['tabular-nums'],
   },
-  exerciseMuscles: {
-    fontSize: 12,
-    color: '#007AFF',
-    marginBottom: 10,
-  },
-  videoButton: {
-    backgroundColor: '#007AFF',
-    padding: 8,
+  exerciseInfo: { flex: 1 },
+  exerciseName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  exerciseMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  exerciseDetail: { fontSize: 13, color: colors.textTertiary },
+  metaDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: colors.textTertiary },
+
+  // Muscle chips
+  muscleChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 8 },
+  muscleChip: {
+    backgroundColor: colors.blueLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 6,
+  },
+  muscleChipText: { fontSize: 11, fontWeight: '500', color: colors.blue },
+
+  // Demo button
+  demoButton: {
     alignSelf: 'flex-start',
+    backgroundColor: colors.accentLight,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 8,
   },
-  videoButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
+  demoButtonText: { fontSize: 12, fontWeight: '500', color: colors.accent },
+
+  // Floating button
+  floatingButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 24,
+    paddingBottom: 36,
+    backgroundColor: 'rgba(250, 250, 250, 0.92)',
   },
-  noPlanText: {
-    fontSize: 16,
-    color: '#8E8E93',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  generateButton: {
-    backgroundColor: '#007AFF',
-    padding: 16,
+  primaryButton: {
+    backgroundColor: colors.accent,
+    paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
+    shadowColor: colors.accent,
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
   },
-  generateButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
+  primaryButtonText: { fontSize: 16, fontWeight: '600', color: colors.white },
+
+  // Empty state
+  emptyState: { alignItems: 'center', justifyContent: 'center', padding: 32 },
+  emptyIcon: {
+    width: 80, height: 80, borderRadius: 24,
+    backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center',
+    marginBottom: 20,
   },
-  offlineBanner: {
-    backgroundColor: '#3A3A3C',
-    padding: 10,
-    marginBottom: 12,
-    borderRadius: 8,
-  },
-  offlineBannerText: {
-    color: '#8E8E93',
-    fontSize: 12,
-    textAlign: 'center',
-  },
+  emptyTitle: { fontSize: 18, fontWeight: '600', color: colors.textPrimary, marginBottom: 8 },
+  emptyDesc: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 24 },
+
+  // Offline
+  offlineBanner: { backgroundColor: colors.surfaceTertiary, padding: 10, marginHorizontal: 24, marginBottom: 12, borderRadius: 8 },
+  offlineBannerText: { color: colors.textTertiary, fontSize: 12, textAlign: 'center' },
 });
 
 export default WorkoutPlanScreen;
-

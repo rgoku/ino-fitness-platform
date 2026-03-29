@@ -13,8 +13,8 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar />
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1100px] px-8 py-6 lg:px-12">
+        <main className="flex-1 overflow-y-auto bg-[var(--color-surface-secondary)]">
+          <div className="mx-auto max-w-[1120px] px-6 py-8 lg:px-10">
             {children}
           </div>
         </main>

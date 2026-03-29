@@ -11,27 +11,27 @@ interface TabsProps {
 
 export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
   return (
-    <div className={cn('flex border-b border-border', className)}>
+    <div className={cn('flex gap-1 border-b border-[var(--color-border-light)]', className)}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
           className={cn(
-            'relative flex-1 min-w-0 px-2 py-2.5 text-xs font-medium transition-colors text-center',
+            'relative px-4 py-2.5 text-body-sm font-medium transition-colors duration-100 rounded-t-md',
             activeTab === tab.id
-              ? 'text-brand-500'
-              : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+              ? 'text-[var(--color-text-primary)]'
+              : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]'
           )}
         >
-          <span className="flex items-center justify-center gap-1">
-            <span className="truncate">{tab.label}</span>
+          <span className="flex items-center gap-1.5">
+            <span>{tab.label}</span>
             {undefined !== tab.count && (
               <span
                 className={cn(
-                  'rounded-full px-1.5 py-0.5 text-[10px] shrink-0',
+                  'rounded-full px-1.5 py-0.5 text-body-xs tabular-nums',
                   activeTab === tab.id
-                    ? 'bg-brand-500/10 text-brand-500'
-                    : 'bg-surface-tertiary text-[var(--color-text-tertiary)]'
+                    ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400'
+                    : 'bg-[var(--color-surface-tertiary)] text-[var(--color-text-tertiary)]'
                 )}
               >
                 {tab.count}
@@ -39,7 +39,7 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
             )}
           </span>
           {activeTab === tab.id && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-500" />
+            <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-brand-500" />
           )}
         </button>
       ))}
