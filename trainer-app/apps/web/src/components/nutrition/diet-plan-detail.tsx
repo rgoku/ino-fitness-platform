@@ -6,11 +6,12 @@ import {
   Droplets, Leaf, ShoppingCart, Clock, PenLine, Save, Undo2, Plus, Trash2,
 } from 'lucide-react';
 import { MacroRing } from './macro-ring';
+import { PubMedResearchPanel } from './pubmed-research-panel';
 import { Button } from '@/components/ui/button';
 import { Tabs } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { MockDietPlan, MockMeal, SupplementTiming } from '@/lib/mock-data';
+import type { MockDietPlan, MockMeal, MockResearchCitation, SupplementTiming } from '@/lib/mock-data';
 
 const mealTypeOrder = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
 const mealTypeLabel: Record<string, string> = {
@@ -121,6 +122,7 @@ export function DietPlanDetail({ plan, onClose, onSave }: DietPlanDetailProps) {
     { id: 'meals', label: 'Meals', count: p.meals.length },
     { id: 'grocery', label: 'Grocery', count: p.grocery_list.length },
     { id: 'research', label: 'Research', count: p.research_citations.length },
+    { id: 'pubmed', label: 'PubMed' },
     { id: 'supplements', label: 'Supplements', count: p.supplement_schedule.length },
   ];
 
@@ -479,6 +481,20 @@ export function DietPlanDetail({ plan, onClose, onSave }: DietPlanDetailProps) {
               </div>
             ))}
           </div>
+        )}
+
+        {activeTab === 'pubmed' && (
+          <PubMedResearchPanel
+            citations={p.research_citations}
+            onAttachCitation={(citation: MockResearchCitation) => {
+              if (editing) {
+                setDraft((d) => ({
+                  ...d,
+                  research_citations: [...d.research_citations, citation],
+                }));
+              }
+            }}
+          />
         )}
 
         {activeTab === 'supplements' && (
