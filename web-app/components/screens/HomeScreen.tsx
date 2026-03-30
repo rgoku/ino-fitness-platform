@@ -9,9 +9,8 @@ export default function HomeScreen() {
     <div className="p-6 pb-24 overflow-y-auto h-full">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-1">おはようございます</p>
+        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-1">Good Morning</p>
         <h1 className="text-3xl font-bold text-text-primary tracking-tight">Let's train.</h1>
-        <p className="text-xs text-text-tertiary mt-1" style={{ fontFamily: "'Noto Sans JP', sans-serif" }}>今日のトレーニング</p>
       </div>
 
       {/* Weekly Stats */}

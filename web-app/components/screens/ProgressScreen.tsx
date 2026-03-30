@@ -109,7 +109,7 @@ export default function ProgressScreen() {
     <div className="p-6 pb-24 overflow-y-auto h-full">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-1" style={{ fontFamily: "'Noto Sans JP', sans-serif", letterSpacing: '0.15em' }}>進捗</p>
+        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-1">Your Journey</p>
         <h1 className="text-3xl font-bold text-text-primary tracking-tight">Progress</h1>
       </div>
 
