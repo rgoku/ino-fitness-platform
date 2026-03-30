@@ -29,6 +29,16 @@ export const Hero = ({ animIn }: HeroProps) => (
       </span>
     </div>
 
+    {/* Japanese subtitle */}
+    <p style={{
+      fontFamily: '"Noto Sans JP", sans-serif', fontSize: 14, fontWeight: 300,
+      color: T.textDim, letterSpacing: '0.2em', marginBottom: 16,
+      opacity: animIn ? 1 : 0, transform: animIn ? 'translateY(0)' : 'translateY(12px)',
+      transition: 'all 0.6s ease 0.05s',
+    }}>
+      鍛える・管理する・成長する
+    </p>
+
     {/* Heading */}
     <h1 style={{
       margin: '0 auto 28px', fontSize: 64, fontWeight: 700, color: T.text,
