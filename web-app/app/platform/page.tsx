@@ -28,8 +28,20 @@ const ArrowRight = () => (
   </svg>
 );
 
+function FeatureIcon({ name }: { name: string }) {
+  const cls = "w-5 h-5";
+  switch (name) {
+    case 'dumbbell': return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6.5 6.5h11M6.5 17.5h11M3 10h3.5v4H3zM17.5 10H21v4h-3.5zM6.5 8v8M17.5 8v8" /></svg>;
+    case 'video': return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25z" /></svg>;
+    case 'alertCircle': return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z" /></svg>;
+    case 'zap': return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+    case 'heartPulse': return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>;
+    default: return <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z" /></svg>;
+  }
+}
+
 const colorMap: Record<string, string> = {
-  primary: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
+  primary: 'bg-brand-500/10 text-brand-600 border-brand-500/20',
   pink: 'bg-platform-pink/10 text-platform-pink border-platform-pink/20',
   danger: 'bg-platform-danger/10 text-platform-danger border-platform-danger/20',
   warning: 'bg-platform-warning/10 text-platform-warning border-platform-warning/20',
@@ -51,7 +63,7 @@ export default function PlatformLandingPage() {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-[#fafbfe]/90 backdrop-blur-xl border-b border-slate-200 px-6 md:px-12 h-18 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-platform-gradient flex items-center justify-center text-white font-extrabold text-sm shadow-lg shadow-indigo-500/30">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 flex items-center justify-center text-white font-extrabold text-sm shadow-lg shadow-brand-500/30">
             INÖ
           </div>
           <span className="font-extrabold text-xl text-slate-900 tracking-tight">Platform</span>
@@ -65,7 +77,7 @@ export default function PlatformLandingPage() {
           </Link>
           <Link
             href="/#pricing"
-            className="px-5 py-2.5 rounded-lg bg-platform-gradient text-white font-semibold text-sm shadow-lg shadow-indigo-500/30 hover:opacity-95 transition"
+            className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 text-white font-semibold text-sm shadow-lg shadow-brand-500/30 hover:opacity-95 transition"
           >
             Get Started
           </Link>
@@ -77,11 +89,12 @@ export default function PlatformLandingPage() {
         <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-platform-pink/5 blur-3xl pointer-events-none" />
         <div
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 text-sm font-semibold mb-7 transition-all duration-600 ${
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-600 text-sm font-semibold mb-7 transition-all duration-600 ${
             animIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
           }`}
         >
-          <span>💪</span> Professional-Grade Coaching Platform
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+          AI-Powered Coaching Platform
         </div>
         <h1
           className={`max-w-3xl mx-auto text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6 transition-all duration-700 delay-100 ${
@@ -89,7 +102,7 @@ export default function PlatformLandingPage() {
           }`}
         >
           Built for coaches who{' '}
-          <span className="bg-platform-gradient bg-clip-text text-transparent">care about their clients</span> — and their time.
+          <span className="bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent">care about their clients</span> — and their time.
         </h1>
         <p
           className={`max-w-xl mx-auto text-lg md:text-xl text-slate-500 leading-relaxed mb-11 transition-all duration-700 delay-200 ${
@@ -130,12 +143,12 @@ export default function PlatformLandingPage() {
           {FEATURES.map((f, i) => (
             <div
               key={i}
-              className="bg-white rounded-2xl p-7 border border-slate-200 hover:border-indigo-500/40 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300"
+              className="bg-white rounded-2xl p-7 border border-slate-200 hover:border-brand-500/40 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10 transition-all duration-300"
             >
               <div
                 className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colorMap[f.color] || colorMap.primary} border`}
               >
-                <span className="text-xl">{f.icon === 'dumbbell' ? '💪' : f.icon === 'video' ? '🎬' : f.icon === 'alertCircle' ? '⚠️' : f.icon === 'zap' ? '⚡' : f.icon === 'heartPulse' ? '❤️' : '📊'}</span>
+                <FeatureIcon name={f.icon} />
               </div>
               <div className="text-lg font-bold text-slate-900 mb-2">{f.title}</div>
               <div className="text-sm text-slate-500 leading-relaxed">{f.desc}</div>
@@ -159,14 +172,18 @@ export default function PlatformLandingPage() {
               </p>
               <div className="flex gap-4">
                 <div className="flex items-center gap-3 px-5 py-3.5 rounded-xl bg-white/5 border border-white/10">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">🖥️</div>
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25A2.25 2.25 0 0 1 5.25 3h13.5A2.25 2.25 0 0 1 21 5.25z" /></svg>
+                  </div>
                   <div>
                     <div className="text-white font-bold text-sm">INÖ Coach</div>
                     <div className="text-slate-500 text-xs">Web dashboard</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 px-5 py-3.5 rounded-xl bg-white/5 border border-white/10">
-                  <div className="w-10 h-10 rounded-xl bg-platform-pink/20 flex items-center justify-center text-platform-pink">📱</div>
+                  <div className="w-10 h-10 rounded-xl bg-platform-pink/20 flex items-center justify-center text-platform-pink">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /></svg>
+                  </div>
                   <div>
                     <div className="text-white font-bold text-sm">INÖ Fit</div>
                     <div className="text-slate-500 text-xs">Client mobile app</div>
@@ -176,7 +193,7 @@ export default function PlatformLandingPage() {
             </div>
             <Link
               href="/demo"
-              className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-platform-gradient text-white font-bold text-base shadow-xl shadow-indigo-500/40 hover:opacity-95 transition"
+              className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold text-base shadow-xl shadow-brand-500/40 hover:opacity-95 transition"
             >
               Launch Live Demo <ArrowRight />
             </Link>
@@ -216,7 +233,7 @@ export default function PlatformLandingPage() {
 
       {/* ROI strip */}
       <section className="px-6 md:px-12 py-12 max-w-5xl mx-auto">
-        <div className="bg-platform-gradient rounded-2xl p-10 md:p-11 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-brand-500 to-brand-600 rounded-2xl p-10 md:p-11 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/10 blur-2xl pointer-events-none" />
           <div className="relative">
             <div className="text-sm text-white/80 font-semibold mb-1">Do the math</div>
@@ -276,7 +293,7 @@ export default function PlatformLandingPage() {
                 }`}
               >
                 {plan.popular && (
-                  <div className="absolute top-4 right-4 bg-platform-gradient px-3.5 py-1 rounded-full text-[11px] font-bold text-white tracking-wide">
+                  <div className="absolute top-4 right-4 bg-gradient-to-r from-brand-500 to-brand-600 px-3.5 py-1 rounded-full text-[11px] font-bold text-white tracking-wide">
                     MOST POPULAR
                   </div>
                 )}
@@ -292,7 +309,7 @@ export default function PlatformLandingPage() {
                     href="/demo"
                     className={`block w-full py-3.5 rounded-xl text-center font-bold text-sm transition ${
                       plan.popular
-                        ? 'bg-platform-gradient text-white shadow-lg shadow-indigo-500/30'
+                        ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/30'
                         : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
                     }`}
                   >
@@ -399,7 +416,7 @@ export default function PlatformLandingPage() {
           </p>
           <Link
             href="/demo"
-            className="inline-flex items-center gap-2 bg-platform-gradient text-white font-bold text-lg px-10 py-4 rounded-xl shadow-xl shadow-indigo-500/40 hover:opacity-95 transition relative"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold text-lg px-10 py-4 rounded-xl shadow-xl shadow-brand-500/40 hover:opacity-95 transition relative"
           >
             Launch Demo <ArrowRight />
           </Link>
