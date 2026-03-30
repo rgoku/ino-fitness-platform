@@ -6,23 +6,25 @@ import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { AIInsight } from '@/components/ui/ai-insight';
 import { useAuthStore } from '@/stores/auth-store';
 
-function getGreeting(): string {
+function getGreeting(): { en: string; jp: string } {
   const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return { en: 'Good morning', jp: 'おはようございます' };
+  if (h < 18) return { en: 'Good afternoon', jp: 'こんにちは' };
+  return { en: 'Good evening', jp: 'こんばんは' };
 }
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const firstName = user?.name?.split(' ')[0] || 'Coach';
+  const greeting = getGreeting();
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
+        <p className="text-body-xs font-jp text-[var(--color-text-tertiary)] tracking-wider mb-1">{greeting.jp}</p>
         <h1 className="text-heading-1 text-[var(--color-text-primary)]">
-          {getGreeting()}, {firstName}
+          {greeting.en}, {firstName}
         </h1>
         <p className="mt-1 text-body-md text-[var(--color-text-secondary)]">
           Here&apos;s what&apos;s happening with your clients today.

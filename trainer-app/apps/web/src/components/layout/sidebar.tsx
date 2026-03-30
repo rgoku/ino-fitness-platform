@@ -66,11 +66,11 @@ export function Sidebar() {
           isCollapsed ? 'justify-center px-2' : 'gap-2.5'
         )}>
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-white">
-            <Sparkles size={14} strokeWidth={2.2} />
+            <span className="text-xs font-bold font-jp">鍛</span>
           </div>
           {!isCollapsed && (
             <span className="text-sub-md text-[var(--color-text-primary)] tracking-tight">
-              INO
+              INÖ <span className="font-jp text-body-xs text-[var(--color-text-tertiary)] ml-1">フィットネス</span>
             </span>
           )}
           <button

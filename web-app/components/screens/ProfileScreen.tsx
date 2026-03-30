@@ -28,7 +28,7 @@ export default function ProfileScreen() {
 
       {/* Personal Info */}
       <div className="bg-white rounded-2xl border border-border-light p-5 mb-6 shadow-xs">
-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-4">Personal Info</p>
+        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-4" style={{ fontFamily: "'Noto Sans JP', sans-serif", letterSpacing: '0.15em' }}>個人情報</p>
         <div className="space-y-0">
           {[
             { label: 'Age', value: '28 years' },
@@ -46,7 +46,7 @@ export default function ProfileScreen() {
 
       {/* Coach Info */}
       <div className="bg-white rounded-2xl border border-border-light p-5 mb-6 shadow-xs">
-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-4">Your Coach</p>
+        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-4" style={{ fontFamily: "'Noto Sans JP', sans-serif", letterSpacing: '0.15em' }}>コーチ</p>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
             <span className="text-sm font-bold text-white">MC</span>
