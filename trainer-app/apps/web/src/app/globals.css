@@ -2,70 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── INÖ Design System — Clean Minimalism ────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   INÖ Design System — Limitless Edition
+   Inspired by Gojo Satoru's aesthetic: clean power, electric glow, infinity
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
   --color-surface:           #FFFFFF;
-  --color-surface-secondary: #FAFAF9;
-  --color-surface-tertiary:  #F5F5F4;
-  --color-surface-hover:     #F0EFED;
-  --color-surface-active:    #E7E5E4;
+  --color-surface-secondary: #FAFAFA;
+  --color-surface-tertiary:  #F4F4F5;
+  --color-surface-hover:     #F0F0F2;
+  --color-surface-active:    #E8E8EC;
 
-  --color-border:            #E7E5E4;
-  --color-border-light:      #F0EFED;
+  --color-border:            #E4E4E7;
+  --color-border-light:      #F0F0F2;
 
-  --color-text-primary:      #1C1917;
-  --color-text-secondary:    #57534E;
-  --color-text-tertiary:     #A8A29E;
-  --color-text-inverse:      #FAFAF9;
+  --color-text-primary:      #09090B;
+  --color-text-secondary:    #52525B;
+  --color-text-tertiary:     #A0A0AB;
+  --color-text-inverse:      #FAFAFA;
 
   --color-accent:            #10B981;
   --color-accent-hover:      #059669;
   --color-accent-light:      #ECFDF5;
   --color-accent-soft:       rgba(16, 185, 129, 0.06);
 
-  /* Japanese-inspired warm neutrals */
-  --color-washi:             #FAF8F5;
-  --color-sumi:              #1C1917;
-  --color-kinari:            #F5F0E8;
+  /* Gojo-inspired electric palette */
+  --color-hollow-purple:     #8B5CF6;
+  --color-infinity-blue:     #3B82F6;
+  --color-cursed-energy:     #06B6D4;
+  --color-domain-black:      #09090B;
 
-  --color-bg-gradient-start: #FAFAF9;
+  --color-bg-gradient-start: #FAFAFA;
   --color-bg-gradient-end:   #FFFFFF;
 
   --shadow-ring: 0 0 0 3px rgba(16, 185, 129, 0.12);
 }
 
 .dark {
-  --color-surface:           #0C0A09;
-  --color-surface-secondary: #1C1917;
-  --color-surface-tertiary:  #292524;
-  --color-surface-hover:     #44403C;
-  --color-surface-active:    #57534E;
+  --color-surface:           #09090B;
+  --color-surface-secondary: #111113;
+  --color-surface-tertiary:  #1A1A1E;
+  --color-surface-hover:     #222226;
+  --color-surface-active:    #2A2A2E;
 
-  --color-border:            #292524;
-  --color-border-light:      #1C1917;
+  --color-border:            #1E1E22;
+  --color-border-light:      #161618;
 
-  --color-text-primary:      #FAFAF9;
-  --color-text-secondary:    #A8A29E;
-  --color-text-tertiary:     #57534E;
-  --color-text-inverse:      #1C1917;
+  --color-text-primary:      #FAFAFA;
+  --color-text-secondary:    #A0A0AB;
+  --color-text-tertiary:     #52525B;
+  --color-text-inverse:      #09090B;
 
   --color-accent:            #34D399;
   --color-accent-hover:      #6EE7B7;
   --color-accent-light:      rgba(52, 211, 153, 0.08);
   --color-accent-soft:       rgba(52, 211, 153, 0.04);
 
-  --color-washi:             #1C1917;
-  --color-sumi:              #FAFAF9;
-  --color-kinari:            #292524;
-
-  --color-bg-gradient-start: #0C0A09;
-  --color-bg-gradient-end:   #1C1917;
+  --color-bg-gradient-start: #09090B;
+  --color-bg-gradient-end:   #111113;
 
   --shadow-ring: 0 0 0 3px rgba(52, 211, 153, 0.15);
 }
 
-/* ─── Base Styles ─────────────────────────────────────────────────────────── */
+/* ─── Base ────────────────────────────────────────────────────────────────── */
 
 @layer base {
   html {
@@ -85,24 +85,13 @@
     @apply border-[var(--color-border)];
   }
 
-  /* Refined scrollbar — thin like Japanese design */
-  ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 999px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-tertiary);
-  }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-text-tertiary); }
 
   ::selection {
-    background: var(--color-accent-light);
+    background: rgba(139, 92, 246, 0.2);
     color: var(--color-text-primary);
   }
 }
@@ -114,100 +103,175 @@
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--color-surface)];
   }
 
+  /* ── Gojo-style gradient text (Hollow Purple → Infinity Blue) ── */
   .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #8B5CF6, #3B82F6, #06B6D4);
+  }
+
+  .text-gradient-green {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-400 to-brand-600;
   }
 
-  /* Japanese-style subtle divider */
-  .divider-jp {
-    @apply relative;
-  }
-  .divider-jp::after {
-    content: '';
-    @apply absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-px bg-[var(--color-border)];
+  /* ── Cursed Energy Glow — the signature effect ── */
+  .glow-green {
+    box-shadow:
+      0 0 15px rgba(16, 185, 129, 0.15),
+      0 0 40px rgba(16, 185, 129, 0.08),
+      0 4px 6px -1px rgba(0, 0, 0, 0.05);
   }
 
-  /* Washi paper texture card */
-  .card-washi {
-    background: var(--color-washi);
-    position: relative;
+  .glow-purple {
+    box-shadow:
+      0 0 15px rgba(139, 92, 246, 0.2),
+      0 0 40px rgba(139, 92, 246, 0.1),
+      0 4px 6px -1px rgba(0, 0, 0, 0.05);
   }
-  .card-washi::before {
+
+  .glow-blue {
+    box-shadow:
+      0 0 15px rgba(59, 130, 246, 0.2),
+      0 0 40px rgba(59, 130, 246, 0.1);
+  }
+
+  .glow-cyan {
+    box-shadow:
+      0 0 20px rgba(6, 182, 212, 0.2),
+      0 0 50px rgba(6, 182, 212, 0.08);
+  }
+
+  /* ── Infinity Aura — subtle pulsing border glow ── */
+  .aura-pulse {
+    animation: auraPulse 3s ease-in-out infinite;
+  }
+
+  /* ── Domain Expansion card — deep black with edge glow ── */
+  .card-domain {
+    @apply relative overflow-hidden rounded-xl;
+    background: linear-gradient(145deg, #111113, #09090B);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+  }
+  .card-domain::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background: radial-gradient(ellipse at top right, rgba(139, 92, 246, 0.06), transparent 60%),
+                radial-gradient(ellipse at bottom left, rgba(6, 182, 212, 0.04), transparent 60%);
     pointer-events: none;
+  }
+
+  /* ── Limitless hover — card lifts with glow ── */
+  .hover-limitless {
+    @apply transition-all duration-300;
+  }
+  .hover-limitless:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 0 20px rgba(16, 185, 129, 0.12),
+      0 8px 25px -5px rgba(0, 0, 0, 0.08);
+  }
+
+  /* ── Six Eyes — glowing dot indicator ── */
+  .six-eyes {
+    @apply relative;
+  }
+  .six-eyes::after {
+    content: '';
+    @apply absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full;
+    background: radial-gradient(circle, #8B5CF6 30%, #3B82F6 70%);
+    animation: sixEyesPulse 2s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+  }
+
+  /* ── Infinity gradient border ── */
+  .border-infinity {
+    position: relative;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+  .border-infinity::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(59, 130, 246, 0.2), rgba(6, 182, 212, 0.3));
+    z-index: -1;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: xor;
+    -webkit-mask-composite: xor;
+    padding: 1px;
     border-radius: inherit;
   }
 
-  /* Sumi ink accent line */
-  .sumi-accent {
-    @apply border-l-2 border-[var(--color-text-primary)] pl-4;
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+
+  .skeleton-shimmer {
+    background: linear-gradient(90deg, var(--color-surface-tertiary) 25%, var(--color-surface-hover) 50%, var(--color-surface-tertiary) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
   }
 
   .label-section {
     @apply text-body-xs font-medium tracking-[0.15em] uppercase text-[var(--color-text-tertiary)];
   }
 
-  .card-shine {
-    position: relative;
-    overflow: hidden;
-  }
-  .card-shine::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.02), transparent);
-    transition: left 0.6s ease;
-  }
-  .card-shine:hover::before {
-    left: 100%;
-  }
-
-  .ai-pulse {
-    @apply relative;
-  }
+  .ai-pulse { @apply relative; }
   .ai-pulse::after {
     content: '';
     @apply absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-brand-500;
     animation: pulseSoft 2s ease-in-out infinite;
   }
+}
 
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
-  }
+/* ─── Keyframes ───────────────────────────────────────────────────────────── */
 
-  .skeleton-shimmer {
-    background: linear-gradient(
-      90deg,
-      var(--color-surface-tertiary) 25%,
-      var(--color-surface-hover) 50%,
-      var(--color-surface-tertiary) 75%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s linear infinite;
-  }
+@keyframes auraPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.1), 0 0 40px rgba(59, 130, 246, 0.05); }
+  50% { box-shadow: 0 0 25px rgba(139, 92, 246, 0.2), 0 0 60px rgba(59, 130, 246, 0.1); }
+}
 
-  /* Japanese decorative circle (enso-inspired) */
-  .enso-ring {
-    @apply rounded-full border border-[var(--color-text-tertiary)]/20;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
-  }
+@keyframes sixEyesPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(139, 92, 246, 0.6); }
+  50% { opacity: 0.7; box-shadow: 0 0 16px rgba(139, 92, 246, 0.8); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes domainExpand {
+  from { opacity: 0; transform: scale(0.9); filter: blur(4px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 
 /* ─── Utilities ───────────────────────────────────────────────────────────── */
 
 @layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .animate-domain { animation: domainExpand 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+  .animate-slide-up { animation: slideUp 0.3s ease-out; }
+  .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+  .animate-scale-in { animation: scaleIn 0.2s ease-out; }
 }
