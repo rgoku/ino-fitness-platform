@@ -10,7 +10,9 @@ export default function HomeScreen() {
       {/* Header */}
       <div className="mb-8">
         <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-1">Good Morning</p>
-        <h1 className="text-3xl font-bold text-text-primary tracking-tight">Let's train.</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          <span className="bg-gradient-to-r from-brand-500 via-blue-500 to-cyan-400 bg-clip-text text-transparent">Let's train.</span>
+        </h1>
       </div>
 
       {/* Weekly Stats */}
@@ -20,17 +22,20 @@ export default function HomeScreen() {
         <StatCard value="12d" label="Streak" color="orange" />
       </div>
 
-      {/* AI Insight */}
-      <div className="bg-brand-50 rounded-xl p-4 mb-8 border border-brand-100">
-        <div className="flex items-center gap-2 mb-1.5">
-          <div className="w-5 h-5 rounded-md bg-brand-100 flex items-center justify-center">
-            <span className="text-[9px] font-bold text-brand-600">AI</span>
+      {/* AI Insight — Domain Expansion style */}
+      <div className="rounded-xl p-4 mb-8 relative overflow-hidden" style={{ background: 'linear-gradient(145deg, #111113, #09090B)', border: '1px solid rgba(139,92,246,0.15)' }}>
+        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at top right, rgba(139,92,246,0.12), transparent 60%), radial-gradient(ellipse at bottom left, rgba(6,182,212,0.08), transparent 60%)' }} />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.2), rgba(59,130,246,0.15))' }}>
+              <span className="text-[9px] font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">AI</span>
+            </div>
+            <span className="text-xs font-medium bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">AI Insight</span>
           </div>
-          <span className="text-xs font-medium text-brand-600">AI Insight</span>
+          <p className="text-sm text-white/90 leading-relaxed">
+            Your protein intake has been below target this week. Add a post-workout shake to hit your goals.
+          </p>
         </div>
-        <p className="text-sm text-text-primary leading-relaxed">
-          Your protein intake has been below target this week. Add a post-workout shake to hit your goals.
-        </p>
       </div>
 
       {/* Today's Workouts */}
@@ -52,7 +57,7 @@ export default function HomeScreen() {
                   <span className="text-xs text-text-tertiary">{workout.calories} cal</span>
                 </div>
               </div>
-              <button className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors shadow-xs">
+              <button className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-all shadow-xs hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]">
                 Start
               </button>
             </div>

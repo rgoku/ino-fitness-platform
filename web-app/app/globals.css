@@ -43,5 +43,15 @@ body {
 }
 
 ::selection {
-  background: #ECFDF5;
+  background: rgba(139, 92, 246, 0.2);
+}
+
+/* Gojo-inspired effects */
+.glow-green {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.15), 0 0 40px rgba(16, 185, 129, 0.08);
+}
+.text-gradient-anime {
+  background: linear-gradient(135deg, #8B5CF6, #3B82F6, #06B6D4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

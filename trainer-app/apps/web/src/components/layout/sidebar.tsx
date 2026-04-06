@@ -65,11 +65,11 @@ export function Sidebar() {
           'flex h-14 items-center px-4 shrink-0 border-b border-[var(--color-border-light)]',
           isCollapsed ? 'justify-center px-2' : 'gap-2.5'
         )}>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-white">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white glow-green" style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}>
             <Sparkles size={14} strokeWidth={2.2} />
           </div>
           {!isCollapsed && (
-            <span className="text-sub-md text-[var(--color-text-primary)] tracking-tight">
+            <span className="text-sub-md font-semibold text-[var(--color-text-primary)] tracking-tight">
               INÖ
             </span>
           )}
