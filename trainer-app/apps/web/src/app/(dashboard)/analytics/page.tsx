@@ -27,7 +27,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-slide-up">
       <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">Analytics</h1>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

@@ -27,7 +27,7 @@ export default function ClientsPage() {
   }, [clients, search]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-slide-up">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

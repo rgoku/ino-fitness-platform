@@ -13,7 +13,7 @@ interface ProgramCardProps {
 
 export function ProgramCard({ template, onDelete }: ProgramCardProps) {
   return (
-    <Card className="flex flex-col p-5 transition-shadow hover:shadow-card-hover">
+    <Card className="flex flex-col p-5 transition-shadow hover:shadow-card-hover hover-limitless">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <Link href={`/programs/${template.id}`}>

@@ -30,7 +30,7 @@ export function DietPlanCard({ plan, selected, onClick }: DietPlanCardProps) {
   return (
     <Card
       className={cn(
-        'cursor-pointer transition-all duration-100 hover:border-[var(--color-text-tertiary)]',
+        'cursor-pointer transition-all duration-100 hover:border-[var(--color-text-tertiary)] hover-limitless',
         selected && 'ring-2 ring-[var(--color-accent)] border-[var(--color-accent)]'
       )}
       onClick={onClick}

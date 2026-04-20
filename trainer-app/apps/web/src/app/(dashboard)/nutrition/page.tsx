@@ -52,7 +52,7 @@ export default function NutritionPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-slide-up">
       <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">
         Nutrition
         {plans && plans.length > 0 && (
