@@ -36,7 +36,7 @@ export default function VideosPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-slide-up">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

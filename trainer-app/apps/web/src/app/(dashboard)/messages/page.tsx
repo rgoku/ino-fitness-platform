@@ -29,7 +29,7 @@ export default function MessagesPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-slide-up">
       <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">
         Messages
       </h1>
