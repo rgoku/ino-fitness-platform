@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import {
   searchPubMed,
   fetchArticleDetails,
-  validateCitation,
   type PubMedArticle,
 } from '@/lib/pubmed-service';
 

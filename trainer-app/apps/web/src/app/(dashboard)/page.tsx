@@ -3,7 +3,6 @@
 import { StatsGrid } from '@/components/dashboard/stats-grid';
 import { AttentionQueue } from '@/components/dashboard/attention-queue';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
-import { AIInsight } from '@/components/ui/ai-insight';
 import { useAuthStore } from '@/stores/auth-store';
 
 function getGreeting(): string {

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
-  Sun, Moon, Bell, BellOff, CreditCard, Shield, LogOut,
+  Sun, Moon, Bell, CreditCard, Shield, LogOut,
   Upload, Check, Globe, Clock, Smartphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
