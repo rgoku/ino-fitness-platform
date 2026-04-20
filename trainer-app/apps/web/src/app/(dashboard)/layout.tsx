@@ -36,6 +36,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         case 's': router.push('/programs/session'); break;
         case 'm': router.push('/messages'); break;
         case 'd': router.push('/nutrition'); break;
+        case 'q': router.push('/questionnaires/new'); break;
         case 'g': router.push('/'); break; // g = go home
         case '?':
           alert('⌘K / / — Command palette\nC — Add client\nP — AI program builder\nS — Start session\nM — Messages\nD — Nutrition\nG — Go home');

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Search, LayoutDashboard, Users, Dumbbell, Video, Leaf, ClipboardCheck,
   MessageSquare, BarChart3, DollarSign, Trophy, Library, Gift, Settings,
-  Plus, Sparkles, UserPlus, Play, FileText, ArrowRight,
+  Plus, Sparkles, UserPlus, Play, FileText, ArrowRight, ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -38,6 +38,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       { id: 'nav-videos', label: 'Videos', icon: Video, action: go('/videos'), group: 'Navigation' },
       { id: 'nav-nutrition', label: 'Nutrition', icon: Leaf, action: go('/nutrition'), group: 'Navigation' },
       { id: 'nav-checkins', label: 'Check-ins', icon: ClipboardCheck, action: go('/check-ins'), group: 'Navigation' },
+      { id: 'nav-questionnaires', label: 'Questionnaires', icon: ClipboardList, action: go('/questionnaires'), group: 'Navigation' },
       { id: 'nav-messages', label: 'Messages', icon: MessageSquare, action: go('/messages'), group: 'Navigation' },
       { id: 'nav-analytics', label: 'Analytics', icon: BarChart3, action: go('/analytics'), group: 'Navigation' },
       { id: 'nav-leaderboard', label: 'Leaderboard', icon: Trophy, action: go('/leaderboard'), group: 'Navigation' },
@@ -50,6 +51,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       { id: 'act-new-program', label: 'Create program with AI', shortcut: 'P', icon: Sparkles, action: go('/programs/builder'), group: 'Actions' },
       { id: 'act-start-session', label: 'Start workout session', shortcut: 'S', icon: Play, action: go('/programs/session'), group: 'Actions' },
       { id: 'act-new-diet', label: 'Generate diet plan', icon: FileText, action: go('/nutrition'), group: 'Actions' },
+      { id: 'act-new-quest', label: 'Build questionnaire', shortcut: 'Q', icon: ClipboardList, action: go('/questionnaires/new'), group: 'Actions' },
 
       { id: 'client-james', label: 'James W.', hint: 'Active · 94% compliance', icon: Users, action: go('/clients/c1'), group: 'Clients' },
       { id: 'client-maria', label: 'Maria S.', hint: 'Active · 88% compliance', icon: Users, action: go('/clients/c2'), group: 'Clients' },
