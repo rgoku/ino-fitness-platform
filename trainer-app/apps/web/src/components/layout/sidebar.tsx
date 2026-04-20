@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Users,
   Dumbbell,
+  Video,
   Leaf,
   ClipboardCheck,
   MessageSquare,
@@ -26,6 +27,7 @@ const navItems = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard },
   { label: 'Clients', href: '/clients', icon: Users },
   { label: 'Programs', href: '/programs', icon: Dumbbell },
+  { label: 'Videos', href: '/videos', icon: Video },
   { label: 'Nutrition', href: '/nutrition', icon: Leaf },
   { label: 'Check-ins', href: '/check-ins', icon: ClipboardCheck },
   { label: 'Messages', href: '/messages', icon: MessageSquare },
@@ -63,12 +65,12 @@ export function Sidebar() {
           'flex h-14 items-center px-4 shrink-0 border-b border-[var(--color-border-light)]',
           isCollapsed ? 'justify-center px-2' : 'gap-2.5'
         )}>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-white">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white glow-green" style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}>
             <Sparkles size={14} strokeWidth={2.2} />
           </div>
           {!isCollapsed && (
-            <span className="text-sub-md text-[var(--color-text-primary)] tracking-tight">
-              INO
+            <span className="text-sub-md font-semibold text-[var(--color-text-primary)] tracking-tight">
+              INÖ
             </span>
           )}
           <button

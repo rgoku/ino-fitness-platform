@@ -1,4 +1,5 @@
 import asyncio
+import os
 import anthropic
 from typing import Optional
 import json
@@ -10,12 +11,34 @@ import requests
 from datetime import datetime
 
 
+WORKOUT_SYSTEM_PROMPT = (
+    "You are an elite personal trainer and evidence-based strength coach. "
+    "Generate personalized, safe, and progressive workout plans grounded in "
+    "exercise science. Every plan must:\n"
+    "- Use evidence-based programming with explicit sets, reps, tempo, rest, "
+    "  and RPE (rate of perceived exertion 1-10).\n"
+    "- Apply progressive overload principles appropriate to the user's "
+    "  experience level (beginner/intermediate/advanced).\n"
+    "- Respect the user's available equipment and any stated limitations or "
+    "  injuries - never prescribe exercises the user cannot safely perform.\n"
+    "- Match the user's goal (hypertrophy, strength, endurance, fat loss, "
+    "  general fitness) with the appropriate rep ranges and rest intervals.\n"
+    "- Balance muscle groups, include adequate warm-up cues, and avoid "
+    "  overtraining.\n"
+    "CRITICAL OUTPUT RULE: Respond with a single valid JSON object only. "
+    "No markdown fences, no commentary, no preamble. The JSON must match the "
+    "schema provided in the user message exactly."
+)
+
+
 class AIService:
     """Service for AI-powered features using Claude"""
 
     def __init__(self):
         self.client = anthropic.Anthropic()
         self.model = "claude-3-5-sonnet-20241022"
+        # Dedicated model for workout plan generation (latest Sonnet).
+        self.workout_model = "claude-sonnet-4-6"
 
         # Initialize MediaPipe pose detection
         self.mp_pose = solutions.pose
@@ -34,56 +57,147 @@ class AIService:
             None, lambda: self.client.messages.create(**kwargs)
         )
 
-    async def generate_workout_plan(self, user_id: str, biometrics: dict) -> dict:
-        """Generate personalized workout plan"""
-        prompt = f"""
-        Create a detailed, personalized workout plan for a user with the following profile:
-        - Age: {biometrics.get('age')}
-        - Gender: {biometrics.get('gender')}
-        - Weight: {biometrics.get('weight')} kg
-        - Height: {biometrics.get('height')} cm
-        - Experience Level: {biometrics.get('experience_level')}
-        - Goals: {biometrics.get('goals')}
-        
-        Return a JSON object with:
+    def _build_workout_prompt(self, biometrics: dict) -> str:
+        """Build the user-facing workout generation prompt from biometrics."""
+        equipment = biometrics.get('equipment') or biometrics.get('available_equipment') or 'bodyweight only'
+        limitations = biometrics.get('limitations') or biometrics.get('injuries') or 'none'
+        return f"""
+Create a detailed, personalized workout plan for a user with the following profile:
+- Age: {biometrics.get('age')}
+- Gender: {biometrics.get('gender')}
+- Weight: {biometrics.get('weight')} kg
+- Height: {biometrics.get('height')} cm
+- Experience Level: {biometrics.get('experience_level')}
+- Goals: {biometrics.get('goals')}
+- Available Equipment: {equipment}
+- Limitations / Injuries: {limitations}
+
+Apply progressive overload and evidence-based programming. Include appropriate
+RPE, tempo, and rest for the stated goal. Respect equipment and limitations.
+
+Return a JSON object with EXACTLY this schema:
+{{
+    "name": "Plan name",
+    "description": "Brief description",
+    "duration": 8,
+    "focus_areas": ["muscle groups"],
+    "exercises": [
         {{
-            "name": "Plan name",
-            "description": "Brief description",
+            "name": "Exercise name",
+            "description": "Description",
+            "muscle_groups": ["group"],
+            "equipment": ["equipment"],
+            "sets": 3,
+            "reps": 10,
+            "rest_seconds": 60,
+            "instructions": ["instruction 1", "instruction 2"]
+        }}
+    ]
+}}
+""".strip()
+
+    def _mock_workout_plan(self, biometrics: dict) -> dict:
+        """Fallback plan returned when ANTHROPIC_API_KEY is not configured."""
+        experience = biometrics.get('experience_level') or 'beginner'
+        goals = biometrics.get('goals') or 'general fitness'
+        return {
+            "name": f"{str(goals).title()} Starter Plan",
+            "description": (
+                f"Auto-generated mock plan for a {experience} trainee. "
+                "Set ANTHROPIC_API_KEY for AI-generated plans."
+            ),
             "duration": 8,
-            "focus_areas": ["muscle groups"],
+            "focus_areas": ["full body"],
             "exercises": [
-                {{
-                    "name": "Exercise name",
-                    "description": "Description",
-                    "muscle_groups": ["group"],
-                    "equipment": ["equipment"],
+                {
+                    "name": "Goblet Squat",
+                    "description": "Lower-body compound movement.",
+                    "muscle_groups": ["quads", "glutes", "core"],
+                    "equipment": ["dumbbell"],
+                    "sets": 3,
+                    "reps": 10,
+                    "rest_seconds": 90,
+                    "instructions": [
+                        "Hold dumbbell at chest height.",
+                        "Squat to parallel, keep chest up.",
+                        "Drive through heels to stand.",
+                    ],
+                },
+                {
+                    "name": "Push-up",
+                    "description": "Upper-body pressing movement.",
+                    "muscle_groups": ["chest", "triceps", "shoulders"],
+                    "equipment": ["bodyweight"],
                     "sets": 3,
                     "reps": 10,
                     "rest_seconds": 60,
-                    "instructions": ["instruction 1", "instruction 2"]
-                }}
-            ]
-        }}
+                    "instructions": [
+                        "Plank position, hands under shoulders.",
+                        "Lower chest toward floor with elbows ~45 deg.",
+                        "Press back up; keep core braced.",
+                    ],
+                },
+                {
+                    "name": "Bent-over Row",
+                    "description": "Upper-body pulling movement.",
+                    "muscle_groups": ["back", "biceps"],
+                    "equipment": ["dumbbell"],
+                    "sets": 3,
+                    "reps": 10,
+                    "rest_seconds": 60,
+                    "instructions": [
+                        "Hinge at hips, flat back.",
+                        "Row dumbbells to ribcage.",
+                        "Control the descent.",
+                    ],
+                },
+            ],
+        }
+
+    async def generate_workout_plan(self, user_id: str, biometrics: dict) -> dict:
+        """Generate personalized workout plan using Claude Sonnet 4.6.
+
+        Falls back to a deterministic mock plan when ANTHROPIC_API_KEY is not set
+        so local development / CI still works.
         """
-        
-        message = await self._create_message(
-            model=self.model,
-            max_tokens=2000,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            return self._mock_workout_plan(biometrics)
+
+        prompt = self._build_workout_prompt(biometrics)
+
+        try:
+            # Prompt caching on the system prompt reduces cost for repeated calls.
+            message = await self._create_message(
+                model=self.workout_model,
+                max_tokens=4096,
+                system=[
+                    {
+                        "type": "text",
+                        "text": WORKOUT_SYSTEM_PROMPT,
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                ],
+                messages=[{"role": "user", "content": prompt}],
+            )
+        except Exception as e:
+            # If the real API call fails for any reason, fall back to the mock
+            # so the user-facing flow degrades gracefully.
+            print(f"Workout generation via Claude failed, using mock fallback: {e}")
+            return self._mock_workout_plan(biometrics)
 
         # Parse JSON from response
         response_text = message.content[0].text
         try:
-            # Extract JSON from response
-            json_start = response_text.find('{')
-            json_end = response_text.rfind('}') + 1
-            json_str = response_text[json_start:json_end]
-            return json.loads(json_str)
-        except:
-            return {"error": "Failed to parse response"}
+            return json.loads(response_text)
+        except Exception:
+            # Tolerate stray prose - extract the JSON object.
+            try:
+                json_start = response_text.find('{')
+                json_end = response_text.rfind('}') + 1
+                json_str = response_text[json_start:json_end]
+                return json.loads(json_str)
+            except Exception:
+                return {"error": "Failed to parse response"}
     
     async def generate_diet_plan(self, user_id: str, biometrics: dict, preferences: dict) -> dict:
         """Generate research-backed personalized diet plan with PubMed citations"""

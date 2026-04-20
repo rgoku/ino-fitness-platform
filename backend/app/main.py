@@ -12,7 +12,7 @@ from slowapi import _rate_limit_exceeded_handler
 from app.core.config import get_cors_origins
 from app.infrastructure.database import SessionLocal
 from app.domain.reminders import reminder_service
-from app.routes import auth, workouts, diet, progress, coaching, ai_coach, users, reminders
+from app.routes import auth, workouts, diet, progress, coaching, ai_coach, users, reminders, subscriptions
 from app.utils.logging import setup_logging
 from app.utils.error_handler import (
     global_exception_handler,
@@ -66,6 +66,7 @@ app.include_router(progress.router, prefix="/api/v1/progress", tags=["Progress"]
 app.include_router(coaching.router, prefix="/api/v1/coaching", tags=["Coaching"])
 app.include_router(ai_coach.router, prefix="/api/v1/ai", tags=["AI Coach"])
 app.include_router(reminders.router, prefix="/api/v1", tags=["Reminders"])
+app.include_router(subscriptions.router, prefix="/api/v1/subscriptions", tags=["Subscriptions"])
 
 
 @app.on_event("startup")

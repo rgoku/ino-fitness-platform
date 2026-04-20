@@ -26,7 +26,7 @@ export function StatCard({ label, value, icon: Icon, trend, iconColor, loading }
   const TrendIcon = trend?.direction === 'up' ? TrendingUp : trend?.direction === 'down' ? TrendingDown : Minus;
 
   return (
-    <div className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-xs transition-all duration-150 hover:shadow-card hover:border-[var(--color-text-tertiary)]/30">
+    <div className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-xs hover-limitless">
       <div className="flex items-center justify-between mb-4">
         <p className="text-body-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
           {label}

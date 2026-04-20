@@ -141,7 +141,7 @@ export function ClientOverviewTab({ client }: ClientOverviewTabProps) {
             </div>
             <div>
               <dt className="text-body-xs text-[var(--color-text-tertiary)] uppercase tracking-wider mb-1">Goal</dt>
-              <dd className="text-[var(--color-text-primary)]">{client.goal || 'Not set'}</dd>
+              <dd className="text-[var(--color-text-primary)]">{(client as any).goal || 'Not set'}</dd>
             </div>
           </dl>
         </CardContent>

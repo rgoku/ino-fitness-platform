@@ -1,23 +1,23 @@
 import Link from 'next/link';
-import { FileQuestion } from 'lucide-react';
+import { FileQuestion, Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center text-center">
-      <div className="mb-4 rounded-full bg-surface-secondary p-3">
-        <FileQuestion size={24} className="text-[var(--color-text-tertiary)]" />
+    <div className="flex min-h-[500px] flex-col items-center justify-center gap-5 px-4 text-center animate-slide-up">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--color-surface-hover)]">
+        <FileQuestion size={28} className="text-[var(--color-text-tertiary)]" />
       </div>
-      <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-        Page not found
-      </h2>
-      <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-        The page you&apos;re looking for doesn&apos;t exist.
-      </p>
-      <Link
-        href="/"
-        className="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
-      >
-        Back to Dashboard
+      <div className="max-w-md">
+        <h2 className="text-heading-2 text-[var(--color-text-primary)]">Page not found</h2>
+        <p className="mt-2 text-body-md text-[var(--color-text-secondary)]">
+          The page you&apos;re looking for doesn&apos;t exist or has been moved.
+        </p>
+      </div>
+      <Link href="/">
+        <Button variant="primary" size="md" icon={<Home size={14} />}>
+          Back to dashboard
+        </Button>
       </Link>
     </div>
   );

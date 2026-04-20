@@ -1,6 +1,8 @@
 'use client';
 
-import { AlertTriangle } from 'lucide-react';
+import { useEffect } from 'react';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export default function DashboardError({
@@ -10,20 +12,36 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error('Dashboard error:', error);
+  }, [error]);
+
   return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center text-center">
-      <div className="mb-4 rounded-full bg-red-500/10 p-3">
-        <AlertTriangle size={24} className="text-red-500" />
+    <div className="flex min-h-[500px] flex-col items-center justify-center gap-5 px-4 text-center animate-slide-up">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-error-50 dark:bg-red-900/20">
+        <AlertTriangle size={28} className="text-error-500" />
       </div>
-      <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-        Something went wrong
-      </h2>
-      <p className="mt-1 max-w-md text-sm text-[var(--color-text-secondary)]">
-        {error.message || 'An unexpected error occurred while loading this page.'}
-      </p>
-      <Button variant="secondary" size="sm" className="mt-4" onClick={reset}>
-        Try Again
-      </Button>
+      <div className="max-w-md">
+        <h2 className="text-heading-2 text-[var(--color-text-primary)]">Something went wrong</h2>
+        <p className="mt-2 text-body-md text-[var(--color-text-secondary)]">
+          {error.message || 'An unexpected error occurred while loading this page.'}
+        </p>
+        {error.digest && (
+          <p className="mt-2 text-body-xs text-[var(--color-text-tertiary)] font-mono">
+            Error ID: {error.digest}
+          </p>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <Button variant="secondary" size="md" onClick={reset} icon={<RefreshCw size={14} />}>
+          Try again
+        </Button>
+        <Link href="/">
+          <Button variant="primary" size="md" icon={<Home size={14} />}>
+            Go home
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }
