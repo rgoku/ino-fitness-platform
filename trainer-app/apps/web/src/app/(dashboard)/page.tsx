@@ -33,11 +33,11 @@ export default function DashboardPage() {
       {/* AI Insight — Domain Expansion style */}
       <div className="card-domain rounded-xl p-5">
         <div className="relative z-10 flex items-start gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg six-eyes" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.1))' }}>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg six-eyes" style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.15), rgba(6,182,212,0.1))' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="url(#glow)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <defs>
                 <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#8B5CF6" />
+                  <stop offset="0%" stopColor="#2563EB" />
                   <stop offset="100%" stopColor="#06B6D4" />
                 </linearGradient>
               </defs>
