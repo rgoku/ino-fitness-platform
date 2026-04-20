@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   MessageSquare,
   BarChart3,
+  DollarSign,
   Settings,
   ChevronsLeft,
   ChevronsRight,
@@ -32,6 +33,7 @@ const navItems = [
   { label: 'Check-ins', href: '/check-ins', icon: ClipboardCheck },
   { label: 'Messages', href: '/messages', icon: MessageSquare },
   { label: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { label: 'Revenue', href: '/revenue', icon: DollarSign },
 ];
 
 const bottomItems = [
