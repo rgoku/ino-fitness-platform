@@ -1,6 +1,6 @@
 /**
- * INÖ Platform — marketing & pricing data
- * Landing page, pricing tiers, FAQ, comparison, demo mock data.
+ * INÖ Platform — data layer for the landing page.
+ * Outcome-driven copy, realistic testimonials, coach-focused language.
  */
 
 export const PLANS = [
@@ -9,17 +9,17 @@ export const PLANS = [
     name: 'Starter',
     price: 129,
     period: '/mo',
-    desc: 'Everything you need to coach professionally',
+    desc: 'Everything you need to run a real coaching business',
     clients: '20 clients',
     features: [
-      'Workout Builder & Templates',
-      'Exercise Video Library',
-      'Client Messaging',
-      'Progress Photo Tracking',
-      'Basic Check-ins',
-      'Nutrition Guidelines',
+      'AI Program Builder',
+      'Client Mobile App',
+      'Progress Tracking',
+      'Messaging & Check-ins',
+      'Form Video Uploads',
+      'Exercise Library',
     ],
-    missing: ['Automation', 'Advanced Check-ins', 'Client Flags', 'Deep Analytics'],
+    missing: ['Automation Engine', 'Real-time Form Feedback', 'Client Intelligence', 'Team Access'],
     popular: false,
   },
   {
@@ -27,20 +27,18 @@ export const PLANS = [
     name: 'Pro',
     price: 249,
     period: '/mo',
-    desc: 'The full toolkit to scale past 30+ clients',
+    desc: 'Scale past 50+ clients without burning out',
     clients: '50 clients',
     features: [
       'Everything in Starter',
-      'Smart Automation Workflows',
-      'Advanced Check-in System',
-      'Client Risk Flags & Alerts',
-      'Readiness Scoring',
+      'AI Automation Workflows',
+      'Real-time Form Feedback',
+      'Client Intelligence & Risk Flags',
+      'Readiness & Recovery Scoring',
       'Custom Branding',
-      'Form Video Review',
-      'Form review videos stored 90 days (rolling)',
-      'Priority Email Support',
+      'Priority Support',
     ],
-    missing: ['Deep Automation', 'Team Access'],
+    missing: ['Team Access', 'API Access'],
     popular: true,
   },
   {
@@ -48,17 +46,15 @@ export const PLANS = [
     name: 'Scale',
     price: 399,
     period: '/mo',
-    desc: 'For coaching teams running a real operation',
+    desc: 'For coaching teams running 100+ clients',
     clients: '100+ clients',
     features: [
       'Everything in Pro',
-      'Deep Automation Engine',
-      'Staff Roles (Coach / Assistant / Admin)',
-      'Shared Inbox & Assignment Ownership',
-      'Advanced Client Analytics',
+      'Team Access & Roles',
+      'Shared Inbox',
+      'Advanced Analytics',
       'White-label Branding',
       'Dedicated Account Manager',
-      'Priority Phone & Chat Support',
       'API Access',
     ],
     missing: [],
@@ -68,120 +64,154 @@ export const PLANS = [
 
 export const FEATURES = [
   {
-    icon: 'dumbbell',
-    color: 'primary',
-    title: 'Workout Builder',
-    desc: 'Create, assign, and manage training programs with a drag-and-drop builder. Template entire mesocycles in minutes.',
-  },
-  {
-    icon: 'video',
-    color: 'pink',
-    title: 'Form Video Review',
-    desc: 'Clients submit form check videos directly in-app. Review, annotate, and send feedback without leaving the platform.',
-  },
-  {
-    icon: 'alertCircle',
-    color: 'danger',
-    title: 'Client Risk Flags',
-    desc: 'Automatic alerts when clients miss sessions, drop adherence, or show signs of disengagement. Intervene before they churn.',
+    icon: 'cpu',
+    title: 'AI Program Engine',
+    desc: 'Generates individualized programs from client goals, history, and feedback. Not templates — actual programming logic.',
   },
   {
     icon: 'zap',
-    color: 'warning',
-    title: 'Smart Automation',
-    desc: 'Client misses 2 workouts → auto-send check-in → flag coach after 48h. Set rules once, let them run. No manual follow-up.',
+    title: 'Workflow Automation',
+    desc: 'Missed check-in → automated follow-up. Plateau detected → protocol adjusts. You set the rules once. The system runs.',
+  },
+  {
+    icon: 'video',
+    title: 'Real-time Form Feedback',
+    desc: 'Clients film a set. Get cue-level feedback in seconds. You review what matters, skip what doesn\'t.',
+  },
+  {
+    icon: 'alertCircle',
+    title: 'Client Intelligence',
+    desc: 'Risk flags surface clients drifting before they churn. Adherence, recovery, engagement — monitored continuously.',
   },
   {
     icon: 'heartPulse',
-    color: 'success',
-    title: 'Readiness & Check-ins',
-    desc: 'Daily readiness scores, weekly check-ins, and progress photo tracking — all synced to the coach dashboard.',
+    title: 'Readiness & Recovery',
+    desc: 'Daily readiness scores, RPE trends, sleep signals. Programs adjust to how the client actually shows up.',
   },
   {
     icon: 'chart',
-    color: 'cyan',
-    title: 'Analytics Dashboard',
-    desc: 'Client adherence trends, revenue tracking, retention rates, and business performance — all in one view.',
+    title: 'Business Intelligence',
+    desc: 'Retention, revenue, client LTV. Finally know which programs work, which clients stick, and where to focus.',
   },
 ] as const;
 
 export const TESTIMONIALS = [
   {
     name: 'Marcus Rivera',
-    role: 'Online Strength Coach',
+    role: 'Strength Coach · Austin, TX',
     initials: 'MR',
-    color: 'primary',
-    quote: 'Went from 18 to 62 clients in 4 months. The automation handles what used to take me 3 hours a day.',
-    metric: '18 → 62 clients',
+    quote: 'I coached 22 clients before INÖ. Now I run 74 — without hiring. The automation handles what used to take me three hours a day.',
+    metric: '22 → 74 clients',
   },
   {
     name: 'Jenna Kowalski',
-    role: 'Nutrition & Fitness Coach',
+    role: 'Powerlifting Coach · Chicago',
     initials: 'JK',
-    color: 'pink',
-    quote: 'My clients love the app. Check-in completion went from maybe 40% to over 90%. It changed my entire business.',
-    metric: '90% check-in rate',
+    quote: "My check-in completion went from 38% to 91%. Clients actually respond now because the prompts feel personal — even though they're automated.",
+    metric: '91% completion',
   },
   {
     name: 'David Okonkwo',
-    role: 'Gym Owner & Head Coach',
+    role: 'Hybrid Gym + Online · Atlanta',
     initials: 'DO',
-    color: 'cyan',
-    quote: "We run 100+ online clients alongside our gym. INÖ is the only platform that didn't break at scale.",
-    metric: '100+ clients managed',
+    quote: 'We tried Trainerize, TrueCoach, Everfit. INÖ is the first platform that didn\'t break when we crossed 80 clients. It\'s built like actual software.',
+    metric: '110 active clients',
   },
+] as const;
+
+export const BEFORE_AFTER = {
+  before: {
+    label: 'Before INÖ',
+    items: [
+      'Capped at 20–30 clients before quality drops',
+      'Manual check-ins every Sunday night',
+      'Spreadsheets, Google Docs, and chaos',
+      'Burnout disguised as "being busy"',
+      'Trading time for revenue, forever',
+    ],
+  },
+  after: {
+    label: 'After INÖ',
+    items: [
+      '80–100+ clients with zero drop in quality',
+      'Check-ins automated, responses contextual',
+      'One system. Every client. Every workflow.',
+      'Work 25 hours/week — coach at full capacity',
+      'A real business that scales beyond you',
+    ],
+  },
+} as const;
+
+export const PROBLEM_SOLUTION = {
+  problem: {
+    title: 'The coaching ceiling is real.',
+    desc: 'You can only coach so many clients before quality drops, check-ins pile up, and every program becomes a template. You trade freedom for revenue — or revenue for your sanity.',
+  },
+  solution: {
+    title: 'INÖ is the system that breaks it.',
+    desc: 'AI handles the check-ins, programs, and feedback at scale. Every client feels seen. You work less. Your business grows. The infrastructure scales with you — not against you.',
+  },
+} as const;
+
+export const MARQUEE_ITEMS = [
+  'Coaches scaling to 100+ clients',
+  'Real infrastructure — not templates',
+  'AI-powered programming',
+  'Real-time form feedback',
+  'Built for coaches who coach',
+  'Automation that feels personal',
 ] as const;
 
 export const FAQ_DATA = [
   {
-    q: 'Can my clients actually use this app?',
-    a: "Yes. INÖ Fit is designed to be dead simple — your clients download it, enter your coach code, and they're in. No confusing onboarding, no tech support calls. If they can use Instagram, they can use INÖ Fit.",
+    q: 'How is this different from Trainerize or TrueCoach?',
+    a: 'Those tools work at 10–20 clients and break at 40+. INÖ was engineered for scale — real AI programming, automated workflows, and a client app that actually gets used. You\'re not paying for a CMS with workouts on top.',
   },
   {
-    q: 'What happens if I outgrow my plan?',
-    a: 'Upgrade anytime with zero downtime. Your data, clients, and workflows all carry over instantly. Most coaches start on Starter and move to Pro within 2–3 months as they scale.',
+    q: 'Do my clients need a separate app?',
+    a: "They get INÖ Fit free — a mobile app branded to your coaching. They open it, see their program, log their sets, film form checks. If they can use Instagram, they can use this.",
   },
   {
-    q: 'Is there a contract or commitment?',
-    a: 'No contracts, ever. All plans are month-to-month. You can cancel anytime from your dashboard. We keep your data for 90 days in case you come back.',
+    q: 'What happens to my current programs and clients?',
+    a: 'We migrate everything. CSV, spreadsheet, or existing platform — we handle the transfer. Pro and Scale plans get white-glove onboarding at no extra cost.',
   },
   {
-    q: 'How is this different from Trainerize / TrueCoach / Google Sheets?',
-    a: 'INÖ was built for scale. Most coaching tools work fine at 10 clients but break at 40+. INÖ gives you automation, client risk flags, and a real mobile app — so you can grow without the chaos.',
+    q: 'Is the AI actually good, or is this marketing?',
+    a: 'Fair question. The engine uses your programming logic and client data — not generic "AI workout" slop. You set the rules, the templates, and the autoregulation parameters. It executes them at scale. You stay in control.',
   },
   {
-    q: 'Do my clients have to pay anything?',
-    a: 'No. Your subscription covers everything. Your clients get INÖ Fit completely free — it\'s branded to your coaching business.',
+    q: 'What if I want to cancel?',
+    a: 'Month-to-month, no contracts. Cancel from your dashboard anytime. We keep your data for 90 days in case you come back.',
   },
   {
-    q: 'Can I migrate from another platform?',
-    a: 'Yes. We offer free migration support for Pro and Scale plans. Send us a CSV or connect your existing tool and we\'ll handle the rest.',
+    q: 'Who is this not for?',
+    a: 'Coaches running under 10 clients — you don\'t need this yet. Also coaches who don\'t want to systematize (the AI mirrors YOUR approach; it doesn\'t invent one for you).',
   },
 ] as const;
 
 export const COMPARISON_FEATURES = [
   { name: 'Clients included', starter: 'Up to 20', pro: 'Up to 50', scale: '100+' },
-  { name: 'Workout Builder', starter: true, pro: true, scale: true },
-  { name: 'Exercise Video Library', starter: true, pro: true, scale: true },
-  { name: 'Client Messaging', starter: true, pro: true, scale: true },
-  { name: 'Progress Photo Tracking', starter: true, pro: true, scale: true },
-  { name: 'Nutrition Guidelines', starter: true, pro: true, scale: true },
-  { name: 'Basic Check-ins', starter: true, pro: true, scale: true },
-  { name: 'Smart Automation', starter: false, pro: true, scale: true },
-  { name: 'Advanced Check-in System', starter: false, pro: true, scale: true },
-  { name: 'Client Risk Flags & Alerts', starter: false, pro: true, scale: true },
-  { name: 'Readiness Scoring', starter: false, pro: true, scale: true },
-  { name: 'Form Video Review', starter: false, pro: true, scale: true },
+  { name: 'AI Program Builder', starter: true, pro: true, scale: true },
+  { name: 'Client Mobile App', starter: true, pro: true, scale: true },
+  { name: 'Progress Tracking', starter: true, pro: true, scale: true },
+  { name: 'Messaging & Check-ins', starter: true, pro: true, scale: true },
+  { name: 'Exercise Library', starter: true, pro: true, scale: true },
+  { name: 'Form Video Uploads', starter: true, pro: true, scale: true },
+  { name: 'AI Automation Workflows', starter: false, pro: true, scale: true },
+  { name: 'Real-time Form Feedback', starter: false, pro: true, scale: true },
+  { name: 'Client Intelligence & Flags', starter: false, pro: true, scale: true },
+  { name: 'Readiness & Recovery', starter: false, pro: true, scale: true },
   { name: 'Custom Branding', starter: false, pro: true, scale: true },
-  { name: 'Deep Automation Engine', starter: false, pro: false, scale: true },
-  { name: 'Staff Roles & Permissions', starter: false, pro: false, scale: true },
-  { name: 'Shared Inbox & Assignments', starter: false, pro: false, scale: true },
-  { name: 'Advanced Client Analytics', starter: false, pro: false, scale: true },
+  { name: 'Team Access & Roles', starter: false, pro: false, scale: true },
+  { name: 'Shared Inbox', starter: false, pro: false, scale: true },
+  { name: 'Advanced Analytics', starter: false, pro: false, scale: true },
   { name: 'White-label Branding', starter: false, pro: false, scale: true },
-  { name: 'Dedicated Account Manager', starter: false, pro: false, scale: true },
   { name: 'API Access', starter: false, pro: false, scale: true },
+  { name: 'Dedicated Account Manager', starter: false, pro: false, scale: true },
   { name: 'Priority Support', starter: 'Email', pro: 'Email', scale: 'Phone & Chat' },
 ] as const;
+
+export const YEARLY_DISCOUNT = 0.2;
 
 export const DEMO_MEMBERS = [
   { id: 'm1', name: 'James Wilson', initials: 'JW', status: 'active', progress: 0.84, streak: 12, lastActive: 'Today' },
@@ -227,5 +257,3 @@ export const DEMO_WORKOUTS = [
     ],
   },
 ] as const;
-
-export const YEARLY_DISCOUNT = 0.2; // 20% off

@@ -1,496 +1,511 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { DEMO_MEMBERS, DEMO_WORKOUTS } from '@/lib/platform-data';
+import { CustomCursor } from '@/components/CustomCursor';
+
+/* ══════════════════════════════════════════════════════════ */
+/*  BOOT SEQUENCE — Terminal Loader                         */
+/* ══════════════════════════════════════════════════════════ */
+const BOOT_LINES = [
+  { text: '$ ino --init --env=demo', type: 'cmd' },
+  { text: '[INFO] Loading platform kernel v2.1.0...', type: 'info' },
+  { text: '[INFO] Reading config ~/.ino/config.toml    [OK]', type: 'ok' },
+  { text: '[INFO] Authenticating session (JWT-RS256)   [OK]', type: 'ok' },
+  { text: '[INFO] Establishing secure TLS handshake    [OK]', type: 'ok' },
+  { text: '[INFO] Connecting to Coach API (edge-us-1)  [OK]', type: 'ok' },
+  { text: '[INFO] Hydrating client store (2.4MB)       [OK]', type: 'ok' },
+  { text: '[INFO] Mounting AI inference engine         [OK]', type: 'ok' },
+  { text: '[INFO] Loading periodization models         [OK]', type: 'ok' },
+  { text: '[INFO] Spinning up automation workers (x8)  [OK]', type: 'ok' },
+  { text: '[INFO] Syncing 2,412 coaches                [OK]', type: 'ok' },
+  { text: '[INFO] Indexing 58,941 client records       [OK]', type: 'ok' },
+  { text: '[INFO] Warming up form-analysis pipeline    [OK]', type: 'ok' },
+  { text: '[INFO] Subscribing to realtime channels     [OK]', type: 'ok' },
+  { text: '[INFO] Platform ready. Uptime: 247d 14h.', type: 'info' },
+  { text: '$ ino dashboard --live --user=marcus', type: 'cmd' },
+];
+
+function BootSequence({ onDone }: { onDone: () => void }) {
+  const [visible, setVisible] = useState<typeof BOOT_LINES>([]);
+  const [fadeOut, setFadeOut] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let i = 0;
+    let cancelled = false;
+    const next = () => {
+      if (cancelled) return;
+      if (i < BOOT_LINES.length) {
+        const line = BOOT_LINES[i];
+        setVisible((prev) => [...prev, line]);
+        i += 1;
+        setTimeout(next, i === 1 ? 120 : 45 + Math.random() * 35);
+      } else {
+        setTimeout(() => {
+          if (cancelled) return;
+          setReady(true);
+          setTimeout(() => {
+            if (cancelled) return;
+            setFadeOut(true);
+            setTimeout(() => { if (!cancelled) onDone(); }, 400);
+          }, 500);
+        }, 250);
+      }
+    };
+    next();
+    return () => { cancelled = true; };
+  }, [onDone]);
+
+  const progress = Math.min(100, Math.round((visible.length / BOOT_LINES.length) * 100));
+  return (
+    <div className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#0A0A0A] transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
+      <div className="absolute inset-0 grid-pattern" />
+
+      {/* Central LOADING badge */}
+      <div className="absolute top-[8%] left-1/2 -translate-x-1/2 z-10">
+        <div className={`rounded-lg border backdrop-blur-xl px-8 py-5 text-center glow-accent transition-all duration-500 ${
+          ready ? 'border-[#00B4D8]/40 bg-[#00B4D8]/[0.08]' : 'border-[#3A86FF]/30 bg-[#3A86FF]/[0.06]'
+        }`}>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className={`w-1.5 h-1.5 rounded-full ${ready ? 'bg-[#00B4D8]' : 'bg-[#3A86FF] animate-pulse'}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${ready ? 'bg-[#00B4D8]' : 'bg-[#3A86FF] animate-pulse'}`} style={{ animationDelay: '0.2s' }} />
+            <span className={`w-1.5 h-1.5 rounded-full ${ready ? 'bg-[#00B4D8]' : 'bg-[#3A86FF] animate-pulse'}`} style={{ animationDelay: '0.4s' }} />
+          </div>
+          <div className={`font-mono text-[13px] font-bold uppercase tracking-[0.3em] ${ready ? 'text-[#00B4D8]' : 'text-[#3A86FF]'}`}>
+            {ready ? 'Ready' : 'Loading...'}
+          </div>
+          <div className="mt-3 w-40 h-0.5 rounded-full bg-white/10 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#3A86FF] to-[#00B4D8] transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="mt-2 font-mono text-[10px] text-white/40 tracking-wider">
+            {ready ? '100% · System online' : `${progress}% · Initializing system`}
+          </div>
+        </div>
+      </div>
+
+      <div className="relative w-full max-w-2xl mx-auto px-8 mt-20">
+        {/* Terminal window */}
+        <div className="rounded-lg border border-white/10 bg-black/60 backdrop-blur-xl overflow-hidden shadow-2xl shadow-[#3A86FF]/5">
+          {/* Window chrome */}
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+            <div className="flex gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-white/15" />
+              <div className="w-3 h-3 rounded-full bg-white/15" />
+              <div className="w-3 h-3 rounded-full bg-[#3A86FF]/60" />
+            </div>
+            <div className="flex-1 text-center text-[11px] text-white/35 font-mono tracking-wider">ino@platform:~</div>
+          </div>
+          {/* Terminal body */}
+          <div className="px-5 py-4 font-mono text-[12.5px] min-h-[460px]">
+            {visible.map((line, i) => line && (
+              <div key={i} className="leading-6">
+                {line.type === 'cmd' && <span className="text-[#3A86FF]">{line.text}</span>}
+                {line.type === 'info' && <span className="text-white/60">{line.text}</span>}
+                {line.type === 'ok' && (
+                  <span className="text-white/50">
+                    {line.text.replace('[OK]', '')}
+                    <span className="text-[#00B4D8]">[OK]</span>
+                  </span>
+                )}
+              </div>
+            ))}
+            <div className="leading-6 inline-flex items-center">
+              <span className="text-[#3A86FF]">&gt;&nbsp;</span>
+              <span className="inline-block w-2 h-4 bg-[#3A86FF] animate-pulse ml-0.5" />
+            </div>
+          </div>
+        </div>
+        {/* Subtitle */}
+        <div className="mt-6 text-center text-xs text-white/30 uppercase tracking-[0.25em] font-medium">
+          Initializing demo environment
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════ */
+/*  ICONS                                                   */
+/* ══════════════════════════════════════════════════════════ */
+const IconArrow = ({ className = 'w-4 h-4' }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+  </svg>
+);
+const IconCheck = ({ className = 'w-4 h-4' }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+  </svg>
+);
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard' },
-  { id: 'members', label: 'Clients' },
-  { id: 'content', label: 'Workouts' },
-  { id: 'videos', label: 'Videos' },
-  { id: 'messages', label: 'Messages' },
+  { id: 'members',   label: 'Clients' },
+  { id: 'workouts',  label: 'Workouts' },
   { id: 'analytics', label: 'Analytics' },
-  { id: 'settings', label: 'Settings' },
 ];
 
+/* ══════════════════════════════════════════════════════════ */
+/*  MAIN DEMO PAGE                                          */
+/* ══════════════════════════════════════════════════════════ */
 export default function DemoPage() {
+  const [booted, setBooted] = useState(false);
   const [coachNav, setCoachNav] = useState('dashboard');
-  const [fitTab, setFitTab] = useState('home');
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [completions, setCompletions] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<string | null>(null);
-  const [animIn, setAnimIn] = useState(false);
 
-  useEffect(() => {
-    requestAnimationFrame(() => setAnimIn(true));
-  }, []);
-
-  const fitUser = DEMO_MEMBERS[0];
   const avgProgress = Math.round(
     DEMO_MEMBERS.reduce((a, m) => a + m.progress, 0) / DEMO_MEMBERS.length * 100
   );
-  const selectedWorkout = selectedWorkoutId
-    ? DEMO_WORKOUTS.find((w) => w.id === selectedWorkoutId)
-    : null;
+  const activeCount = DEMO_MEMBERS.filter((m) => m.status === 'active').length;
+  const atRisk = DEMO_MEMBERS.filter((m) => m.status === 'at_risk').length;
+  const selectedWorkout = selectedWorkoutId ? DEMO_WORKOUTS.find((w) => w.id === selectedWorkoutId) : null;
 
   const completeExercise = (wId: string, eName: string) => {
     setCompletions((prev) => ({ ...prev, [`${wId}_${eName}`]: true }));
-    setToast('Exercise completed! 💪');
-    setTimeout(() => setToast(null), 2500);
+    setToast(`✓ ${eName} logged`);
+    setTimeout(() => setToast(null), 2200);
   };
 
+  if (!booted) {
+    return (
+      <>
+        <CustomCursor />
+        <BootSequence onDone={() => setBooted(true)} />
+      </>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
+    <div className="min-h-screen noise bg-[#0A0A0A]">
+      <CustomCursor />
+
       {/* Top bar */}
-      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 px-8 h-16 flex items-center justify-between">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-slate-600 font-semibold text-sm hover:text-slate-900"
-        >
-          ← Back to Plans
-        </Link>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-platform-gradient flex items-center justify-center text-white font-extrabold text-[10px]">
-            INÖ
+      <nav className="sticky top-0 z-40 bg-[#0A0A0A]/85 backdrop-blur-2xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-white/50 hover:text-white/90 transition-colors text-sm font-medium">
+            <IconArrow className="w-3.5 h-3.5 rotate-180" />
+            Back
+          </Link>
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded bg-[#3A86FF] flex items-center justify-center text-white font-black text-[9px]">INÖ</div>
+            <span className="font-semibold text-white/90 text-sm tracking-tight">Platform Demo</span>
           </div>
-          <span className="font-bold text-slate-900">Platform Demo</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#3A86FF]/10 border border-[#3A86FF]/20">
+            <span className="dot-accent" />
+            <span className="text-[10px] font-bold text-[#3A86FF] uppercase tracking-wider">Live</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-platform-success/10 border border-platform-success/20">
-          <div className="w-2 h-2 rounded-full bg-platform-success" />
-          <span className="text-xs font-semibold text-platform-success">Live Preview</span>
+      </nav>
+
+      {/* Command bar / terminal hint */}
+      <div className="border-b border-white/5 bg-white/[0.012]">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 py-3 flex items-center gap-3 font-mono text-[11px]">
+          <span className="text-[#3A86FF]">$</span>
+          <span className="text-white/40">ino view <span className="text-white/70">--section={coachNav}</span> <span className="text-[#00B4D8]">--live</span></span>
+          <span className="ml-auto text-white/25">uptime 247d · 99.98%</span>
         </div>
       </div>
 
-      {/* Labels */}
-      <div className="flex px-8 pt-6 gap-6">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600">🖥️</div>
-            <div>
-              <div className="font-bold text-slate-900">INÖ Coach</div>
-              <div className="text-xs text-slate-500">Web dashboard for coaches</div>
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-8 grid grid-cols-1 lg:grid-cols-[220px_1fr_380px] gap-6">
+        {/* ── LEFT SIDEBAR ── */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-24">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-3 px-3">Navigation</div>
+            <div className="space-y-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setCoachNav(item.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-all ${
+                    coachNav === item.id
+                      ? 'bg-[#3A86FF]/10 text-white border border-[#3A86FF]/20'
+                      : 'text-white/50 hover:text-white/80 hover:bg-white/[0.03] border border-transparent'
+                  }`}
+                >
+                  <span className="font-medium">{item.label}</span>
+                  {coachNav === item.id && <span className="dot-accent" />}
+                </button>
+              ))}
             </div>
-          </div>
-        </div>
-        <div className="w-[364px]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-platform-pink/10 flex items-center justify-center text-platform-pink">📱</div>
-            <div>
-              <div className="font-bold text-slate-900">INÖ Fit</div>
-              <div className="text-xs text-slate-500">Mobile app for clients</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Side by side */}
-      <div
-        className={`flex gap-6 px-8 pb-12 pt-4 transition-all duration-500 ${
-          animIn ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-        }`}
-      >
-        {/* Coach panel */}
-        <div className="flex-1 flex h-[640px] bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-lg">
-          <aside className="w-52 bg-slate-900 p-4 flex flex-col">
-            <div className="flex items-center gap-2 px-2 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-platform-gradient flex items-center justify-center text-white font-extrabold text-[10px]">
-                INÖ
-              </div>
-              <div>
-                <div className="text-white font-bold text-sm">Coach</div>
-                <div className="text-slate-500 text-[10px]">Elite Fitness</div>
+            {/* Mini stats */}
+            <div className="mt-8 p-4 rounded-lg border border-white/6 bg-white/[0.02]">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-3">System</div>
+              <div className="space-y-2.5 font-mono text-[11px]">
+                <div className="flex justify-between"><span className="text-white/40">Coaches</span><span className="text-white/80">2,412</span></div>
+                <div className="flex justify-between"><span className="text-white/40">Clients</span><span className="text-white/80">58,941</span></div>
+                <div className="flex justify-between"><span className="text-white/40">Workouts/day</span><span className="text-[#00B4D8]">12,307</span></div>
+                <div className="flex justify-between"><span className="text-white/40">AI calls/min</span><span className="text-[#3A86FF]">847</span></div>
               </div>
             </div>
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setCoachNav(item.id)}
-                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition ${
-                  coachNav === item.id
-                    ? 'bg-white/10 text-white'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-            <div className="flex-1" />
-            <div className="pt-4 border-t border-white/10 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xs">
-                SM
-              </div>
+          </div>
+        </aside>
+
+        {/* ── MAIN PANEL ── */}
+        <main className="space-y-6 min-w-0">
+          {coachNav === 'dashboard' && (
+            <>
               <div>
-                <div className="text-white text-xs font-semibold">Sarah M.</div>
-                <div className="text-slate-500 text-[10px]">Pro Plan</div>
+                <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Good morning, Marcus</h1>
+                <p className="text-sm text-white/40 mt-1">{activeCount} active · {atRisk} need attention · {avgProgress}% avg adherence</p>
               </div>
-            </div>
-          </aside>
-          <main className="flex-1 p-6 overflow-y-auto">
-            {coachNav === 'dashboard' && (
-              <>
-                <h2 className="text-xl font-extrabold text-slate-900">Dashboard</h2>
-                <p className="text-sm text-slate-500 mt-1">Welcome back, Sarah!</p>
-                <div className="grid grid-cols-4 gap-3 mt-6">
-                  {[
-                    { label: 'Active Clients', value: '47', color: 'indigo' },
-                    { label: 'Avg Adherence', value: `${avgProgress}%`, color: 'green' },
-                    { label: 'Pending Reviews', value: '5', color: 'amber' },
-                    { label: 'At Risk', value: '3', color: 'red' },
-                  ].map((s, i) => (
-                    <div key={i} className="bg-white rounded-xl p-4 border border-slate-200">
-                      <div className="text-2xl font-extrabold text-slate-900">{s.value}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-5 bg-white rounded-xl border border-slate-200 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-slate-200 flex justify-between items-center">
-                    <span className="font-bold text-slate-900">Clients</span>
-                    <button onClick={() => setCoachNav('members')} className="text-xs text-indigo-600 font-semibold">
-                      View All →
-                    </button>
+
+              {/* Stat cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { label: 'Total clients', value: '74', trend: '+12' },
+                  { label: 'This week', value: '42', trend: 'workouts' },
+                  { label: 'Compliance', value: `${avgProgress}%`, trend: '+3%' },
+                  { label: 'MRR', value: '$7.4k', trend: '+$820' },
+                ].map((s, i) => (
+                  <div key={i} className="card-cinematic rounded-lg p-4">
+                    <div className="text-[10px] uppercase tracking-[0.15em] text-white/35 font-bold mb-2">{s.label}</div>
+                    <div className="text-2xl font-black text-white tracking-tight stat-number">{s.value}</div>
+                    <div className="text-[10px] text-[#00B4D8] mt-1 font-mono">{s.trend}</div>
                   </div>
-                  {DEMO_MEMBERS.map((m) => (
-                    <div
-                      key={m.id}
-                      onClick={() => setCoachNav('members')}
-                      className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 last:border-0 cursor-pointer hover:bg-slate-50"
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
-                          m.status === 'at_risk' ? 'bg-red-500/10 text-red-600' : 'bg-indigo-500/10 text-indigo-600'
-                        }`}
-                      >
-                        {m.initials}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-semibold text-slate-900">{m.name}</div>
-                        <div className="text-xs text-slate-500">{m.lastActive}</div>
-                      </div>
-                      <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-platform-success"
-                          style={{ width: `${m.progress * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-semibold text-slate-600">{Math.round(m.progress * 100)}%</span>
-                    </div>
-                  ))}
+                ))}
+              </div>
+
+              {/* Client roster */}
+              <div className="card-cinematic rounded-lg overflow-hidden">
+                <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
+                  <div className="text-sm font-semibold text-white/90">Roster</div>
+                  <span className="text-[11px] text-white/30 font-mono">{DEMO_MEMBERS.length} clients</span>
                 </div>
-              </>
-            )}
-            {coachNav === 'members' && (
-              <>
-                <h2 className="text-xl font-extrabold text-slate-900 mb-5">Clients</h2>
-                <div className="grid grid-cols-2 gap-4">
+                <div>
                   {DEMO_MEMBERS.map((m) => (
-                    <div key={m.id} className="bg-white rounded-xl p-5 border border-slate-200">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div
-                          className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-sm ${
-                            m.status === 'at_risk' ? 'bg-red-500/10 text-red-600' : 'bg-indigo-500/10 text-indigo-600'
-                          }`}
-                        >
-                          {m.initials}
-                        </div>
-                        <div>
-                          <div className="font-bold text-slate-900">{m.name}</div>
-                          <div className={`text-xs font-semibold ${m.status === 'at_risk' ? 'text-red-600' : 'text-platform-success'}`}>
-                            {m.status === 'at_risk' ? '⚠ At Risk' : '● Active'}
+                    <div key={m.id} className="flex items-center gap-4 px-5 py-3.5 border-b border-white/[0.03] last:border-0 hover:bg-white/[0.015] transition-colors hoverable">
+                      <div className="w-8 h-8 rounded-full bg-[#3A86FF]/10 border border-[#3A86FF]/15 flex items-center justify-center text-[#3A86FF] text-xs font-bold">{m.initials}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white truncate">{m.name}</div>
+                        <div className="text-[11px] text-white/35 font-mono">{m.lastActive} · streak {m.streak}d</div>
+                      </div>
+                      <div className="w-32 hidden md:block">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${m.status === 'at_risk' ? 'bg-red-500/60' : 'bg-[#3A86FF]'}`}
+                              style={{ width: `${m.progress * 100}%` }}
+                            />
                           </div>
+                          <span className="text-[11px] font-mono text-white/50 tabular-nums w-9 text-right">{Math.round(m.progress * 100)}%</span>
                         </div>
                       </div>
-                      <div className="flex gap-4 text-xs">
-                        <div><span className="text-slate-500">Adherence</span><br /><strong>{Math.round(m.progress * 100)}%</strong></div>
-                        <div><span className="text-slate-500">Streak</span><br /><strong>{m.streak > 0 ? `🔥 ${m.streak}d` : '—'}</strong></div>
-                        <div><span className="text-slate-500">Last Active</span><br /><strong>{m.lastActive}</strong></div>
+                      <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        m.status === 'at_risk'
+                          ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                          : 'bg-[#3A86FF]/10 text-[#3A86FF] border border-[#3A86FF]/20'
+                      }`}>
+                        {m.status === 'at_risk' ? 'At risk' : 'Active'}
                       </div>
                     </div>
                   ))}
                 </div>
-              </>
-            )}
-            {coachNav === 'content' && (
-              <>
-                <h2 className="text-xl font-extrabold text-slate-900 mb-5">Workouts</h2>
-                {DEMO_WORKOUTS.map((w) => (
-                  <div key={w.id} className="bg-white rounded-xl p-5 border border-slate-200 mb-3">
-                    <div className="flex justify-between items-center mb-3">
+              </div>
+            </>
+          )}
+
+          {coachNav === 'members' && (
+            <>
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Clients</h1>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {DEMO_MEMBERS.map((m) => (
+                  <div key={m.id} className="card-cinematic rounded-lg p-5 hoverable">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-[#3A86FF]/10 border border-[#3A86FF]/20 flex items-center justify-center text-[#3A86FF] font-bold">{m.initials}</div>
                       <div>
-                        <div className="font-bold text-slate-900">{w.title}</div>
-                        <div className="text-xs text-slate-500">{w.desc} · {w.exercises.length} exercises</div>
+                        <div className="text-sm font-semibold text-white">{m.name}</div>
+                        <div className="text-[11px] text-white/40 font-mono">{m.lastActive}</div>
                       </div>
-                      <span className="text-xs font-semibold px-3 py-1 rounded-lg bg-indigo-500/10 text-indigo-600">Active</span>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {w.exercises.map((e) => (
-                        <span key={e.name} className="text-xs px-2.5 py-1 rounded-md bg-slate-100 text-slate-600">
-                          {e.name}
-                        </span>
-                      ))}
+                    <div className="h-1.5 rounded-full bg-white/5 overflow-hidden mb-2">
+                      <div className={`h-full ${m.status === 'at_risk' ? 'bg-red-500/60' : 'bg-[#3A86FF]'}`} style={{ width: `${m.progress * 100}%` }} />
+                    </div>
+                    <div className="flex justify-between text-[11px] font-mono">
+                      <span className="text-white/40">Adherence</span>
+                      <span className="text-white/70">{Math.round(m.progress * 100)}%</span>
                     </div>
                   </div>
                 ))}
-              </>
-            )}
-            {coachNav === 'videos' && (
-              <>
-                <h2 className="text-xl font-extrabold text-slate-900 mb-1">Video Reviews</h2>
-                <p className="text-sm text-slate-500 mb-5">Review client form check submissions</p>
-                {[
-                  { client: 'Emma Davis', exercise: 'Squat Form Check', time: '2 hours ago', status: 'pending' },
-                  { client: 'James Wilson', exercise: 'Bench Press Form', time: 'Yesterday', status: 'pending' },
-                  { client: 'Lisa Park', exercise: 'Deadlift Review', time: '2 days ago', status: 'approved' },
-                ].map((v, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-slate-200 mb-2">
-                    <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center text-white text-2xl">▶</div>
-                    <div className="flex-1">
-                      <div className="font-semibold text-slate-900">{v.exercise}</div>
-                      <div className="text-xs text-slate-500">{v.client} · {v.time}</div>
-                    </div>
-                    <span className={`text-xs font-semibold px-3 py-1.5 rounded-lg ${
-                      v.status === 'pending' ? 'bg-amber-500/10 text-amber-600' : 'bg-platform-success/10 text-platform-success'
-                    }`}>
-                      {v.status === 'pending' ? 'Needs Review' : 'Approved'}
-                    </span>
-                  </div>
-                ))}
-              </>
-            )}
-            {coachNav === 'messages' && (
-              <>
-                <h2 className="text-xl font-extrabold text-slate-900 mb-1">Messages</h2>
-                <p className="text-sm text-slate-500 mb-5">Client conversations</p>
-                {[
-                  { name: 'Emma Davis', msg: 'Can we adjust my macros for this week?', time: '9:15 AM', unread: true },
-                  { name: 'Lisa Park', msg: 'Thanks for the new program! Loving it 💪', time: 'Yesterday', unread: true },
-                ].map((m, i) => (
-                  <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border mb-2 cursor-pointer ${
-                    m.unread ? 'bg-white border-indigo-500/30' : 'bg-white border-slate-200'
-                  }`}>
-                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center font-bold text-indigo-600 text-sm">
-                      {m.name.split(' ').map((n) => n[0]).join('')}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between">
-                        <span className={`font-semibold text-slate-900 ${m.unread ? 'font-bold' : ''}`}>{m.name}</span>
-                        <span className="text-xs text-slate-400">{m.time}</span>
-                      </div>
-                      <div className="text-sm text-slate-600 truncate">{m.msg}</div>
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
-            {coachNav === 'analytics' && (
-              <>
-                <h2 className="text-xl font-extrabold text-slate-900 mb-1">Analytics</h2>
-                <p className="text-sm text-slate-500 mb-5">Business performance</p>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  {[
-                    { label: 'Monthly Revenue', value: '$11,750', change: '+18%' },
-                    { label: 'Retention Rate', value: '94%', change: '+3%' },
-                    { label: 'Avg. Adherence', value: '82%', change: '+5%' },
-                    { label: 'New Clients (30d)', value: '8', change: '+3' },
-                  ].map((s, i) => (
-                    <div key={i} className="bg-white rounded-xl p-4 border border-slate-200">
-                      <div className="text-xs text-slate-500 mb-2">{s.label}</div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-extrabold text-slate-900">{s.value}</span>
-                        <span className="text-xs font-semibold text-platform-success bg-platform-success/10 px-2 py-0.5 rounded">↑ {s.change}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200">
-                  <div className="font-bold text-slate-900 mb-4">Client Adherence (7-day)</div>
-                  <div className="flex items-end gap-2 h-28">
-                    {[65, 72, 58, 80, 85, 78, 92].map((v, i) => (
-                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                        <div
-                          className="w-full rounded-md bg-indigo-500/20"
-                          style={{ height: `${v * 1.1}px` }}
-                        />
-                        <span className="text-[10px] text-slate-400">{['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-            {coachNav === 'settings' && (
-              <div className="flex flex-col items-center justify-center h-80 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 text-2xl mb-4">⚙️</div>
-                <div className="font-bold text-slate-900 mb-1">Settings</div>
-                <div className="text-sm text-slate-500">Organization & account settings</div>
               </div>
-            )}
-          </main>
-        </div>
+            </>
+          )}
 
-        {/* Fit phone */}
-        <div className="w-[340px] flex-shrink-0 flex justify-center">
-          <div className="w-[320px] bg-black rounded-[3rem] p-3 shadow-2xl">
-            <div className="bg-slate-800 rounded-[2.5rem] overflow-hidden flex flex-col h-[620px]">
-              <div className="flex justify-between items-center px-6 py-3 text-white text-sm font-semibold">
-                <span>9:41</span>
-                <div className="w-24 h-6 bg-black rounded-full" />
-                <div className="w-6 h-3 bg-white rounded-sm" />
-              </div>
-              <div className="flex-1 overflow-y-auto p-5">
-                {fitTab === 'home' && !selectedWorkout && (
-                  <>
-                    <div className="mb-6">
-                      <div className="text-slate-400 text-sm">Welcome back,</div>
-                      <div className="text-2xl font-extrabold text-white">{fitUser.name.split(' ')[0]} 👋</div>
-                    </div>
-                    <div className="bg-platform-gradient rounded-2xl p-5 mb-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="text-sm text-white/70">Current Streak</div>
-                          <div className="text-3xl font-extrabold text-white">{fitUser.streak} days</div>
-                        </div>
-                        <span className="text-4xl">🔥</span>
-                      </div>
-                      <div className="mt-3">
-                        <div className="flex justify-between text-xs text-white/70 mb-1">
-                          <span>Adherence</span>
-                          <span className="font-bold text-white">{Math.round(fitUser.progress * 100)}%</span>
-                        </div>
-                        <div className="h-1.5 bg-white/20 rounded-full">
-                          <div className="h-full bg-white rounded-full" style={{ width: `${fitUser.progress * 100}%` }} />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="font-bold text-white mb-3">Today&apos;s Workouts</div>
-                    {DEMO_WORKOUTS.map((w) => (
-                      <div
-                        key={w.id}
-                        onClick={() => setSelectedWorkoutId(w.id)}
-                        className="bg-white/5 rounded-xl p-4 mb-2 border border-white/10 cursor-pointer"
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-bold text-white">{w.title}</div>
-                            <div className="text-xs text-slate-400 mt-0.5">{w.exercises.length} exercises · {w.desc}</div>
-                          </div>
-                          <span className="text-slate-400">›</span>
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                )}
-                {fitTab === 'home' && selectedWorkout && (
-                  <>
-                    <button
-                      onClick={() => setSelectedWorkoutId(null)}
-                      className="flex items-center gap-1.5 mb-4 text-white/80 text-sm font-semibold"
-                    >
-                      ← Back
-                    </button>
-                    <div className="text-xl font-extrabold text-white mb-1">{selectedWorkout.title}</div>
-                    <div className="text-sm text-slate-400 mb-5">{selectedWorkout.desc}</div>
-                    {selectedWorkout.exercises.map((e, i) => {
-                      const done = completions[`${selectedWorkout.id}_${e.name}`];
-                      return (
-                        <div
-                          key={i}
-                          className={`rounded-xl p-4 mb-2 border ${
-                            done ? 'bg-platform-success/10 border-platform-success/20' : 'bg-white/5 border-white/10'
-                          }`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className={`text-sm font-semibold ${done ? 'text-platform-success' : 'text-white'}`}>
-                                {done && '✓ '}{e.name}
-                              </div>
-                              <div className="text-xs text-slate-400 mt-0.5">{e.sets} sets × {e.reps} reps</div>
-                            </div>
-                            {!done && (
-                              <button
-                                onClick={() => completeExercise(selectedWorkout.id, e.name)}
-                                className="px-4 py-2 rounded-lg bg-platform-success text-white text-xs font-bold"
-                              >
-                                Done
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
-                {fitTab === 'progress' && (
-                  <>
-                    <div className="font-bold text-white mb-5">Your Progress</div>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { label: 'Day Streak', value: fitUser.streak, emoji: '🔥' },
-                        { label: 'Adherence', value: `${Math.round(fitUser.progress * 100)}%`, emoji: '🎯' },
-                        { label: 'Workouts', value: 3, emoji: '💪' },
-                        { label: 'Completed', value: Object.keys(completions).length, emoji: '✓' },
-                      ].map((s, i) => (
-                        <div key={i} className="bg-white/5 rounded-xl p-4 text-center border border-white/10">
-                          <div className="text-2xl font-extrabold text-white">{s.value}</div>
-                          <div className="text-xs text-slate-400 mt-1">{s.label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-                {fitTab === 'profile' && (
-                  <div className="text-center">
-                    <div className="w-20 h-20 rounded-2xl bg-indigo-500/20 flex items-center justify-center font-bold text-2xl text-indigo-400 mx-auto mb-4">
-                      {fitUser.initials}
-                    </div>
-                    <div className="text-xl font-bold text-white">{fitUser.name}</div>
-                    <div className="text-sm text-slate-400 mt-1">james@email.com</div>
-                    <div className="mt-8 text-left space-y-0">
-                      {['Notifications', 'Goals', 'Settings', 'My Coach'].map((item) => (
-                        <div key={item} className="flex items-center gap-3 py-4 border-b border-white/5">
-                          <span className="flex-1 text-white text-sm">{item}</span>
-                          <span className="text-slate-400">›</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="bg-black/80 backdrop-blur p-3 flex justify-around border-t border-white/5">
-                {[
-                  { id: 'home', label: 'Home' },
-                  { id: 'progress', label: 'Progress' },
-                  { id: 'profile', label: 'Profile' },
-                ].map((tab) => (
+          {coachNav === 'workouts' && (
+            <>
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Workouts</h1>
+              <div className="space-y-3">
+                {DEMO_WORKOUTS.map((w) => (
                   <button
-                    key={tab.id}
-                    onClick={() => {
-                      setFitTab(tab.id);
-                      if (tab.id !== 'home') setSelectedWorkoutId(null);
-                    }}
-                    className={`flex flex-col items-center gap-1 py-2 px-4 font-medium text-[10px] transition ${
-                      fitTab === tab.id ? 'text-indigo-400' : 'text-white/40'
-                    }`}
+                    key={w.id}
+                    onClick={() => setSelectedWorkoutId(w.id === selectedWorkoutId ? null : w.id)}
+                    className={`w-full text-left card-cinematic rounded-lg p-5 hoverable ${selectedWorkoutId === w.id ? 'border-[#3A86FF]/30' : ''}`}
                   >
-                    {tab.id === 'home' && '🏠'}
-                    {tab.id === 'progress' && '📊'}
-                    {tab.id === 'profile' && '👤'}
-                    {tab.label}
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="text-sm font-bold text-white">{w.title}</div>
+                        <div className="text-[11px] text-white/40">{w.desc}</div>
+                      </div>
+                      <span className="text-[10px] text-white/30 font-mono uppercase tracking-wider">{w.exercises.length} exercises</span>
+                    </div>
+                    {selectedWorkoutId === w.id && (
+                      <div className="mt-4 pt-4 border-t border-white/5 space-y-2">
+                        {w.exercises.map((ex) => {
+                          const done = completions[`${w.id}_${ex.name}`];
+                          return (
+                            <div key={ex.name} className="flex items-center justify-between py-1.5">
+                              <span className={`text-sm ${done ? 'text-white/30 line-through' : 'text-white/80'}`}>{ex.name}</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[11px] text-white/40 font-mono">{ex.sets}×{ex.reps}</span>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); completeExercise(w.id, ex.name); }}
+                                  className={`w-6 h-6 rounded flex items-center justify-center border transition-all ${
+                                    done ? 'bg-[#3A86FF] border-[#3A86FF] text-white' : 'border-white/15 text-transparent hover:border-[#3A86FF]/50'
+                                  }`}
+                                >
+                                  <IconCheck className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </button>
                 ))}
               </div>
+            </>
+          )}
+
+          {coachNav === 'analytics' && (
+            <>
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Analytics</h1>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {[
+                  { label: 'Retention', value: '94%', sub: 'last 90 days' },
+                  { label: 'Completion', value: '91%', sub: 'avg per client' },
+                  { label: 'Revenue/client', value: '$312', sub: 'monthly' },
+                  { label: 'Lifetime value', value: '$3.7k', sub: 'projected' },
+                ].map((s, i) => (
+                  <div key={i} className="card-cinematic rounded-lg p-6">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-white/35 font-bold mb-3">{s.label}</div>
+                    <div className="text-4xl font-black text-white tracking-tight stat-number">{s.value}</div>
+                    <div className="text-[11px] text-white/35 mt-1 font-mono">{s.sub}</div>
+                  </div>
+                ))}
+              </div>
+              {/* Fake chart */}
+              <div className="card-cinematic rounded-lg p-6">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-white/35 font-bold mb-4">Weekly workouts logged</div>
+                <div className="flex items-end gap-2 h-32">
+                  {[42, 58, 49, 71, 63, 82, 74].map((v, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                      <div className="w-full rounded-t bg-gradient-to-t from-[#3A86FF] to-[#00B4D8]" style={{ height: `${v}%` }} />
+                      <span className="text-[10px] text-white/30 font-mono">{['M','T','W','T','F','S','S'][i]}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </main>
+
+        {/* ── RIGHT: PHONE PREVIEW ── */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-24">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-3 px-1">Client App · Live</div>
+            <div className="mx-auto w-[300px]">
+              {/* Phone frame */}
+              <div className="relative rounded-[2.5rem] border border-white/10 bg-black/40 p-2 shadow-2xl shadow-[#3A86FF]/5">
+                <div className="rounded-[2rem] bg-[#0A0A0A] overflow-hidden border border-white/5">
+                  {/* Notch */}
+                  <div className="h-6 flex items-center justify-center">
+                    <div className="w-20 h-4 rounded-b-2xl bg-black" />
+                  </div>
+                  {/* App body */}
+                  <div className="px-5 pb-6 min-h-[480px]">
+                    <div className="flex items-center justify-between mb-5">
+                      <div>
+                        <div className="text-[10px] text-white/30 uppercase tracking-wider font-bold">Today</div>
+                        <div className="text-lg font-bold text-white">Push Day</div>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-[#3A86FF]/10 border border-[#3A86FF]/20 flex items-center justify-center text-[#3A86FF] text-xs font-bold">JW</div>
+                    </div>
+                    {/* Progress ring mock */}
+                    <div className="card-cinematic rounded-xl p-4 mb-4">
+                      <div className="text-[10px] text-white/30 uppercase tracking-wider font-bold mb-2">Week streak</div>
+                      <div className="text-3xl font-black text-white stat-number">12 days</div>
+                      <div className="mt-2 flex gap-1">
+                        {[1,1,1,1,1,1,0].map((v, i) => (
+                          <div key={i} className={`flex-1 h-1 rounded-full ${v ? 'bg-[#3A86FF]' : 'bg-white/8'}`} />
+                        ))}
+                      </div>
+                    </div>
+                    {/* Exercise list */}
+                    <div className="space-y-1.5">
+                      {DEMO_WORKOUTS[0].exercises.slice(0, 4).map((ex) => (
+                        <div key={ex.name} className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/[0.02] border border-white/5">
+                          <span className="text-[12px] text-white/80 font-medium">{ex.name}</span>
+                          <span className="text-[10px] text-white/40 font-mono">{ex.sets}×{ex.reps}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button className="w-full mt-4 py-2.5 rounded-lg bg-[#3A86FF] text-white text-xs font-semibold hover:bg-[#5196FF] transition-colors">
+                      Start Workout
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center mt-4 text-[10px] text-white/30 font-mono">ino.fit/app · iOS & Android</div>
             </div>
+          </div>
+        </aside>
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-lg bg-[#3A86FF]/10 border border-[#3A86FF]/30 backdrop-blur text-sm text-[#3A86FF] font-mono animate-in fade-in">
+          {toast}
+        </div>
+      )}
+
+      {/* CTA footer — glowing attention button */}
+      <div className="border-t border-white/5 py-16 px-6 text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#3A86FF]/[0.08] to-transparent pointer-events-none" />
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00B4D8]/10 border border-[#00B4D8]/20 text-[10px] text-[#00B4D8] font-bold uppercase tracking-[0.2em] mb-5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00B4D8] animate-pulse" />
+            Limited-time launch pricing
+          </div>
+          <h3 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2">
+            Ready to <span className="text-gradient">scale without burning out</span>?
+          </h3>
+          <p className="text-sm text-white/45 mb-8 max-w-md mx-auto">
+            You just saw it work. Start your 14-day free trial — no credit card, cancel anytime.
+          </p>
+          <Link
+            href="/#pricing"
+            className="cta-glow inline-flex items-center gap-3 px-10 py-5 rounded-xl bg-[#3A86FF] text-white font-bold text-base hover:bg-[#5196FF] transition-all"
+          >
+            Start Your Free Trial
+            <IconArrow className="w-5 h-5" />
+          </Link>
+          <div className="mt-5 flex items-center justify-center gap-4 text-[11px] text-white/30 font-medium">
+            <span className="flex items-center gap-1.5"><IconCheck className="w-3 h-3 text-[#00B4D8]" /> 14-day free</span>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <span className="flex items-center gap-1.5"><IconCheck className="w-3 h-3 text-[#00B4D8]" /> No credit card</span>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <span className="flex items-center gap-1.5"><IconCheck className="w-3 h-3 text-[#00B4D8]" /> Cancel anytime</span>
           </div>
         </div>
       </div>
-
-      {toast && (
-        <div className="fixed bottom-7 right-7 z-50 bg-white rounded-xl px-6 py-4 shadow-xl border-l-4 border-platform-success flex items-center gap-3">
-          <span className="text-platform-success text-xl">✓</span>
-          <span className="font-semibold text-slate-900">{toast}</span>
-        </div>
-      )}
     </div>
   );
 }
