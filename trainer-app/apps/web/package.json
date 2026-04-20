@@ -14,6 +14,7 @@
     "@trainer-app/types": "*",
     "@trainer-app/ui": "*",
     "@supabase/supabase-js": "^2.39.0",
+    "@sentry/nextjs": "^8.0.0",
     "@tanstack/react-query": "^5.17.0",
     "clsx": "^2.1.0",
     "tailwind-merge": "^2.2.0",
