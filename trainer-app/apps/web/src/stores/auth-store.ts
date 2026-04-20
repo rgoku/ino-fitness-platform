@@ -86,6 +86,8 @@ export const useAuthStore = create<AuthState>()((set) => ({
       }
       if (typeof window !== 'undefined') {
         localStorage.setItem('ino_auth_user', JSON.stringify(data.user));
+        // Also set cookie so the Next.js middleware can read it for route protection
+        document.cookie = 'ino_auth_token=' + data.access_token + '; path=/; max-age=86400';
       }
 
       set({ user: data.user, isAuthenticated: true, isLoading: false });
@@ -100,6 +102,8 @@ export const useAuthStore = create<AuthState>()((set) => ({
     if (typeof window !== 'undefined') {
       localStorage.removeItem('ino_refresh_token');
       localStorage.removeItem('ino_auth_user');
+      // Clear the auth cookie read by the middleware
+      document.cookie = 'ino_auth_token=; path=/; max-age=0';
     }
     set({ user: null, isAuthenticated: false });
   },
