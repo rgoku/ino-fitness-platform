@@ -1,46 +1,32 @@
-"""Initial migration: add reminders table and supplement_recommendations column.
+"""Add reminders table and supplement_recommendations column.
 
 Revision ID: 001_add_reminders_and_supplements
-Revises: 
+Revises: 000_initial_schema
 Create Date: 2025-11-22 00:00:00.000000
 
+NOTE: As of the 000_initial_schema baseline, the reminders table and the
+`diet_plans.supplement_recommendations` column are created directly in the
+initial schema. This revision is retained as a historical no-op so existing
+deployments that have already applied it continue to have a contiguous
+migration chain.
 """
-from alembic import op
-import sqlalchemy as sa
+from alembic import op  # noqa: F401
+import sqlalchemy as sa  # noqa: F401
 
 
 # revision identifiers, used by Alembic.
 revision = '001_add_reminders_and_supplements'
-down_revision = None
+down_revision = '000_initial_schema'
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
-    # Create reminders table
-    op.create_table(
-        'reminders',
-        sa.Column('id', sa.String(), nullable=False),
-        sa.Column('user_id', sa.String(), nullable=False),
-        sa.Column('title', sa.String(), nullable=False),
-        sa.Column('message', sa.Text(), nullable=False),
-        sa.Column('remind_at', sa.DateTime(), nullable=False),
-        sa.Column('repeat', sa.String(), nullable=True),
-        sa.Column('channel', sa.String(), nullable=True, server_default='in-app'),
-        sa.Column('sent', sa.Boolean(), nullable=True, server_default='0'),
-        sa.Column('created_at', sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-        sa.PrimaryKeyConstraint('id'),
-        sa.Index('ix_reminders_user_id', 'user_id')
-    )
-    
-    # Add supplement_recommendations column to diet_plans
-    op.add_column('diet_plans', sa.Column('supplement_recommendations', sa.JSON(), nullable=True))
+    # No-op: reminders table and supplement_recommendations column are now
+    # created in 000_initial_schema.
+    pass
 
 
 def downgrade() -> None:
-    # Remove supplement_recommendations column from diet_plans
-    op.drop_column('diet_plans', 'supplement_recommendations')
-    
-    # Drop reminders table
-    op.drop_table('reminders')
+    # No-op: nothing to undo here; 000_initial_schema handles the schema.
+    pass

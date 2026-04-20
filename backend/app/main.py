@@ -1,7 +1,23 @@
 """FastAPI application entry point."""
 import asyncio
+import os
 import uuid
 from datetime import datetime
+
+# Sentry — must init before FastAPI
+_sentry_dsn = os.environ.get("SENTRY_DSN")
+if _sentry_dsn:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        environment=os.environ.get("ENVIRONMENT", "production"),
+        traces_sample_rate=0.1,
+        profiles_sample_rate=0.1,
+        integrations=[FastApiIntegration(), SqlalchemyIntegration()],
+    )
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
