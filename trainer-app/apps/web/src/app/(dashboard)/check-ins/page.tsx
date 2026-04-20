@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { ClipboardCheck, Camera, Scale, TrendingUp, MessageSquare, ChevronRight, Calendar } from 'lucide-react';
+import { ClipboardCheck, Camera, Scale, TrendingUp, MessageSquare, Calendar } from 'lucide-react';
 import { useCheckIns } from '@/hooks/use-check-ins';
 import { CheckInCard } from '@/components/check-ins/check-in-card';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs } from '@/components/ui/tabs';
@@ -71,7 +70,7 @@ const tabs = [
 ];
 
 export default function CheckInsPage() {
-  const { data: workoutCheckIns, isLoading } = useCheckIns();
+  const { data: workoutCheckIns } = useCheckIns();
   const [activeTab, setActiveTab] = useState('pending');
 
   const filtered = mockWeeklyCheckIns.filter((ci) => {

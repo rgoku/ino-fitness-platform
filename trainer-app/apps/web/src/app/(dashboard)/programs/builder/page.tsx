@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import {
   ChevronLeft, Sparkles, Dumbbell, Clock, Target, Trash2,
-  GripVertical, Play, CheckCircle2, AlertCircle, Loader2,
+  CheckCircle2, AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
