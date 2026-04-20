@@ -12,6 +12,9 @@ import {
   MessageSquare,
   BarChart3,
   DollarSign,
+  Trophy,
+  Library,
+  Gift,
   Settings,
   ChevronsLeft,
   ChevronsRight,
@@ -33,7 +36,10 @@ const navItems = [
   { label: 'Check-ins', href: '/check-ins', icon: ClipboardCheck },
   { label: 'Messages', href: '/messages', icon: MessageSquare },
   { label: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { label: 'Leaderboard', href: '/leaderboard', icon: Trophy },
+  { label: 'Templates', href: '/templates', icon: Library },
   { label: 'Revenue', href: '/revenue', icon: DollarSign },
+  { label: 'Referrals', href: '/referrals', icon: Gift },
 ];
 
 const bottomItems = [
