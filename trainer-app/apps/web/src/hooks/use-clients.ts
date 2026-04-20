@@ -1,12 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { mockClients, type MockClient } from '@/lib/mock-data';
+import { api, USE_API } from '@/lib/api';
 
-// Using mock data — swap to Supabase clientService when backend is connected
 export function useClients() {
   return useQuery({
     queryKey: ['clients'],
     queryFn: async (): Promise<MockClient[]> => {
-      // Simulate network delay
+      if (USE_API) {
+        return api.get<MockClient[]>('/api/v1/coaching/clients');
+      }
       await new Promise((r) => setTimeout(r, 300));
       return mockClients;
     },
@@ -17,6 +19,9 @@ export function useClient(clientId: string | null) {
   return useQuery({
     queryKey: ['clients', clientId],
     queryFn: async (): Promise<MockClient | null> => {
+      if (USE_API) {
+        return api.get<MockClient>(`/api/v1/coaching/clients/${clientId}`);
+      }
       await new Promise((r) => setTimeout(r, 200));
       return mockClients.find((c) => c.id === clientId) ?? null;
     },
@@ -29,6 +34,9 @@ export function useCreateClient() {
 
   return useMutation({
     mutationFn: async (data: { name: string; email?: string }) => {
+      if (USE_API) {
+        return api.post<MockClient>('/api/v1/coaching/clients', data);
+      }
       await new Promise((r) => setTimeout(r, 500));
       const newClient: MockClient = {
         id: `c${Date.now()}`,
@@ -58,6 +66,9 @@ export function useDeleteClient() {
 
   return useMutation({
     mutationFn: async (clientId: string) => {
+      if (USE_API) {
+        return api.delete<void>(`/api/v1/coaching/clients/${clientId}`);
+      }
       await new Promise((r) => setTimeout(r, 300));
       const idx = mockClients.findIndex((c) => c.id === clientId);
       if (idx !== -1) mockClients.splice(idx, 1);
