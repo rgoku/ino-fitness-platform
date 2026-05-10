@@ -1,9 +1,11 @@
 'use client';
 
 import { useAnalytics } from '@/hooks/use-analytics';
-import { ComplianceChart } from '@/components/analytics/compliance-chart';
-import { ActivityChart } from '@/components/analytics/activity-chart';
-import { ClientStatusChart } from '@/components/analytics/client-status-chart';
+import dynamic from 'next/dynamic';
+
+const ComplianceChart = dynamic(() => import('@/components/analytics/compliance-chart').then(m => ({ default: m.ComplianceChart })), { ssr: false, loading: () => <div className="h-64 skeleton-shimmer rounded-lg" /> });
+const ActivityChart = dynamic(() => import('@/components/analytics/activity-chart').then(m => ({ default: m.ActivityChart })), { ssr: false, loading: () => <div className="h-64 skeleton-shimmer rounded-lg" /> });
+const ClientStatusChart = dynamic(() => import('@/components/analytics/client-status-chart').then(m => ({ default: m.ClientStatusChart })), { ssr: false, loading: () => <div className="h-64 skeleton-shimmer rounded-lg" /> });
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
