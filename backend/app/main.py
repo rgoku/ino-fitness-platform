@@ -42,6 +42,8 @@ from app.middleware.security import (
     IPBlockingMiddleware,
     InputSanitizationMiddleware,
     RequestLoggingMiddleware,
+    CSRFMiddleware,
+    ErrorSanitizationMiddleware,
 )
 
 logger = setup_logging()
@@ -73,7 +75,9 @@ async def add_request_id(request: Request, call_next):
     return response
 
 # Security middleware stack (order matters: outer → inner)
+app.add_middleware(ErrorSanitizationMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(CSRFMiddleware)
 app.add_middleware(InputSanitizationMiddleware)
 app.add_middleware(IPBlockingMiddleware)
 app.add_middleware(SecureHeadersMiddleware)
@@ -129,6 +133,26 @@ async def start_reminder_loop():
             await asyncio.sleep(60)
 
     asyncio.create_task(reminder_worker())
+
+
+@app.on_event("startup")
+async def validate_environment():
+    """Validate critical environment variables on startup."""
+    is_prod = os.environ.get("ENVIRONMENT") == "production"
+    warnings = []
+    if is_prod:
+        required = ["DATABASE_URL", "JWT_SECRET", "STRIPE_SECRET_KEY"]
+        for var in required:
+            if not os.environ.get(var):
+                warnings.append(f"CRITICAL: {var} is not set")
+        recommended = ["SENTRY_DSN", "REDIS_URL", "ANTHROPIC_API_KEY"]
+        for var in recommended:
+            if not os.environ.get(var):
+                warnings.append(f"WARNING: {var} is not set (recommended)")
+    if os.environ.get("JWT_SECRET", "").startswith("ino-dev"):
+        warnings.append("WARNING: Using default JWT_SECRET — change in production")
+    for w in warnings:
+        logger.warning(w)
 
 
 @app.get("/")
