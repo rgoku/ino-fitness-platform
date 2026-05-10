@@ -37,6 +37,12 @@ from app.utils.error_handler import (
 )
 from app.middleware.rate_limit import limiter, RateLimitExceeded
 from app.middleware.redis_rate_limit_middleware import RedisRateLimitMiddleware
+from app.middleware.security import (
+    SecureHeadersMiddleware,
+    IPBlockingMiddleware,
+    InputSanitizationMiddleware,
+    RequestLoggingMiddleware,
+)
 
 logger = setup_logging()
 
@@ -66,7 +72,13 @@ async def add_request_id(request: Request, call_next):
     response.headers["X-Request-ID"] = request_id
     return response
 
-# Redis per-user rate limits: AI (20/h basic, 100/h premium), reminders (10/h basic, 50/h premium)
+# Security middleware stack (order matters: outer → inner)
+app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(InputSanitizationMiddleware)
+app.add_middleware(IPBlockingMiddleware)
+app.add_middleware(SecureHeadersMiddleware)
+
+# Redis per-user rate limits
 app.add_middleware(RedisRateLimitMiddleware)
 
 
