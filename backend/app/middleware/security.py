@@ -133,7 +133,65 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
             logger.warning("Blocked suspicious path: %s from %s", request.url.path, get_client_ip(request))
             return JSONResponse(status_code=400, content={"detail": "Invalid request."})
 
+        # Check POST/PUT/PATCH body for injection
+        if request.method in ("POST", "PUT", "PATCH"):
+            content_type = request.headers.get("content-type", "")
+            if "application/json" in content_type:
+                try:
+                    body = await request.body()
+                    body_str = body.decode("utf-8", errors="ignore")[:10000]
+                    if is_suspicious_input(body_str):
+                        logger.warning("Blocked suspicious request body from %s to %s", get_client_ip(request), request.url.path)
+                        return JSONResponse(status_code=400, content={"detail": "Invalid input detected."})
+                except Exception:
+                    pass
+
         return await call_next(request)
+
+
+# ─── CSRF Protection Middleware ───────────────────────────────────────────
+
+class CSRFMiddleware(BaseHTTPMiddleware):
+    """Verify Origin/Referer header on state-changing requests."""
+    SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+    ALLOWED_ORIGINS = set(os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001").split(","))
+
+    async def dispatch(self, request: Request, call_next):
+        if request.method in self.SAFE_METHODS:
+            return await call_next(request)
+
+        # Skip for API keys and webhooks
+        if request.url.path.endswith("/webhook"):
+            return await call_next(request)
+
+        origin = request.headers.get("origin") or request.headers.get("referer", "")
+        if origin:
+            origin_base = origin.split("//")[-1].split("/")[0] if "//" in origin else origin.split("/")[0]
+            allowed = any(origin_base in allowed for allowed in self.ALLOWED_ORIGINS)
+            if not allowed:
+                logger.warning("CSRF: rejected request from origin %s to %s", origin, request.url.path)
+                return JSONResponse(status_code=403, content={"detail": "Cross-origin request blocked."})
+
+        return await call_next(request)
+
+
+# ─── Error Sanitization Middleware ────────────────────────────────────────
+
+class ErrorSanitizationMiddleware(BaseHTTPMiddleware):
+    """Strip stack traces and internal details from error responses in production."""
+    async def dispatch(self, request: Request, call_next):
+        try:
+            response = await call_next(request)
+            return response
+        except Exception as e:
+            is_prod = os.environ.get("ENVIRONMENT", "development") == "production"
+            logger.exception("Unhandled error on %s %s: %s", request.method, request.url.path, e)
+            if is_prod:
+                return JSONResponse(
+                    status_code=500,
+                    content={"detail": "An internal error occurred. Our team has been notified."},
+                )
+            raise
 
 
 # ─── Request Logging Middleware ───────────────────────────────────────────────

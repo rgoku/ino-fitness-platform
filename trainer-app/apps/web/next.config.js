@@ -2,14 +2,17 @@
 const nextConfig = {
   transpilePackages: ['@trainer-app/types', '@trainer-app/ui', '@trainer-app/api'],
   images: {
-    unoptimized: true,
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
+      { protocol: 'https', hostname: '**' },
     ],
   },
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'recharts'],
+  },
+  poweredByHeader: false,
+  compress: true,
+  reactStrictMode: true,
 };
 
 module.exports = nextConfig;
