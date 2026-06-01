@@ -84,6 +84,25 @@ async def refresh_token(
         "token_type": "bearer"
     }
 
+@router.get("/me")
+async def get_me(current_user: User = Depends(get_current_user)):
+    """Return the authenticated user."""
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "name": current_user.name,
+        "age": getattr(current_user, "age", None),
+        "gender": getattr(current_user, "gender", None),
+        "weight": getattr(current_user, "weight", None),
+        "height": getattr(current_user, "height", None),
+        "fitness_goal": getattr(current_user, "fitness_goal", None),
+        "experience_level": getattr(current_user, "experience_level", None),
+        "subscription_tier": getattr(current_user, "subscription_tier", None),
+        "has_onboarded": getattr(current_user, "has_onboarded", False),
+        "profile_picture_url": getattr(current_user, "profile_picture_url", None),
+    }
+
+
 @router.post("/logout")
 async def logout():
     """Logout user"""
