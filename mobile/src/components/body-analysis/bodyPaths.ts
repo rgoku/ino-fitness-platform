@@ -1,1 +1,1 @@
-export { BODY } from '../../../../body-diagram/core/bodyPaths';
+export { BODY } from './core/bodyPaths';

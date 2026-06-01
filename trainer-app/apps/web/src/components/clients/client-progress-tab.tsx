@@ -4,13 +4,31 @@ import { TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MuscleHeatmap, mockMuscleData } from '@/components/progress/muscle-heatmap';
+import { AnatomicalHeatmap, type MuscleVolume } from '@/components/body-analysis/AnatomicalHeatmap';
 import { useClientLoggedSets } from '@/hooks/use-workouts';
 import { formatDate } from '@/lib/utils';
 
 interface ClientProgressTabProps {
   clientId: string;
 }
+
+// Mock data — replace with backend aggregation later
+const SAMPLE_VOLUMES: MuscleVolume = {
+  chest: 12,
+  upper_back: 9,
+  lower_back: 4,
+  shoulders: 7,
+  biceps: 5,
+  triceps: 5,
+  forearms: 2,
+  abs: 6,
+  obliques: 3,
+  quads: 11,
+  hamstrings: 8,
+  glutes: 9,
+  calves: 4,
+  traps: 6,
+};
 
 export function ClientProgressTab({ clientId }: ClientProgressTabProps) {
   const { data: sets, isLoading } = useClientLoggedSets(clientId);
@@ -19,7 +37,6 @@ export function ClientProgressTab({ clientId }: ClientProgressTabProps) {
     return <Skeleton className="h-64 w-full rounded-xl" />;
   }
 
-  // Group sets by date
   const grouped = sets
     ? sets.reduce<Record<string, typeof sets>>((acc, set) => {
         const date = new Date(set.completed_at).toDateString();
@@ -31,7 +48,7 @@ export function ClientProgressTab({ clientId }: ClientProgressTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Muscle Heatmap */}
+      {/* Anatomical Heatmap */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -39,13 +56,13 @@ export function ClientProgressTab({ clientId }: ClientProgressTabProps) {
               <div className="flex h-5 w-5 items-center justify-center rounded-md bg-brand-50 dark:bg-brand-900/20">
                 <TrendingUp size={12} className="text-brand-600 dark:text-brand-400" />
               </div>
-              Muscle Heatmap
+              Anatomical Heatmap
             </CardTitle>
             <span className="text-body-xs text-[var(--color-text-tertiary)]">Last 30 days</span>
           </div>
         </CardHeader>
         <CardContent>
-          <MuscleHeatmap data={mockMuscleData} />
+          <AnatomicalHeatmap volumes={SAMPLE_VOLUMES} />
         </CardContent>
       </Card>
 

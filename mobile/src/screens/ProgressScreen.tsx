@@ -13,6 +13,7 @@ import { apiService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
 import * as offlineCache from '../services/offlineCache';
 import type { ProgressStatsCache } from '../services/offlineCache';
+import { MuscleHeatmap } from '../components/body-analysis/MuscleHeatmap';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -177,6 +178,22 @@ const ProgressScreen = React.memo(() => {
           </View>
         </View>
       )}
+
+      {/* Muscle Heatmap */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>MUSCLE ACTIVITY · LAST 30 DAYS</Text>
+        <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.borderLight }}>
+          <MuscleHeatmap
+            volumes={{
+              chest: 12, upper_back: 9, lower_back: 4,
+              shoulders: 7, biceps: 5, triceps: 5,
+              forearms: 2, abs: 6, obliques: 3,
+              quads: 11, hamstrings: 8, glutes: 9,
+              calves: 4, traps: 6,
+            }}
+          />
+        </View>
+      </View>
 
       {/* This Week Stats */}
       <View style={styles.section}>

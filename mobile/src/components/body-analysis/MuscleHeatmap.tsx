@@ -11,7 +11,7 @@ import {
   type MuscleSlug,
   type BodyView,
   type MuscleVolume,
-} from '../../../../body-diagram/core';
+} from './core';
 
 export type { MuscleSlug, BodyView, MuscleVolume };
 
@@ -56,6 +56,6 @@ export default function MuscleHeatmap({
   );
 }
 
-export { EXERCISE_MAP, aggregateVolume } from '../../../../body-diagram/core';
-export type { LoggedSet } from '../../../../body-diagram/core';
-export { getColor } from '../../../../body-diagram/core';
+export { EXERCISE_MAP, aggregateVolume } from './core';
+export type { LoggedSet } from './core';
+export { getColor } from './core';
