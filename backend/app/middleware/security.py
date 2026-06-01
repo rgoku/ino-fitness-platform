@@ -133,7 +133,9 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
             logger.warning("Blocked suspicious path: %s from %s", request.url.path, get_client_ip(request))
             return JSONResponse(status_code=400, content={"detail": "Invalid request."})
 
-        # Check POST/PUT/PATCH body for injection
+        # Check POST/PUT/PATCH body for injection. CAREFUL: consuming the body
+        # breaks downstream readers, so re-inject the bytes back into the
+        # ASGI receive stream after reading.
         if request.method in ("POST", "PUT", "PATCH"):
             content_type = request.headers.get("content-type", "")
             if "application/json" in content_type:
@@ -143,6 +145,11 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                     if is_suspicious_input(body_str):
                         logger.warning("Blocked suspicious request body from %s to %s", get_client_ip(request), request.url.path)
                         return JSONResponse(status_code=400, content={"detail": "Invalid input detected."})
+
+                    # Re-inject the body so route handlers can read it
+                    async def _receive():
+                        return {"type": "http.request", "body": body, "more_body": False}
+                    request._receive = _receive  # type: ignore[attr-defined]
                 except Exception:
                     pass
 
