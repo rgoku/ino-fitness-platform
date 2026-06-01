@@ -1,9 +1,5 @@
 'use client';
 
-/**
- * Web wrapper — imports from the shared body-diagram module.
- * Anatomy paths: MIT © Hicham ELABBASSI
- */
 import { useState } from 'react';
 import {
   BODY,
@@ -13,11 +9,7 @@ import {
   type MuscleSlug,
   type BodyView,
   type MuscleVolume,
-  type ThemeColors,
-} from '../../../../../body-diagram/core';
-import { cn } from '@/lib/utils';
-
-export type { MuscleSlug, BodyView, MuscleVolume };
+} from '../core';
 
 interface Props {
   volumes: MuscleVolume;
@@ -40,16 +32,15 @@ export function AnatomicalHeatmap({ volumes, className, width = 300, height = 58
   } : null;
 
   return (
-    <div className={cn('flex flex-col items-center', className)}>
+    <div className={`flex flex-col items-center ${className || ''}`}>
       <div className="mb-4 flex rounded-lg border border-[var(--color-border)] p-0.5">
         {(['front', 'back'] as const).map((v) => (
           <button
             key={v}
             onClick={() => { setView(v); setSelected(null); }}
-            className={cn(
-              'rounded-md px-4 py-1.5 text-body-xs font-medium capitalize transition-colors',
-              view === v ? 'bg-brand-500 text-white' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
-            )}
+            className={`rounded-md px-4 py-1.5 text-xs font-medium capitalize transition-colors ${
+              view === v ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-gray-200'
+            }`}
           >
             {v}
           </button>
@@ -85,23 +76,20 @@ export function AnatomicalHeatmap({ volumes, className, width = 300, height = 58
       </svg>
 
       <div className="mt-3 flex items-center gap-1">
-        <span className="text-body-xs text-[var(--color-text-tertiary)]">Rest</span>
+        <span className="text-xs text-gray-500">Rest</span>
         {[theme.restFill, ...theme.scale.map((s) => s.color)].map((c, i) => (
           <div key={i} className="h-2.5 w-5 first:rounded-l-sm last:rounded-r-sm" style={{ backgroundColor: c }} />
         ))}
-        <span className="text-body-xs text-[var(--color-text-tertiary)]">High</span>
+        <span className="text-xs text-gray-500">High</span>
       </div>
 
       {selectedData && (
-        <div className="mt-4 rounded-lg border border-brand-500/30 bg-brand-50/10 dark:bg-brand-900/10 px-4 py-3 text-center animate-fade-in">
-          <p className="text-sub-md text-[var(--color-text-primary)]">{selectedData.name}</p>
-          <p className="text-heading-2 tabular-nums text-brand-500">{selectedData.sets}</p>
-          <p className="text-body-xs text-[var(--color-text-tertiary)]">sets this week</p>
+        <div className="mt-4 rounded-lg border border-blue-500/30 bg-blue-900/10 px-4 py-3 text-center">
+          <p className="text-sm font-medium text-gray-200">{selectedData.name}</p>
+          <p className="text-2xl font-bold tabular-nums text-blue-500">{selectedData.sets}</p>
+          <p className="text-xs text-gray-500">sets this week</p>
         </div>
       )}
     </div>
   );
 }
-
-export { EXERCISE_MAP, aggregateVolume } from '../../../../../body-diagram/core';
-export type { LoggedSet } from '../../../../../body-diagram/core';

@@ -1,7 +1,3 @@
-/**
- * Mobile wrapper — imports from the shared body-diagram module.
- * Anatomy paths: MIT © Hicham ELABBASSI
- */
 import React from 'react';
 import Svg, { Path } from 'react-native-svg';
 import {
@@ -11,9 +7,7 @@ import {
   type MuscleSlug,
   type BodyView,
   type MuscleVolume,
-} from '../../../../body-diagram/core';
-
-export type { MuscleSlug, BodyView, MuscleVolume };
+} from '../core';
 
 interface Props {
   volumes: MuscleVolume;
@@ -55,7 +49,3 @@ export default function MuscleHeatmap({
     </Svg>
   );
 }
-
-export { EXERCISE_MAP, aggregateVolume } from '../../../../body-diagram/core';
-export type { LoggedSet } from '../../../../body-diagram/core';
-export { getColor } from '../../../../body-diagram/core';
