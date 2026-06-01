@@ -13,7 +13,7 @@ import { apiService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
 import * as offlineCache from '../services/offlineCache';
 import type { ProgressStatsCache } from '../services/offlineCache';
-import { MuscleHeatmap } from '../components/body-analysis/MuscleHeatmap';
+import { MuscleHeatmapPro } from '../components/body-analysis/MuscleHeatmapPro';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -179,20 +179,24 @@ const ProgressScreen = React.memo(() => {
         </View>
       )}
 
-      {/* Muscle Heatmap */}
+      {/* Muscle Heatmap Pro */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>MUSCLE ACTIVITY · LAST 30 DAYS</Text>
-        <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.borderLight }}>
-          <MuscleHeatmap
-            volumes={{
-              chest: 12, upper_back: 9, lower_back: 4,
-              shoulders: 7, biceps: 5, triceps: 5,
-              forearms: 2, abs: 6, obliques: 3,
-              quads: 11, hamstrings: 8, glutes: 9,
-              calves: 4, traps: 6,
-            }}
-          />
-        </View>
+        <MuscleHeatmapPro
+          thisWeek={{
+            chest: 12, 'upper-back': 9, 'lower-back': 4,
+            deltoids: 7, biceps: 5, triceps: 5,
+            forearm: 2, abs: 6, obliques: 3,
+            quadriceps: 11, hamstring: 8, gluteal: 9,
+            calves: 4, trapezius: 6, adductors: 3, tibialis: 2,
+          }}
+          lastWeek={{
+            chest: 10, 'upper-back': 8, 'lower-back': 5,
+            deltoids: 6, biceps: 4, triceps: 6,
+            forearm: 2, abs: 5, obliques: 2,
+            quadriceps: 8, hamstring: 6, gluteal: 7,
+            calves: 3, trapezius: 5, adductors: 2, tibialis: 1,
+          }}
+        />
       </View>
 
       {/* This Week Stats */}
