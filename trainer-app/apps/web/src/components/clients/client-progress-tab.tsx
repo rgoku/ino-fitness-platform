@@ -4,7 +4,8 @@ import { TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AnatomicalHeatmap, type MuscleVolume } from '@/components/body-analysis/AnatomicalHeatmap';
+import { MuscleHeatmapPro } from '@/components/body-analysis/MuscleHeatmapPro';
+import type { MuscleVolume } from '@/components/body-analysis/core';
 import { useClientLoggedSets } from '@/hooks/use-workouts';
 import { formatDate } from '@/lib/utils';
 
@@ -13,21 +14,19 @@ interface ClientProgressTabProps {
 }
 
 // Mock data — replace with backend aggregation later
-const SAMPLE_VOLUMES: MuscleVolume = {
-  chest: 12,
-  upper_back: 9,
-  lower_back: 4,
-  shoulders: 7,
-  biceps: 5,
-  triceps: 5,
-  forearms: 2,
-  abs: 6,
-  obliques: 3,
-  quads: 11,
-  hamstrings: 8,
-  glutes: 9,
-  calves: 4,
-  traps: 6,
+const THIS_WEEK: MuscleVolume = {
+  chest: 12, 'upper-back': 9, 'lower-back': 4,
+  deltoids: 7, biceps: 5, triceps: 5,
+  forearm: 2, abs: 6, obliques: 3,
+  quadriceps: 11, hamstring: 8, gluteal: 9,
+  calves: 4, trapezius: 6, adductors: 3, tibialis: 2,
+};
+const LAST_WEEK: MuscleVolume = {
+  chest: 10, 'upper-back': 8, 'lower-back': 5,
+  deltoids: 6, biceps: 4, triceps: 6,
+  forearm: 2, abs: 5, obliques: 2,
+  quadriceps: 8, hamstring: 6, gluteal: 7,
+  calves: 3, trapezius: 5, adductors: 2, tibialis: 1,
 };
 
 export function ClientProgressTab({ clientId }: ClientProgressTabProps) {
@@ -48,23 +47,8 @@ export function ClientProgressTab({ clientId }: ClientProgressTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Anatomical Heatmap */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <div className="flex h-5 w-5 items-center justify-center rounded-md bg-brand-50 dark:bg-brand-900/20">
-                <TrendingUp size={12} className="text-brand-600 dark:text-brand-400" />
-              </div>
-              Anatomical Heatmap
-            </CardTitle>
-            <span className="text-body-xs text-[var(--color-text-tertiary)]">Last 30 days</span>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <AnatomicalHeatmap volumes={SAMPLE_VOLUMES} />
-        </CardContent>
-      </Card>
+      {/* Muscle Heatmap Pro */}
+      <MuscleHeatmapPro thisWeek={THIS_WEEK} lastWeek={LAST_WEEK} />
 
       {/* Recent Workout Logs */}
       {sets && sets.length > 0 ? (
