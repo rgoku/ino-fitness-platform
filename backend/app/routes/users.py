@@ -52,6 +52,30 @@ async def update_user_profile(
     db.commit()
     return {"status": "updated"}
 
+@router.post("/onboarding")
+async def complete_onboarding_self(
+    biometrics: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Mark onboarding complete for the authenticated user (no user_id needed)."""
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.has_onboarded = True
+    user.age = biometrics.get("age")
+    user.gender = biometrics.get("gender")
+    user.weight = biometrics.get("weight")
+    user.height = biometrics.get("height")
+    # Mobile sends goals[] — pick first as primary
+    goals = biometrics.get("goals") or []
+    user.fitness_goal = biometrics.get("fitness_goal") or (goals[0] if goals else None)
+    user.experience_level = biometrics.get("experience_level") or biometrics.get("activityLevel")
+    user.biometrics_enabled = biometrics.get("biometrics_enabled", False)
+    db.commit()
+    return {"status": "onboarding_completed"}
+
+
 @router.post("/{user_id}/onboarding-complete")
 async def complete_onboarding(
     user_id: str,

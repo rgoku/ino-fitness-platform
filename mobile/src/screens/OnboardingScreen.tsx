@@ -24,6 +24,40 @@ const OnboardingScreen = () => {
     activityLevel: 'moderate',
     goals: [],
   });
+  // Height input — feet by default, with toggle to cm
+  const [heightUnit, setHeightUnit] = useState<'ft' | 'cm'>('ft');
+  const [feet, setFeet] = useState('');
+  const [inches, setInches] = useState('');
+  const [cm, setCm] = useState('');
+
+  // Convert ft/in → cm (stored value)
+  const updateHeightFromFt = (f: string, inc: string) => {
+    setFeet(f);
+    setInches(inc);
+    const ft = parseFloat(f) || 0;
+    const i = parseFloat(inc) || 0;
+    const total = Math.round((ft * 30.48 + i * 2.54) * 10) / 10;
+    setBiometrics((b) => ({ ...b, height: total }));
+  };
+  const updateHeightFromCm = (v: string) => {
+    setCm(v);
+    setBiometrics((b) => ({ ...b, height: parseFloat(v) || 0 }));
+  };
+  // Switch unit and convert displayed value
+  const switchUnit = (unit: 'ft' | 'cm') => {
+    if (unit === heightUnit) return;
+    const cmVal = biometrics.height || 0;
+    if (unit === 'cm') {
+      setCm(cmVal > 0 ? cmVal.toString() : '');
+    } else {
+      const totalIn = cmVal / 2.54;
+      const ft = Math.floor(totalIn / 12);
+      const inc = Math.round(totalIn - ft * 12);
+      setFeet(cmVal > 0 ? ft.toString() : '');
+      setInches(cmVal > 0 ? inc.toString() : '');
+    }
+    setHeightUnit(unit);
+  };
 
   const handleNext = async () => {
     if (step < 5) {
@@ -108,14 +142,61 @@ const OnboardingScreen = () => {
             />
           </View>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Height (cm)</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={biometrics.height?.toString() || ''}
-              onChangeText={(text) => setBiometrics({ ...biometrics, height: parseFloat(text) || 0 })}
-              placeholder="175"
-            />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <Text style={styles.label}>Height</Text>
+              <View style={{ flexDirection: 'row', backgroundColor: '#1a1a1a', borderRadius: 8, padding: 2 }}>
+                <TouchableOpacity
+                  onPress={() => switchUnit('ft')}
+                  style={{
+                    paddingVertical: 6, paddingHorizontal: 14, borderRadius: 6,
+                    backgroundColor: heightUnit === 'ft' ? '#3A86FF' : 'transparent',
+                  }}
+                >
+                  <Text style={{ color: heightUnit === 'ft' ? '#fff' : '#999', fontWeight: '600', fontSize: 12 }}>ft</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => switchUnit('cm')}
+                  style={{
+                    paddingVertical: 6, paddingHorizontal: 14, borderRadius: 6,
+                    backgroundColor: heightUnit === 'cm' ? '#3A86FF' : 'transparent',
+                  }}
+                >
+                  <Text style={{ color: heightUnit === 'cm' ? '#fff' : '#999', fontWeight: '600', fontSize: 12 }}>cm</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            {heightUnit === 'ft' ? (
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={feet}
+                    onChangeText={(t) => updateHeightFromFt(t, inches)}
+                    placeholder="5"
+                  />
+                  <Text style={{ color: '#666', fontSize: 11, marginTop: 4, textAlign: 'center' }}>feet</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={inches}
+                    onChangeText={(t) => updateHeightFromFt(feet, t)}
+                    placeholder="10"
+                  />
+                  <Text style={{ color: '#666', fontSize: 11, marginTop: 4, textAlign: 'center' }}>inches</Text>
+                </View>
+              </View>
+            ) : (
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={cm}
+                onChangeText={updateHeightFromCm}
+                placeholder="175"
+              />
+            )}
           </View>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Age</Text>
@@ -181,7 +262,18 @@ const OnboardingScreen = () => {
           <Text style={styles.stepTitle}>Review</Text>
           <Text style={styles.reviewText}>Goals: {biometrics.goals?.join(', ')}</Text>
           <Text style={styles.reviewText}>Weight: {biometrics.weight} kg</Text>
-          <Text style={styles.reviewText}>Height: {biometrics.height} cm</Text>
+          <Text style={styles.reviewText}>
+            Height: {(() => {
+              const h = biometrics.height || 0;
+              if (heightUnit === 'ft') {
+                const totalIn = h / 2.54;
+                const ft = Math.floor(totalIn / 12);
+                const inc = Math.round(totalIn - ft * 12);
+                return `${ft}'${inc}" (${h.toFixed(1)} cm)`;
+              }
+              return `${h.toFixed(1)} cm`;
+            })()}
+          </Text>
           <Text style={styles.reviewText}>Age: {biometrics.age}</Text>
           <Text style={styles.reviewText}>Gender: {biometrics.gender}</Text>
           <Text style={styles.reviewText}>Activity Level: {biometrics.activityLevel}</Text>
