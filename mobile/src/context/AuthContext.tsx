@@ -25,13 +25,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const checkAuthState = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('auth_token');
-      if (token) {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      try {
         const userData = await authService.getCurrentUser();
         setUser(userData);
-        setHasOnboarded(userData.hasOnboarded);
+        // Backend returns has_onboarded (snake_case); fall back to hasOnboarded
+        setHasOnboarded(
+          (userData as any).has_onboarded ?? (userData as any).hasOnboarded ?? false,
+        );
+      } catch (err: any) {
+        // Stale/invalid token — silently clear and stay logged out
+        if (err?.response?.status === 401 || err?.message?.includes('401')) {
+          await AsyncStorage.multiRemove(['auth_token', 'refresh_token']);
+        } else {
+          console.warn('Auth check failed:', err?.message || err);
+        }
       }
-    } catch (error) {
-      console.error('Error checking auth state:', error);
     } finally {
       setLoading(false);
     }
@@ -41,16 +53,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuthState();
   }, [checkAuthState]);
 
+  const extractOnboarded = (u: any) =>
+    (u?.has_onboarded ?? u?.hasOnboarded ?? false) as boolean;
+
   const login = useCallback(async (email: string, password: string) => {
     const userData = await authService.login(email, password);
     setUser(userData);
-    setHasOnboarded(userData.hasOnboarded);
+    setHasOnboarded(extractOnboarded(userData));
   }, []);
 
   const signup = useCallback(async (email: string, password: string, name: string) => {
     const userData = await authService.signup(email, password, name);
     setUser(userData);
-    setHasOnboarded(userData.hasOnboarded);
+    setHasOnboarded(extractOnboarded(userData));
   }, []);
 
   const logout = useCallback(async () => {
@@ -62,13 +77,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const appleSignIn = useCallback(async () => {
     const userData = await authService.appleSignIn();
     setUser(userData);
-    setHasOnboarded(userData.hasOnboarded);
+    setHasOnboarded(extractOnboarded(userData));
   }, []);
 
   const biometricLogin = useCallback(async () => {
     const userData = await authService.biometricLogin();
     setUser(userData);
-    setHasOnboarded(userData.hasOnboarded);
+    setHasOnboarded(extractOnboarded(userData));
   }, []);
 
   const completeOnboarding = useCallback(async (biometrics: any) => {
