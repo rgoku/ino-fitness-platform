@@ -85,15 +85,16 @@ async def generate_diet_plan(
 
 @router.get("/plans")
 async def get_diet_plans(
-    user_id: str,
+    user_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get all diet plans for user"""
+    """Get all diet plans for user. Defaults to the authenticated user."""
+    target = user_id or current_user.id
     plans = (
         db.query(DietPlan)
         .options(selectinload(DietPlan.meals))
-        .filter(DietPlan.user_id == user_id)
+        .filter(DietPlan.user_id == target)
         .all()
     )
     return plans
@@ -134,14 +135,15 @@ async def analyze_food_photo(
 
 @router.get("/macros")
 async def get_daily_macros(
-    user_id: str,
     date: str,
+    user_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get daily macro totals"""
+    """Get daily macro totals. Defaults to the authenticated user."""
+    target = user_id or current_user.id
     entries = db.query(FoodEntry).filter(
-        FoodEntry.user_id == user_id,
+        FoodEntry.user_id == target,
         FoodEntry.date.startswith(date)
     ).all()
     

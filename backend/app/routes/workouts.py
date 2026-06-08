@@ -68,15 +68,16 @@ async def generate_workout_plan(
 
 @router.get("/plans")
 async def get_workout_plans(
-    user_id: str = Query(...),
+    user_id: str | None = Query(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get all workout plans for a user"""
+    """Get all workout plans for a user. Defaults to the authenticated user."""
+    target = user_id or current_user.id
     plans = (
         db.query(WorkoutPlan)
         .options(selectinload(WorkoutPlan.exercises))
-        .filter(WorkoutPlan.user_id == user_id)
+        .filter(WorkoutPlan.user_id == target)
         .all()
     )
     return plans
@@ -185,16 +186,17 @@ async def analyze_exercise_form(
 
 @router.get("/stats")
 async def get_workout_stats(
-    user_id: str = Query(...),
+    user_id: str | None = Query(None),
     days: int = Query(30),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get workout statistics for user"""
+    """Get workout statistics for user. Defaults to the authenticated user."""
+    target = user_id or current_user.id
     start_date = datetime.utcnow() - timedelta(days=days)
-    
+
     sessions = db.query(WorkoutSession).filter(
-        WorkoutSession.user_id == user_id,
+        WorkoutSession.user_id == target,
         WorkoutSession.date >= start_date,
         WorkoutSession.is_completed == True
     ).all()
@@ -231,16 +233,17 @@ async def favorite_exercise(
 
 @router.get("/sessions")
 async def get_workout_sessions(
-    user_id: str = Query(...),
+    user_id: str | None = Query(None),
     limit: int = Query(10),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get recent workout sessions"""
+    """Get recent workout sessions. Defaults to the authenticated user."""
+    target = user_id or current_user.id
     sessions = (
         db.query(WorkoutSession)
         .options(selectinload(WorkoutSession.workout_plan))
-        .filter(WorkoutSession.user_id == user_id)
+        .filter(WorkoutSession.user_id == target)
         .order_by(WorkoutSession.date.desc())
         .limit(limit)
         .all()

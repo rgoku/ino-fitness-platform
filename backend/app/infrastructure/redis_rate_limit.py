@@ -14,7 +14,13 @@ WINDOW_TTL_SECONDS = 3700  # slightly over 1 hour so the hour window is covered
 
 
 def _redis() -> Redis:
-    return Redis.from_url(get_redis_url(), decode_responses=True)
+    # Short timeouts so requests fail open quickly when Redis is unavailable in dev
+    return Redis.from_url(
+        get_redis_url(),
+        decode_responses=True,
+        socket_connect_timeout=0.5,
+        socket_timeout=0.5,
+    )
 
 
 def _window_key(user_id: str, resource: str) -> str:

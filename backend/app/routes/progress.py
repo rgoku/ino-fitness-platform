@@ -34,18 +34,19 @@ async def log_progress(
 
 @router.get("")
 async def get_progress(
-    user_id: str,
+    user_id: str | None = None,
     days: int = 90,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get progress history"""
+    """Get progress history. Defaults to the authenticated user."""
+    target = user_id or current_user.id
     start_date = datetime.utcnow() - timedelta(days=days)
     entries = db.query(ProgressEntry).filter(
-        ProgressEntry.user_id == user_id,
+        ProgressEntry.user_id == target,
         ProgressEntry.created_at >= start_date
     ).order_by(ProgressEntry.created_at.desc()).all()
-    
+
     return entries
 
 @router.get("/{user_id}/streak")

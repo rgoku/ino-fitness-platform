@@ -58,7 +58,13 @@ def _get_redis() -> redis_lib.Redis:
     global _redis
     if _redis is None:
         base_url = get_redis_url().rsplit("/", 1)[0]
-        _redis = redis_lib.from_url(f"{base_url}/3", decode_responses=True)
+        # Short timeouts so AI endpoints fail open quickly if Redis is unreachable
+        _redis = redis_lib.from_url(
+            f"{base_url}/3",
+            decode_responses=True,
+            socket_connect_timeout=0.3,
+            socket_timeout=0.3,
+        )
     return _redis
 
 

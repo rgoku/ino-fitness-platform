@@ -472,17 +472,21 @@ Return a JSON object with EXACTLY this schema:
                 "omega-3 fatty acids randomized trial cardiovascular"
             ))
 
-            # Fetch citations for each suggested supplement (top 2 each)
+            # Skip slow external calls (PubMed + Claude) when no API key is configured —
+            # the mobile/web app still gets dose/safety data without burning a 20s+ wait.
+            has_api_key = bool(os.environ.get("ANTHROPIC_API_KEY"))
             for s in suggestions:
+                if not has_api_key:
+                    s['citations'] = []
+                    s['evidence_summary'] = None
+                    s['evidence_level'] = "preliminary"
+                    continue
                 try:
                     query = s.get('name') + " randomized controlled trial"
-                    # Use the PubMed helper to find supporting literature
                     cites = await self._search_pubmed_research(query, max_results=2)
                     s['citations'] = cites
                 except Exception:
                     s['citations'] = []
-
-                # Summarize citations with Claude for evidence summary and level
                 try:
                     summary_result = await self._summarize_citations_with_claude(s['name'], s.get('citations', []))
                     s['evidence_summary'] = summary_result.get('summary')
@@ -784,15 +788,20 @@ Return JSON with keys: {{"summary": "...", "evidence_level": "high|moderate|prel
         }
     
     async def get_motivation(self, user_id: str) -> str:
-        """Get personalized motivational message"""
-        message = await self._create_message(
-            model=self.model,
-            max_tokens=100,
-            messages=[
-                {"role": "user", "content": "Give me one short, motivational fitness quote (max 15 words)"}
-            ]
-        )
-        return message.content[0].text
+        """Get personalized motivational message. Falls back to a canned line when no API key."""
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            return "Show up — that's the whole game. One rep at a time."
+        try:
+            message = await self._create_message(
+                model=self.model,
+                max_tokens=100,
+                messages=[
+                    {"role": "user", "content": "Give me one short, motivational fitness quote (max 15 words)"}
+                ]
+            )
+            return message.content[0].text
+        except Exception:
+            return "Discipline is choosing what you want most over what you want now."
 
     async def generate_reminder_message(self, user_id: str, context: dict = None) -> dict:
         """Generate a short, friendly reminder message for a user based on context.
@@ -827,19 +836,27 @@ Return only the reminder text.
             return {"text": fallback}
     
     async def chat_with_ai_coach(self, user_id: str, message: str, context: str = "general") -> str:
-        """Chat with AI fitness coach"""
-        system_prompt = """You are an expert AI fitness coach. Provide helpful, motivating, and evidence-based advice.
-        Be conversational, supportive, and practical. Keep responses concise but informative."""
-        
-        response = await self._create_message(
-            model=self.model,
-            max_tokens=500,
-            system=system_prompt,
-            messages=[
-                {"role": "user", "content": message}
-            ]
-        )
-        return response.content[0].text
+        """Chat with AI fitness coach. Falls back to a stub when no API key is configured."""
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            return (
+                "AI coach is offline (no ANTHROPIC_API_KEY configured). "
+                "Connect your Anthropic key in the backend .env to enable live coaching."
+            )
+        try:
+            system_prompt = (
+                "You are an expert AI fitness coach. Provide helpful, motivating, and "
+                "evidence-based advice. Be conversational, supportive, and practical. "
+                "Keep responses concise but informative."
+            )
+            response = await self._create_message(
+                model=self.model,
+                max_tokens=500,
+                system=system_prompt,
+                messages=[{"role": "user", "content": message}],
+            )
+            return response.content[0].text
+        except Exception as exc:
+            return f"AI coach hit an error: {exc}. Try again in a moment."
     
     async def generate_workout_modification(self, exercise_name: str, constraints: dict) -> dict:
         """Generate modification for exercise based on constraints"""

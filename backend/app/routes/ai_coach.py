@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.models import User, Message
@@ -12,6 +13,32 @@ router = APIRouter()
 ai_service = AIService()
 
 
+class ChatRequest(BaseModel):
+    message: str | None = None
+    content: str | None = None  # accept legacy field name
+    context: str = "general"
+
+    @property
+    def text(self) -> str:
+        return (self.message or self.content or "").strip()
+
+
+class NutritionAdviceRequest(BaseModel):
+    meal_type: str = "general"
+    preferences: dict = {}
+    question: str | None = None
+
+
+class AskRequest(BaseModel):
+    question: str
+    category: str = "general"
+
+
+class PersonalizedPlanRequest(BaseModel):
+    goals: list = []
+    duration: int = 8
+
+
 def _enforce_budget(user: User, task_type: str) -> None:
     """Check AI budget before calling Claude. Raises 429 if exceeded."""
     tier = getattr(user, "subscription_tier", "free") or "free"
@@ -23,52 +50,52 @@ def _enforce_budget(user: User, task_type: str) -> None:
 @limiter.limit("30/hour")
 async def chat_with_ai(
     request: Request,
-    user_id: str,
-    content: str,
-    context: str = "general",
+    payload: ChatRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Chat with AI fitness coach"""
+    """Chat with AI fitness coach. Reads JSON body {message|content, context}."""
     _enforce_budget(current_user, "ai_chat")
+    text = payload.text
+    if not text:
+        raise HTTPException(status_code=400, detail="message is required")
     try:
-        response = await ai_service.chat_with_ai_coach(user_id, content, context)
-        
-        # Store messages
+        response = await ai_service.chat_with_ai_coach(current_user.id, text, payload.context)
         user_msg = Message(
-            user_id=user_id,
+            user_id=current_user.id,
             sender_type="user",
-            content=content,
-            message_type="text"
+            content=text,
+            message_type="text",
         )
         ai_msg = Message(
-            user_id=user_id,
+            user_id=current_user.id,
             sender_type="ai",
             content=response,
-            message_type="text"
+            message_type="text",
         )
         db.add(user_msg)
         db.add(ai_msg)
         db.commit()
-        
         return {
             "user_message_id": user_msg.id,
             "ai_message_id": ai_msg.id,
-            "response": response
+            "response": response,
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/motivation")
 async def get_motivation(
-    user_id: str,
+    user_id: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get motivational message"""
+    """Get motivational message. Defaults to the authenticated user."""
     _enforce_budget(current_user, "motivation")
     try:
-        motivation = await ai_service.get_motivation(user_id)
+        motivation = await ai_service.get_motivation(user_id or current_user.id)
         return {"message": motivation}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -92,11 +119,12 @@ async def get_workout_tips(
 
 @router.post("/nutrition-advice")
 async def get_nutrition_advice(
-    meal_type: str,
-    preferences: dict,
+    payload: NutritionAdviceRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    meal_type = payload.meal_type
+    preferences = payload.preferences or {}
     """Get AI nutrition advice"""
     _enforce_budget(current_user, "supplement_evidence")
     try:
@@ -145,15 +173,14 @@ async def analyze_progress(
 @limiter.limit("10/hour")
 async def generate_personalized_plan(
     request: Request,
-    user_id: str,
-    goals: list,
-    duration: int,
+    payload: PersonalizedPlanRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Generate personalized plan"""
+    goals = payload.goals
+    duration = payload.duration
     try:
-        # Create the plan (placeholder existing logic could be replaced by AIService)
         plan = {
             "plan_id": "plan_123",
             "goals": goals,
@@ -179,19 +206,19 @@ async def generate_personalized_plan(
 @limiter.limit("30/hour")
 async def ask_question(
     request: Request,
-    user_id: str,
-    question: str,
-    category: str = "general",
+    payload: AskRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Ask AI coach a question"""
     _enforce_budget(current_user, "ai_chat")
+    question = payload.question
+    category = payload.category
     try:
-        response = await ai_service.chat_with_ai_coach(user_id, question, category)
-        
+        response = await ai_service.chat_with_ai_coach(current_user.id, question, category)
+
         message = Message(
-            user_id=user_id,
+            user_id=current_user.id,
             sender_type="ai",
             content=response,
             message_type="text"
