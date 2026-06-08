@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, Plus, Save, UserPlus } from 'lucide-react';
+import { ChevronLeft, Plus, Save, UserPlus, Sparkles, Wand2, CheckCircle2, Loader2 } from 'lucide-react';
 import { useTemplate } from '@/hooks/use-templates';
 import { ExerciseRow } from '@/components/programs/exercise-row';
 import { AssignProgramDialog } from '@/components/programs/assign-program-dialog';
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { parseExercises, enrichExercises } from '@/lib/exercise-parser';
 import type { MockTemplateExercise } from '@/lib/mock-data';
 
 export default function ProgramEditorPage() {
@@ -21,6 +22,9 @@ export default function ProgramEditorPage() {
   const [initialized, setInitialized] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [generatorOpen, setGeneratorOpen] = useState(false);
+  const [generatorInput, setGeneratorInput] = useState('');
+  const [generating, setGenerating] = useState(false);
 
   // Initialize exercises from query data
   if (template?.exercises && !initialized) {
@@ -56,6 +60,35 @@ export default function ProgramEditorPage() {
     setSaving(true);
     await new Promise((r) => setTimeout(r, 800));
     setSaving(false);
+  };
+
+  const handleGenerate = async () => {
+    if (!generatorInput.trim()) return;
+    setGenerating(true);
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const parsed = parseExercises(generatorInput);
+    const enriched = enrichExercises(parsed);
+
+    const newExercises: MockTemplateExercise[] = enriched.map((ex, i) => ({
+      id: `te${Date.now()}-${i}`,
+      template_id: templateId,
+      exercise_name: ex.name,
+      sets: ex.sets,
+      reps: ex.reps,
+      rest_seconds: ex.rest ? parseInt(ex.rest) || 90 : 90,
+      notes: [
+        ex.coachingCues?.slice(0, 2).join('. '),
+        ex.notes,
+      ].filter(Boolean).join(' — '),
+      order_index: exercises.length + i,
+      video_url: ex.videoUrl,
+    }));
+
+    setExercises((prev) => [...prev, ...newExercises]);
+    setGenerating(false);
+    setGeneratorInput('');
+    setGeneratorOpen(false);
   };
 
   if (isLoading) {
@@ -142,6 +175,79 @@ export default function ProgramEditorPage() {
           <Plus size={16} />
           Add Exercise
         </button>
+      </Card>
+
+      {/* AI Program Generator */}
+      <Card className="overflow-hidden">
+        <button
+          onClick={() => setGeneratorOpen(!generatorOpen)}
+          className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-[var(--color-surface-hover)] transition-colors"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
+              <Wand2 size={15} className="text-brand-600 dark:text-brand-400" />
+            </div>
+            <div>
+              <p className="text-sub-sm font-medium text-[var(--color-text-primary)]">AI Program Generator</p>
+              <p className="text-body-xs text-[var(--color-text-tertiary)]">
+                Type exercises naturally — AI fills in sets, reps, notes, and videos
+              </p>
+            </div>
+          </div>
+          <Badge variant="brand">AI</Badge>
+        </button>
+
+        {generatorOpen && (
+          <div className="border-t border-[var(--color-border-light)] bg-[var(--color-surface-secondary)] p-4 space-y-3 animate-fade-in">
+            <textarea
+              value={generatorInput}
+              onChange={(e) => setGeneratorInput(e.target.value)}
+              placeholder={`Type or paste your workout — one exercise per line:\n\nbench press 4x8\nincline dumbbell press 3x10\ncable flys 3x15 - slow squeeze\noverhead press 3x8 @RPE8\ntricep pushdown 4x12, 60s rest`}
+              rows={7}
+              className="block w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-body-sm font-mono text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 resize-y"
+            />
+
+            {generatorInput.trim() && (
+              <div className="rounded-lg border border-[var(--color-border-light)] bg-[var(--color-surface)] p-3">
+                <p className="text-body-xs font-medium text-[var(--color-text-tertiary)] mb-1.5">
+                  Preview — {parseExercises(generatorInput).length} exercises detected
+                </p>
+                <div className="space-y-1">
+                  {parseExercises(generatorInput).map((ex, i) => (
+                    <div key={i} className="flex items-center gap-2 text-body-xs">
+                      <span className="w-4 tabular-nums text-[var(--color-text-tertiary)]">{i + 1}.</span>
+                      <span className="font-medium text-[var(--color-text-primary)]">{ex.name}</span>
+                      <span className="text-[var(--color-text-tertiary)]">{ex.sets} × {ex.reps}</span>
+                      {ex.rpe && <Badge variant="info">RPE {ex.rpe}</Badge>}
+                      {ex.rest && <span className="text-[var(--color-text-tertiary)]">{ex.rest}</span>}
+                      {ex.notes && <span className="text-[var(--color-text-tertiary)] italic">— {ex.notes}</span>}
+                      {ex.muscleGroups && ex.muscleGroups.length > 0 && (
+                        <span className="text-brand-500">{ex.muscleGroups.join(', ')}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <p className="flex-1 text-body-xs text-[var(--color-text-tertiary)]">
+                AI adds coaching cues, muscle groups, and matches exercise videos automatically.
+              </p>
+              <Button
+                size="sm"
+                onClick={handleGenerate}
+                disabled={!generatorInput.trim() || generating}
+              >
+                {generating ? (
+                  <><Loader2 size={14} className="animate-spin" /> Generating...</>
+                ) : (
+                  <><Sparkles size={14} /> Generate & Add</>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       <AssignProgramDialog

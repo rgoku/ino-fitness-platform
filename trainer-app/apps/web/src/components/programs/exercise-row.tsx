@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { GripVertical, Trash2, Video, Play, Upload, Link, X } from 'lucide-react';
+import { GripVertical, Trash2, Video, Play, Upload, Link, X, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import type { MockTemplateExercise } from '@/lib/mock-data';
 
 function extractYouTubeId(url: string): string | null {
@@ -159,79 +159,129 @@ interface ExerciseRowProps {
 
 export function ExerciseRow({ exercise, index, onUpdate, onDelete }: ExerciseRowProps) {
   const [videoOpen, setVideoOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(!!exercise.notes);
 
   return (
-    <div className="relative grid grid-cols-[20px_24px_1fr_64px_80px_72px_28px_28px] items-center gap-2 px-3 py-2.5 transition-colors hover:bg-[var(--color-surface-hover)]">
-      <GripVertical size={14} className="text-[var(--color-text-tertiary)] cursor-grab" />
+    <div className="group">
+      {/* Main row */}
+      <div className="relative grid grid-cols-[20px_24px_1fr_64px_80px_72px_28px_28px] items-center gap-2 px-3 py-2.5 transition-colors hover:bg-[var(--color-surface-hover)]">
+        <GripVertical size={14} className="text-[var(--color-text-tertiary)] cursor-grab" />
 
-      <span className="text-body-sm font-semibold tabular-nums text-[var(--color-text-tertiary)] text-center">
-        {index + 1}
-      </span>
+        <span className="text-body-sm font-semibold tabular-nums text-[var(--color-text-tertiary)] text-center">
+          {index + 1}
+        </span>
 
-      <input
-        type="text"
-        value={exercise.exercise_name}
-        onChange={(e) => onUpdate(exercise.id, 'exercise_name', e.target.value)}
-        className="min-w-0 rounded-md border-0 bg-transparent px-2 py-1.5 text-body-sm font-medium text-[var(--color-text-primary)] focus:bg-[var(--color-surface-secondary)] focus:outline-none focus:ring-1 focus:ring-brand-500"
-        placeholder="Exercise name"
-      />
-
-      <input
-        type="number"
-        value={exercise.sets}
-        onChange={(e) => onUpdate(exercise.id, 'sets', parseInt(e.target.value) || 0)}
-        className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 text-center text-body-sm tabular-nums text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20"
-        placeholder="Sets"
-        title="Sets"
-      />
-
-      <input
-        type="text"
-        value={exercise.reps}
-        onChange={(e) => onUpdate(exercise.id, 'reps', e.target.value)}
-        className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 text-center text-body-sm tabular-nums text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20"
-        placeholder="Reps"
-        title="Reps"
-      />
-
-      <input
-        type="number"
-        value={exercise.rest_seconds}
-        onChange={(e) => onUpdate(exercise.id, 'rest_seconds', parseInt(e.target.value) || 0)}
-        className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 text-center text-body-sm tabular-nums text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20"
-        placeholder="Rest"
-        title="Rest (seconds)"
-      />
-
-      <div className="relative flex justify-center">
-        <button
-          onClick={() => setVideoOpen(!videoOpen)}
-          className={`rounded-md p-1.5 transition-colors ${
-            exercise.video_url
-              ? 'text-brand-500 hover:text-brand-600 bg-brand-50 dark:bg-brand-900/20'
-              : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]'
-          }`}
-          title={exercise.video_url ? 'Video attached' : 'Add video'}
-        >
-          <Video size={14} />
-        </button>
-        {videoOpen && (
-          <VideoPopover
-            exercise={exercise}
-            onUpdate={onUpdate}
-            onClose={() => setVideoOpen(false)}
+        <div className="min-w-0 flex items-center gap-1.5">
+          <input
+            type="text"
+            value={exercise.exercise_name}
+            onChange={(e) => onUpdate(exercise.id, 'exercise_name', e.target.value)}
+            className="min-w-0 flex-1 rounded-md border-0 bg-transparent px-2 py-1.5 text-body-sm font-medium text-[var(--color-text-primary)] focus:bg-[var(--color-surface-secondary)] focus:outline-none focus:ring-1 focus:ring-brand-500"
+            placeholder="Exercise name"
           />
-        )}
+          <button
+            onClick={() => setNotesOpen(!notesOpen)}
+            className={`shrink-0 rounded-md p-1 transition-colors ${
+              exercise.notes
+                ? 'text-amber-500 hover:text-amber-600'
+                : 'text-[var(--color-text-tertiary)] opacity-0 group-hover:opacity-100 hover:text-[var(--color-text-secondary)]'
+            }`}
+            title={exercise.notes ? 'Edit notes' : 'Add notes for client'}
+          >
+            <MessageSquare size={12} />
+          </button>
+        </div>
+
+        <input
+          type="number"
+          value={exercise.sets}
+          onChange={(e) => onUpdate(exercise.id, 'sets', parseInt(e.target.value) || 0)}
+          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 text-center text-body-sm tabular-nums text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20"
+          placeholder="Sets"
+          title="Sets"
+        />
+
+        <input
+          type="text"
+          value={exercise.reps}
+          onChange={(e) => onUpdate(exercise.id, 'reps', e.target.value)}
+          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 text-center text-body-sm tabular-nums text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20"
+          placeholder="Reps"
+          title="Reps"
+        />
+
+        <input
+          type="number"
+          value={exercise.rest_seconds}
+          onChange={(e) => onUpdate(exercise.id, 'rest_seconds', parseInt(e.target.value) || 0)}
+          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 text-center text-body-sm tabular-nums text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20"
+          placeholder="Rest"
+          title="Rest (seconds)"
+        />
+
+        <div className="relative flex justify-center">
+          <button
+            onClick={() => setVideoOpen(!videoOpen)}
+            className={`rounded-md p-1.5 transition-colors ${
+              exercise.video_url
+                ? 'text-brand-500 hover:text-brand-600 bg-brand-50 dark:bg-brand-900/20'
+                : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]'
+            }`}
+            title={exercise.video_url ? 'Video attached' : 'Add video'}
+          >
+            <Video size={14} />
+          </button>
+          {videoOpen && (
+            <VideoPopover
+              exercise={exercise}
+              onUpdate={onUpdate}
+              onClose={() => setVideoOpen(false)}
+            />
+          )}
+        </div>
+
+        <div className="flex justify-center">
+          <button
+            onClick={() => onDelete(exercise.id)}
+            className="rounded-md p-1.5 text-[var(--color-text-tertiary)] hover:text-red-500 transition-colors"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
 
-      <div className="flex justify-center">
+      {/* Notes row — visible to clients */}
+      {notesOpen && (
+        <div className="px-3 pb-2.5 pl-[52px] animate-fade-in">
+          <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-50/50 dark:bg-amber-900/10 px-3 py-2">
+            <MessageSquare size={12} className="mt-0.5 shrink-0 text-amber-500" />
+            <textarea
+              value={exercise.notes}
+              onChange={(e) => onUpdate(exercise.id, 'notes', e.target.value)}
+              placeholder="Add coaching notes visible to client (e.g. 'Pause 1s at bottom, control the eccentric')"
+              rows={2}
+              className="flex-1 resize-none border-0 bg-transparent text-body-xs text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:outline-none"
+            />
+            <button
+              onClick={() => { onUpdate(exercise.id, 'notes', ''); setNotesOpen(false); }}
+              className="shrink-0 rounded p-0.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]"
+            >
+              <X size={10} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Show existing notes inline (collapsed) */}
+      {!notesOpen && exercise.notes && (
         <button
-          onClick={() => onDelete(exercise.id)}
-          className="rounded-md p-1.5 text-[var(--color-text-tertiary)] hover:text-red-500 transition-colors"
+          onClick={() => setNotesOpen(true)}
+          className="flex items-center gap-1.5 px-3 pb-2 pl-[52px] text-body-xs text-amber-600 dark:text-amber-400 hover:underline"
         >
-          <Trash2 size={14} />
+          <MessageSquare size={10} />
+          {exercise.notes}
         </button>
-      </div>
+      )}
     </div>
   );
 }
