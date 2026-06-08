@@ -71,7 +71,7 @@ export default function ProgramEditorPage() {
   if (!template) {
     return (
       <div className="py-12 text-center">
-        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Program not found</h2>
+        <h2 className="text-sub-md font-semibold text-[var(--color-text-primary)]">Program not found</h2>
       </div>
     );
   }
@@ -80,7 +80,7 @@ export default function ProgramEditorPage() {
     <div className="space-y-5">
       <Link
         href="/programs"
-        className="inline-flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+        className="inline-flex items-center gap-1 text-body-sm text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
       >
         <ChevronLeft size={16} />
         Back to Programs
@@ -88,12 +88,12 @@ export default function ProgramEditorPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[var(--color-text-primary)]">
+          <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">
             {template.name}
           </h1>
-          <div className="mt-1 flex items-center gap-3">
+          <div className="mt-1.5 flex items-center gap-3">
             <Badge>{template.weeks}w &times; {template.days_per_week}d</Badge>
-            <span className="text-sm text-[var(--color-text-secondary)]">
+            <span className="text-body-sm text-[var(--color-text-secondary)]">
               {template.description}
             </span>
           </div>
@@ -110,20 +110,20 @@ export default function ProgramEditorPage() {
         </div>
       </div>
 
-      <Card className="p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-xs font-medium text-[var(--color-text-tertiary)]">
-            <span className="w-6" />
-            <span className="w-6">#</span>
-            <span className="flex-1">Exercise</span>
-            <span className="w-14 text-center">Sets</span>
-            <span className="w-20 text-center">Reps</span>
-            <span className="w-16 text-center">Rest (s)</span>
-            <span className="w-8" />
-          </div>
+      <Card className="p-0 overflow-hidden">
+        {/* Column headers — grid matches ExerciseRow exactly */}
+        <div className="grid grid-cols-[20px_24px_1fr_64px_80px_72px_28px_28px] items-center gap-2 border-b border-[var(--color-border-light)] bg-[var(--color-surface-secondary)] px-3 py-2.5">
+          <span />
+          <span className="text-body-xs font-medium text-[var(--color-text-tertiary)]">#</span>
+          <span className="text-body-xs font-medium text-[var(--color-text-tertiary)]">Exercise</span>
+          <span className="text-body-xs font-medium text-[var(--color-text-tertiary)] text-center">Sets</span>
+          <span className="text-body-xs font-medium text-[var(--color-text-tertiary)] text-center">Reps</span>
+          <span className="text-body-xs font-medium text-[var(--color-text-tertiary)] text-center">Rest (s)</span>
+          <span />
+          <span />
         </div>
 
-        <div className="space-y-2">
+        <div className="divide-y divide-[var(--color-border-light)]">
           {exercises.map((exercise, i) => (
             <ExerciseRow
               key={exercise.id}
@@ -137,7 +137,7 @@ export default function ProgramEditorPage() {
 
         <button
           onClick={handleAdd}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border p-3 text-sm text-[var(--color-text-secondary)] hover:border-brand-500 hover:text-brand-500 transition-colors"
+          className="flex w-full items-center justify-center gap-2 border-t border-dashed border-[var(--color-border)] p-3 text-body-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] hover:text-brand-500 transition-colors"
         >
           <Plus size={16} />
           Add Exercise

@@ -21,7 +21,7 @@ export function ProgramCard({ template, onDelete }: ProgramCardProps) {
               {template.name}
             </h3>
           </Link>
-          <p className="mt-1 text-sm text-[var(--color-text-secondary)] line-clamp-2">
+          <p className="mt-1 text-body-sm text-[var(--color-text-secondary)] line-clamp-2">
             {template.description}
           </p>
         </div>
@@ -34,7 +34,7 @@ export function ProgramCard({ template, onDelete }: ProgramCardProps) {
         </Badge>
       </div>
 
-      <div className="mt-4 flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
+      <div className="mt-4 flex items-center gap-4 text-body-xs text-[var(--color-text-secondary)]">
         <span className="flex items-center gap-1">
           <Calendar size={12} />
           {template.weeks}w &times; {template.days_per_week}d
@@ -48,7 +48,7 @@ export function ProgramCard({ template, onDelete }: ProgramCardProps) {
       <div className="mt-4 flex items-center gap-2 pt-3 border-t border-border">
         <Link
           href={`/programs/${template.id}`}
-          className="text-xs font-medium text-brand-500 hover:text-brand-600"
+          className="text-body-xs font-medium text-brand-500 hover:text-brand-600"
         >
           Edit Program
         </Link>

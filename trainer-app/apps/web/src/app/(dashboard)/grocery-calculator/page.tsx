@@ -160,25 +160,25 @@ export default function GroceryCalculatorPage() {
         <Card>
           <CardContent className="py-4">
             <p className="text-body-xs text-[var(--color-text-tertiary)]">Total Items</p>
-            <p className="text-xl font-semibold tabular-nums text-[var(--color-text-primary)]">{items.length}</p>
+            <p className="text-heading-2 font-semibold tabular-nums text-[var(--color-text-primary)]">{items.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-4">
             <p className="text-body-xs text-[var(--color-text-tertiary)]">Categories</p>
-            <p className="text-xl font-semibold tabular-nums text-[var(--color-text-primary)]">{categories.length}</p>
+            <p className="text-heading-2 font-semibold tabular-nums text-[var(--color-text-primary)]">{categories.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-4">
             <p className="text-body-xs text-[var(--color-text-tertiary)]">Est. Budget</p>
-            <p className="text-xl font-semibold tabular-nums text-[var(--color-text-primary)]">${totalCost.toFixed(2)}</p>
+            <p className="text-heading-2 font-semibold tabular-nums text-[var(--color-text-primary)]">${totalCost.toFixed(2)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-4">
             <p className="text-body-xs text-[var(--color-text-tertiary)]">Duplicates Saved</p>
-            <p className="text-xl font-semibold tabular-nums text-[var(--color-text-primary)]">8</p>
+            <p className="text-heading-2 font-semibold tabular-nums text-[var(--color-text-primary)]">8</p>
           </CardContent>
         </Card>
       </div>
@@ -270,7 +270,7 @@ export default function GroceryCalculatorPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-body-sm font-medium text-[var(--color-text-primary)]">Total Estimated Budget</p>
-              <p className="text-2xl font-bold tabular-nums text-[var(--color-text-primary)]">${totalCost.toFixed(2)}</p>
+              <p className="text-heading-1 font-semibold tabular-nums text-[var(--color-text-primary)]">${totalCost.toFixed(2)}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {!listGenerated ? (

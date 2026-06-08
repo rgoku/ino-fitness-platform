@@ -40,7 +40,7 @@ export default function AnalyticsPage() {
         {/* Top Performers */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
+            <CardTitle className="flex items-center gap-2 text-body-sm">
               <Trophy size={16} className="text-amber-500" />
               Most consistent
             </CardTitle>
@@ -49,16 +49,16 @@ export default function AnalyticsPage() {
             <div className="space-y-3">
               {data?.topPerformers.map((client, i) => (
                 <div key={client.id} className="flex items-center gap-3">
-                  <span className="w-5 text-center text-sm font-bold text-[var(--color-text-tertiary)]">
+                  <span className="w-5 text-center text-body-sm font-semibold text-[var(--color-text-tertiary)]">
                     {i + 1}
                   </span>
                   <Avatar name={client.name} size="sm" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{client.name}</p>
+                    <p className="text-body-sm font-medium text-[var(--color-text-primary)]">{client.name}</p>
                   </div>
                   <Badge variant="success">{client.compliance}%</Badge>
                   {client.currentStreak > 0 && (
-                    <span className="text-xs text-[var(--color-text-tertiary)]">
+                    <span className="text-body-xs text-[var(--color-text-tertiary)]">
                       {client.currentStreak}d streak
                     </span>
                   )}
