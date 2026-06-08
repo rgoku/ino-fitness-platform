@@ -140,7 +140,7 @@ const DietPlanScreen = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2563EB" />
       </View>
     );
   }

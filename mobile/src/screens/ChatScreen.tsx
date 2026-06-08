@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Message } from '../types';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
@@ -144,6 +145,7 @@ const ChatScreen = React.memo(({ route }: any) => {
   }, []);
 
   return (
+    <SafeAreaView style={styles.safeArea}>
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -201,6 +203,7 @@ const ChatScreen = React.memo(({ route }: any) => {
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 });
 
