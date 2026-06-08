@@ -281,12 +281,11 @@ export default function AIAssistantScreen() {
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: colors.bg,
   },
   header: {
-    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 12,
   },

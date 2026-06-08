@@ -170,7 +170,7 @@ const ChatScreen = React.memo(({ route }: any) => {
         ListFooterComponent={
           loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#007AFF" />
+              <ActivityIndicator size="small" color="#2563EB" />
               <Text style={styles.loadingText}>AI Coach is typing...</Text>
             </View>
           ) : null
@@ -181,7 +181,7 @@ const ChatScreen = React.memo(({ route }: any) => {
         <TextInput
           style={styles.input}
           placeholder={coachId ? "Message your coach..." : "Ask AI Coach..."}
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor="#64748B"
           value={inputText}
           onChangeText={setInputText}
           multiline
@@ -208,13 +208,16 @@ const ChatScreen = React.memo(({ route }: any) => {
 });
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0A0F1E',
+  },
   container: {
     flex: 1,
     backgroundColor: '#0A0F1E',
   },
   header: {
     padding: 20,
-    paddingTop: 60,
     borderBottomWidth: 1,
     borderBottomColor: '#0C1220',
   },
