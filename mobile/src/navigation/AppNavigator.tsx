@@ -14,27 +14,36 @@ import FoodPhotoScreen from '../screens/FoodPhotoScreen';
 import FormCheckScreen from '../screens/FormCheckScreen';
 import ChatScreen from '../screens/ChatScreen';
 import WorkoutSessionScreen from '../screens/WorkoutSessionScreen';
+import CheckInScreen from '../screens/CheckInScreen';
+import JournalScreen from '../screens/JournalScreen';
+import HabitsScreen from '../screens/HabitsScreen';
+import LeaderboardScreen from '../screens/LeaderboardScreen';
+import ChallengesScreen from '../screens/ChallengesScreen';
+import GroceryListScreen from '../screens/GroceryListScreen';
+import BookingsScreen from '../screens/BookingsScreen';
+import AIAssistantScreen from '../screens/AIAssistantScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TAB_SCREEN_OPTIONS = {
-  tabBarActiveTintColor: '#007AFF',
-  tabBarInactiveTintColor: '#8E8E93',
+  tabBarActiveTintColor: '#2563EB',
+  tabBarInactiveTintColor: '#64748B',
   tabBarStyle: {
-    backgroundColor: '#000000',
-    borderTopColor: '#1C1C1E',
+    backgroundColor: '#0A0F1E',
+    borderTopColor: '#1E293B',
+    borderTopWidth: 0.5,
   },
   headerStyle: {
-    backgroundColor: '#000000',
+    backgroundColor: '#0A0F1E',
   },
   headerTintColor: '#FFFFFF',
 };
 
 const STACK_SCREEN_OPTIONS = {
-  headerStyle: { backgroundColor: '#000000' },
+  headerStyle: { backgroundColor: '#0A0F1E' },
   headerTintColor: '#FFFFFF',
-  contentStyle: { backgroundColor: '#000000' },
+  contentStyle: { backgroundColor: '#0A0F1E' },
 };
 
 const MainTabs = memo(function MainTabs() {
@@ -134,10 +143,50 @@ export default function AppNavigator() {
             component={ChatScreen}
             options={{ title: 'Chat' }}
           />
-          <Stack.Screen 
-            name="WorkoutSession" 
+          <Stack.Screen
+            name="WorkoutSession"
             component={WorkoutSessionScreen}
             options={{ title: 'Workout Session' }}
+          />
+          <Stack.Screen
+            name="CheckIn"
+            component={CheckInScreen}
+            options={{ title: 'Weekly Check-in' }}
+          />
+          <Stack.Screen
+            name="Journal"
+            component={JournalScreen}
+            options={{ title: 'Daily Journal' }}
+          />
+          <Stack.Screen
+            name="Habits"
+            component={HabitsScreen}
+            options={{ title: 'Daily Habits' }}
+          />
+          <Stack.Screen
+            name="Leaderboard"
+            component={LeaderboardScreen}
+            options={{ title: 'Leaderboard' }}
+          />
+          <Stack.Screen
+            name="Challenges"
+            component={ChallengesScreen}
+            options={{ title: 'Challenges' }}
+          />
+          <Stack.Screen
+            name="GroceryList"
+            component={GroceryListScreen}
+            options={{ title: 'Grocery List' }}
+          />
+          <Stack.Screen
+            name="Bookings"
+            component={BookingsScreen}
+            options={{ title: 'Bookings' }}
+          />
+          <Stack.Screen
+            name="AIAssistant"
+            component={AIAssistantScreen}
+            options={{ title: 'AI Assistant' }}
           />
         </>
       )}
