@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mic, Square, Play, Pause, Sparkles, Clock, Check } from 'lucide-react';
+import { Mic, Square, Sparkles, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';

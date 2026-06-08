@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface SetLog {
@@ -57,7 +56,7 @@ export default function WorkoutSessionPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [restTimer, setRestTimer] = useState(0);
   const [isResting, setIsResting] = useState(false);
-  const [activeExerciseId, setActiveExerciseId] = useState('e1');
+  const [, setActiveExerciseId] = useState('e1');
   const [showPRCelebration, setShowPRCelebration] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const restIntervalRef = useRef<NodeJS.Timeout | null>(null);

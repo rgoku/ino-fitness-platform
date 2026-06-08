@@ -6,7 +6,6 @@ import {
   Camera,
   Scale,
   TrendingUp,
-  MessageSquare,
   Calendar,
   Plus,
   GripVertical,
@@ -701,7 +700,7 @@ export default function CheckInsPage() {
               Questions
             </p>
             <div className="space-y-3">
-              {templateQuestions.map((q, idx) => (
+              {templateQuestions.map((q) => (
                 <div
                   key={q.id}
                   className="flex items-start gap-2 rounded-lg border border-[var(--color-border)] p-3 bg-[var(--color-surface-secondary)]"

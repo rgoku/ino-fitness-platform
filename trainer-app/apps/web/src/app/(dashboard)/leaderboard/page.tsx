@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Trophy, Flame, Dumbbell, TrendingUp, Medal, Crown } from 'lucide-react';
+import { Trophy, Flame, TrendingUp, Medal, Crown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Tabs } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
@@ -70,7 +69,7 @@ export default function LeaderboardPage() {
 
       {/* Top 3 Podium */}
       <div className="grid grid-cols-3 gap-4">
-        {[leaders[1], leaders[0], leaders[2]].filter(Boolean).map((leader, i) => {
+        {[leaders[1], leaders[0], leaders[2]].filter(Boolean).map((leader) => {
           const actualRank = leader.rank;
           const isFirst = actualRank === 1;
           return (

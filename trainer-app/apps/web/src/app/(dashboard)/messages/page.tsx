@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -118,7 +117,7 @@ const mockMessages: Record<string, Message[]> = {
 };
 
 // Suggested responses based on context
-function getSuggestedResponses(clientId: string, lastMessage: string): string[] {
+function getSuggestedResponses(_clientId: string, lastMessage: string): string[] {
   if (lastMessage.toLowerCase().includes('leg day') || lastMessage.toLowerCase().includes('finished')) {
     return [
       'Great work! How did the weights feel today?',

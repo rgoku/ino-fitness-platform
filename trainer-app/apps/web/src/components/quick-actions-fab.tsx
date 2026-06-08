@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  Plus, X, UserPlus, Dumbbell, MessageSquare, FileText,
+  Plus, X, UserPlus, MessageSquare, FileText,
   Sparkles, Play, Command,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

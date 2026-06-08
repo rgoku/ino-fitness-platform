@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, Share2, Instagram, Trophy, TrendingUp, Flame, Copy, Check } from 'lucide-react';
+import { Download, Instagram, Trophy, TrendingUp, Flame, Copy, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 const CARD_STYLES = [

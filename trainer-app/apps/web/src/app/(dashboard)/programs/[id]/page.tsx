@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, Plus, Save, UserPlus, Sparkles, Wand2, CheckCircle2, Loader2 } from 'lucide-react';
+import { ChevronLeft, Plus, Save, UserPlus, Sparkles, Wand2, Loader2 } from 'lucide-react';
 import { useTemplate } from '@/hooks/use-templates';
 import { ExerciseRow } from '@/components/programs/exercise-row';
 import { AssignProgramDialog } from '@/components/programs/assign-program-dialog';

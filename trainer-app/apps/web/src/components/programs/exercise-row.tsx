@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { GripVertical, Trash2, Video, Play, Upload, Link, X, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { GripVertical, Trash2, Video, Play, Upload, Link, X, MessageSquare } from 'lucide-react';
 import type { MockTemplateExercise } from '@/lib/mock-data';
 
 function extractYouTubeId(url: string): string | null {

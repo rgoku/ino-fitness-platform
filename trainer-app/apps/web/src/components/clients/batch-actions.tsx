@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { MessageSquare, UserPlus, Tag, Trash2, Send, Check, X, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 
 interface BatchActionsProps {
   selectedIds: string[];

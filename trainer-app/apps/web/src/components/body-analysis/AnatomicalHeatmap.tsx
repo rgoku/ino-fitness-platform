@@ -13,8 +13,7 @@ import {
   type MuscleSlug,
   type BodyView,
   type MuscleVolume,
-  type ThemeColors,
-} from '../../../../../body-diagram/core';
+} from '../../../../../../body-diagram/core';
 import { cn } from '@/lib/utils';
 
 export type { MuscleSlug, BodyView, MuscleVolume };
@@ -103,5 +102,5 @@ export function AnatomicalHeatmap({ volumes, className, width = 300, height = 58
   );
 }
 
-export { EXERCISE_MAP, aggregateVolume } from '../../../../../body-diagram/core';
-export type { LoggedSet } from '../../../../../body-diagram/core';
+export { EXERCISE_MAP, aggregateVolume } from '../../../../../../body-diagram/core';
+export type { LoggedSet } from '../../../../../../body-diagram/core';
