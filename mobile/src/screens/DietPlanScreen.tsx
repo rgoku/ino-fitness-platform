@@ -40,6 +40,7 @@ const DietPlanScreen = React.memo(() => {
   const [dietPlan, setDietPlan] = useState<DietPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
+  const [noPlan, setNoPlan] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() =>
     new Date().toLocaleDateString('en-US', { weekday: 'long' })
   );
@@ -58,11 +59,16 @@ const DietPlanScreen = React.memo(() => {
     try {
       const plan = await apiService.get<DietPlan>('/diet-plans/current');
       setDietPlan(plan);
+      setNoPlan(false);
       await offlineCache.setCached(offlineCache.CACHE_KEYS.DIET_PLAN, plan);
       setIsOffline(false);
     } catch (error: any) {
       if (error?.message === 'Offline' && cached) {
         setIsOffline(true);
+      } else if (error?.status === 404 || error?.response?.status === 404 || error?.message?.includes('404')) {
+        // Backend doesn't have this endpoint yet — show friendly empty state
+        setNoPlan(true);
+        setDietPlan(null);
       } else {
         console.error('Error loading diet plan:', error);
       }

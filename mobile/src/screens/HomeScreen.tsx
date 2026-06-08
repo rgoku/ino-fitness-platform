@@ -194,19 +194,56 @@ const HomeScreen = React.memo(({ navigation }: any) => {
   const loadDashboardData = useCallback(async () => {
     try {
       if (!user?.id) return;
-      const [macrosData, streakData, trophiesData] = await Promise.all([
+      const [macrosResult, streakResult, trophiesResult, motivationResult] = await Promise.allSettled([
         apiService.get<DailyMacros>('/macros/today'),
         apiService.get<Streak>(`/streaks/${user.id}`),
         apiService.get<Trophy[]>(`/trophies/${user.id}`),
         aiCoachService.getMotivation(user.id),
       ]);
+
+      const macrosData = macrosResult.status === 'fulfilled'
+        ? macrosResult.value
+        : {
+            calories: 2000, protein: 150, carbs: 250, fat: 65,
+            consumed: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+          } as DailyMacros;
+      const streakData = streakResult.status === 'fulfilled'
+        ? streakResult.value
+        : { currentStreak: 0, longestStreak: 0 } as Streak;
+      const trophiesData = trophiesResult.status === 'fulfilled'
+        ? trophiesResult.value
+        : [] as Trophy[];
+
+      if (macrosResult.status === 'rejected') {
+        console.warn('Failed to load macros, using defaults:', macrosResult.reason);
+      }
+      if (streakResult.status === 'rejected') {
+        console.warn('Failed to load streak, using defaults:', streakResult.reason);
+      }
+      if (trophiesResult.status === 'rejected') {
+        console.warn('Failed to load trophies, using defaults:', trophiesResult.reason);
+      }
+      if (motivationResult.status === 'rejected') {
+        console.warn('Failed to load AI motivation:', motivationResult.reason);
+      }
+
       setMacros(macrosData);
       setStreak(streakData);
       setTrophies(trophiesData);
-      const plans = await workoutService.getWorkoutPlans(user.id);
-      if (plans.length > 0) setTodayWorkout(plans[0]);
-      const diets = await dietService.getDietPlans(user.id);
-      if (diets.length > 0) setTodayMeals(diets[0]);
+
+      try {
+        const plans = await workoutService.getWorkoutPlans(user.id);
+        if (plans.length > 0) setTodayWorkout(plans[0]);
+      } catch (err) {
+        console.warn('Failed to load workout plans:', err);
+      }
+
+      try {
+        const diets = await dietService.getDietPlans(user.id);
+        if (diets.length > 0) setTodayMeals(diets[0]);
+      } catch (err) {
+        console.warn('Failed to load diet plans:', err);
+      }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {

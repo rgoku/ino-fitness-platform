@@ -179,15 +179,18 @@ export async function init(navigationRef: NavRef): Promise<void> {
   }
 
   if (final === 'granted') {
-    try {
-      // Expo push token (for Expo push service; FCM is used when you use EAS / FCM config)
-      const token = await Notifications.getExpoPushTokenAsync({
-        projectId: (require('../../app.json').expo?.extra?.eas?.projectId) || undefined,
-      });
-      // Optional: send token to your backend (e.g. apiService.registerPushToken(token.data))
-      if (__DEV__) console.log('Expo push token:', token.data);
-    } catch (e) {
-      if (__DEV__) console.warn('Expo push token error:', e);
+    if (__DEV__) {
+      console.log('[Notifications] Skipping push token registration in dev mode (requires real EAS project ID)');
+    } else {
+      try {
+        const token = await Notifications.getExpoPushTokenAsync({
+          projectId: (require('../../app.json').expo?.extra?.eas?.projectId) || undefined,
+        });
+        // Optional: send token to your backend (e.g. apiService.registerPushToken(token.data))
+        console.log('Expo push token registered');
+      } catch (e) {
+        console.warn('[Notifications] Failed to get push token, continuing without push notifications:', e);
+      }
     }
   }
 

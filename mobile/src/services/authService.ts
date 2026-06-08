@@ -139,7 +139,7 @@ class AuthService {
   }
 
   async completeOnboarding(userId: string, biometrics: any): Promise<void> {
-    await apiService.post(`/users/${userId}/onboarding`, biometrics);
+    await apiService.post(`/users/${userId}/onboarding-complete`, biometrics);
   }
 }
 
