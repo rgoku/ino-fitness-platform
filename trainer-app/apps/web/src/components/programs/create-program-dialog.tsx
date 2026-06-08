@@ -58,7 +58,7 @@ export function CreateProgramDialog({ open, onClose }: CreateProgramDialogProps)
           autoFocus
         />
         <div>
-          <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">
+          <label className="block text-body-sm font-medium text-[var(--color-text-primary)] mb-1.5">
             Description
           </label>
           <textarea
@@ -66,7 +66,7 @@ export function CreateProgramDialog({ open, onClose }: CreateProgramDialogProps)
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="block w-full rounded-lg border border-border bg-surface px-3 py-2 text-body-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-tertiary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -88,7 +88,7 @@ export function CreateProgramDialog({ open, onClose }: CreateProgramDialogProps)
           />
         </div>
         {error && name.trim() && (
-          <p className="text-sm text-red-500">{error}</p>
+          <p className="text-body-sm text-red-500">{error}</p>
         )}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" type="button" onClick={onClose}>

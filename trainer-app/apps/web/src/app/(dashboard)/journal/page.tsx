@@ -187,7 +187,7 @@ export default function JournalPage() {
               {/* Header */}
               <div className="flex items-center justify-between p-4 pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-xs font-semibold text-white">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-body-xs font-semibold text-white">
                     {entry.clientAvatar}
                   </div>
                   <div>
