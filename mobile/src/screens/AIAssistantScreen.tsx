@@ -8,6 +8,7 @@ import {
   TextInput,
   Animated,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -200,7 +201,7 @@ export default function AIAssistantScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>✨ AI Assistant</Text>
@@ -273,7 +274,7 @@ export default function AIAssistantScreen() {
           <Text style={styles.sendButtonText}>↑</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

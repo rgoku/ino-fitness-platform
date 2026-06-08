@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -164,7 +165,7 @@ export default function BookingsScreen() {
 
   if (bookings.length === 0) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Bookings</Text>
         </View>
@@ -176,12 +177,12 @@ export default function BookingsScreen() {
             <Text style={styles.requestButtonText}>Request Session</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Bookings</Text>
       </View>
@@ -203,19 +204,18 @@ export default function BookingsScreen() {
           <Text style={styles.requestButtonText}>Request Session</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: colors.bg,
   },
   header: {
-    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 16,
   },

@@ -1,4 +1,5 @@
 import React, { useMemo, memo } from 'react';
+import { Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../context/AuthContext';
@@ -33,12 +34,34 @@ const TAB_SCREEN_OPTIONS = {
     backgroundColor: '#0A0F1E',
     borderTopColor: '#1E293B',
     borderTopWidth: 0.5,
+    height: 56,
+    paddingBottom: 4,
+    paddingTop: 4,
+  },
+  tabBarLabelStyle: {
+    fontSize: 10,
+    fontWeight: '600' as const,
   },
   headerStyle: {
     backgroundColor: '#0A0F1E',
   },
   headerTintColor: '#FFFFFF',
+  headerTitleStyle: {
+    fontWeight: '600' as const,
+  },
 };
+
+const TAB_ICONS: Record<string, string> = {
+  Home: '🏠',
+  Diet: '🥗',
+  Workout: '💪',
+  Progress: '📊',
+  Profile: '👤',
+};
+
+function TabIcon({ name, color }: { name: string; color: string }) {
+  return <Text style={{ fontSize: 20 }}>{TAB_ICONS[name] || '●'}</Text>;
+}
 
 const STACK_SCREEN_OPTIONS = {
   headerStyle: { backgroundColor: '#0A0F1E' },
@@ -49,44 +72,49 @@ const STACK_SCREEN_OPTIONS = {
 const MainTabs = memo(function MainTabs() {
   return (
     <Tab.Navigator screenOptions={TAB_SCREEN_OPTIONS}>
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
           headerTitle: 'INÖ',
+          tabBarIcon: ({ color }) => <TabIcon name="Home" color={color} />,
         }}
       />
-      <Tab.Screen 
-        name="Diet" 
+      <Tab.Screen
+        name="Diet"
         component={DietPlanScreen}
         options={{
           tabBarLabel: 'Diet',
           headerTitle: 'Diet Plan',
+          tabBarIcon: ({ color }) => <TabIcon name="Diet" color={color} />,
         }}
       />
-      <Tab.Screen 
-        name="Workout" 
+      <Tab.Screen
+        name="Workout"
         component={WorkoutPlanScreen}
         options={{
           tabBarLabel: 'Workout',
           headerTitle: 'Workout Plan',
+          tabBarIcon: ({ color }) => <TabIcon name="Workout" color={color} />,
         }}
       />
-      <Tab.Screen 
-        name="Progress" 
+      <Tab.Screen
+        name="Progress"
         component={ProgressScreen}
         options={{
           tabBarLabel: 'Progress',
           headerTitle: 'Progress',
+          tabBarIcon: ({ color }) => <TabIcon name="Progress" color={color} />,
         }}
       />
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Profile"
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
           headerTitle: 'Profile',
+          tabBarIcon: ({ color }) => <TabIcon name="Profile" color={color} />,
         }}
       />
     </Tab.Navigator>

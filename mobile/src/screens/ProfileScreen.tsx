@@ -74,7 +74,7 @@ ProfileScreen.displayName = 'ProfileScreen';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0A0F1E',
   },
   content: {
     padding: 20,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2563EB',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 15,
@@ -105,12 +105,12 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#64748B',
     marginBottom: 10,
   },
   tier: {
     fontSize: 12,
-    color: '#007AFF',
+    color: '#2563EB',
     fontWeight: '600',
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   section: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#0C1220',
     borderRadius: 16,
     marginBottom: 20,
     overflow: 'hidden',
@@ -126,14 +126,14 @@ const styles = StyleSheet.create({
   menuItem: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#000000',
+    borderBottomColor: '#0A0F1E',
   },
   menuItemText: {
     fontSize: 16,
     color: '#FFFFFF',
   },
   logoutButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#EF4444',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
