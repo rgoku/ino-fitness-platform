@@ -88,8 +88,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const completeOnboarding = useCallback(async (biometrics: any) => {
     if (user) {
-      await authService.completeOnboarding(user.id, biometrics);
+      try {
+        await authService.completeOnboarding(user.id, biometrics);
+      } catch (error) {
+        console.warn('[Onboarding] Backend call failed, saving locally:', error);
+        // Store onboarding data locally so the user can proceed even if backend is unavailable
+        await AsyncStorage.setItem('onboarding_data', JSON.stringify(biometrics));
+      }
+      // Always mark onboarding as complete so the user can proceed
       setHasOnboarded(true);
+      await AsyncStorage.setItem('has_onboarded', 'true');
     }
   }, [user]);
 

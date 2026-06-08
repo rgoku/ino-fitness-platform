@@ -3,11 +3,9 @@
 import { useState } from 'react';
 import {
   BookOpen,
-  Plus,
   Heart,
   Moon,
   Zap,
-  Brain,
   Utensils,
   Activity,
   Watch,

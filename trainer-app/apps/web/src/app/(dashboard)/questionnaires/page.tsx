@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import {
   Plus, Search, FileText, Clock, Users, Sparkles, Copy, Send, Star,
-  HeartPulse, Utensils, Target, Moon, ClipboardList, ChevronRight,
+  HeartPulse, Utensils, Target, ClipboardList,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

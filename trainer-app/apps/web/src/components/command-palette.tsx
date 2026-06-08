@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Search, LayoutDashboard, Users, Dumbbell, Video, Leaf, ClipboardCheck,
   MessageSquare, BarChart3, DollarSign, Trophy, Library, Gift, Settings,
-  Plus, Sparkles, UserPlus, Play, FileText, ArrowRight, ClipboardList,
+  Sparkles, UserPlus, Play, FileText, ArrowRight, ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

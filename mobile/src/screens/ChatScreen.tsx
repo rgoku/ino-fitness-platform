@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Message } from '../types';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
@@ -144,6 +145,7 @@ const ChatScreen = React.memo(({ route }: any) => {
   }, []);
 
   return (
+    <SafeAreaView style={styles.safeArea}>
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -168,7 +170,7 @@ const ChatScreen = React.memo(({ route }: any) => {
         ListFooterComponent={
           loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#007AFF" />
+              <ActivityIndicator size="small" color="#2563EB" />
               <Text style={styles.loadingText}>AI Coach is typing...</Text>
             </View>
           ) : null
@@ -179,7 +181,7 @@ const ChatScreen = React.memo(({ route }: any) => {
         <TextInput
           style={styles.input}
           placeholder={coachId ? "Message your coach..." : "Ask AI Coach..."}
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor="#64748B"
           value={inputText}
           onChangeText={setInputText}
           multiline
@@ -201,19 +203,23 @@ const ChatScreen = React.memo(({ route }: any) => {
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 });
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0A0F1E',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0A0F1E',
   },
   header: {
     padding: 20,
-    paddingTop: 60,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C1C1E',
+    borderBottomColor: '#0C1220',
   },
   headerTitle: {
     fontSize: 24,
@@ -223,7 +229,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#64748B',
   },
   messagesList: {
     padding: 20,
@@ -244,21 +250,21 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   userMessage: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2563EB',
     borderBottomRightRadius: 4,
   },
   otherMessage: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#0C1220',
     borderBottomLeftRadius: 4,
   },
   aiMessage: {
     borderLeftWidth: 3,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: '#2563EB',
   },
   senderLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#2563EB',
     marginBottom: 5,
   },
   messageText: {
@@ -286,20 +292,20 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#64748B',
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 15,
     borderTopWidth: 1,
-    borderTopColor: '#1C1C1E',
-    backgroundColor: '#000000',
+    borderTopColor: '#0C1220',
+    backgroundColor: '#0A0F1E',
     alignItems: 'flex-end',
     gap: 10,
   },
   input: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#0C1220',
     borderRadius: 20,
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -308,7 +314,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   sendButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2563EB',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 20,
@@ -317,7 +323,7 @@ const styles = StyleSheet.create({
     minWidth: 70,
   },
   sendButtonDisabled: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#0C1220',
     opacity: 0.5,
   },
   sendButtonText: {

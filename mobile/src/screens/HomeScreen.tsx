@@ -21,26 +21,26 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
 const colors = {
-  bg: '#FAFAFA',
-  surface: '#FFFFFF',
-  surfaceSecondary: '#F8F8F8',
-  surfaceTertiary: '#F1F1F1',
-  border: '#E4E4E7',
-  borderLight: '#F0F0F2',
-  textPrimary: '#09090B',
-  textSecondary: '#52525B',
-  textTertiary: '#A0A0AB',
+  bg: '#0A0F1E',
+  surface: '#0C1220',
+  surfaceSecondary: '#111827',
+  surfaceTertiary: '#1E293B',
+  border: '#1E293B',
+  borderLight: '#1E293B',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#94A3B8',
+  textTertiary: '#64748B',
   accent: '#10B981',
-  accentLight: '#ECFDF5',
+  accentLight: '#10B98120',
   accentDark: '#059669',
   blue: '#3B82F6',
-  blueLight: '#EFF6FF',
+  blueLight: '#3B82F620',
   orange: '#F97316',
-  orangeLight: '#FFF7ED',
+  orangeLight: '#F9731620',
   purple: '#8B5CF6',
-  purpleLight: '#F5F3FF',
+  purpleLight: '#8B5CF620',
   white: '#FFFFFF',
-  success: '#22C55E',
+  success: '#10B981',
   warning: '#F59E0B',
 };
 
@@ -194,19 +194,56 @@ const HomeScreen = React.memo(({ navigation }: any) => {
   const loadDashboardData = useCallback(async () => {
     try {
       if (!user?.id) return;
-      const [macrosData, streakData, trophiesData] = await Promise.all([
+      const [macrosResult, streakResult, trophiesResult, motivationResult] = await Promise.allSettled([
         apiService.get<DailyMacros>('/macros/today'),
         apiService.get<Streak>(`/streaks/${user.id}`),
         apiService.get<Trophy[]>(`/trophies/${user.id}`),
         aiCoachService.getMotivation(user.id),
       ]);
+
+      const macrosData = macrosResult.status === 'fulfilled'
+        ? macrosResult.value
+        : {
+            calories: 2000, protein: 150, carbs: 250, fat: 65,
+            consumed: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+          } as DailyMacros;
+      const streakData = streakResult.status === 'fulfilled'
+        ? streakResult.value
+        : { currentStreak: 0, longestStreak: 0 } as Streak;
+      const trophiesData = trophiesResult.status === 'fulfilled'
+        ? trophiesResult.value
+        : [] as Trophy[];
+
+      if (macrosResult.status === 'rejected') {
+        console.warn('Failed to load macros, using defaults:', macrosResult.reason);
+      }
+      if (streakResult.status === 'rejected') {
+        console.warn('Failed to load streak, using defaults:', streakResult.reason);
+      }
+      if (trophiesResult.status === 'rejected') {
+        console.warn('Failed to load trophies, using defaults:', trophiesResult.reason);
+      }
+      if (motivationResult.status === 'rejected') {
+        console.warn('Failed to load AI motivation:', motivationResult.reason);
+      }
+
       setMacros(macrosData);
       setStreak(streakData);
       setTrophies(trophiesData);
-      const plans = await workoutService.getWorkoutPlans(user.id);
-      if (plans.length > 0) setTodayWorkout(plans[0]);
-      const diets = await dietService.getDietPlans(user.id);
-      if (diets.length > 0) setTodayMeals(diets[0]);
+
+      try {
+        const plans = await workoutService.getWorkoutPlans(user.id);
+        if (plans.length > 0) setTodayWorkout(plans[0]);
+      } catch (err) {
+        console.warn('Failed to load workout plans:', err);
+      }
+
+      try {
+        const diets = await dietService.getDietPlans(user.id);
+        if (diets.length > 0) setTodayMeals(diets[0]);
+      } catch (err) {
+        console.warn('Failed to load diet plans:', err);
+      }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -374,7 +411,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 6,
-    backgroundColor: '#D1FAE5',
+    backgroundColor: '#10B98130',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -491,7 +528,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#FFF7ED',
+    backgroundColor: '#F9731620',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -522,7 +559,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#FFFBEB',
+    backgroundColor: '#F59E0B20',
     alignItems: 'center',
     justifyContent: 'center',
   },

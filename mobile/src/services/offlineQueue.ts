@@ -3,7 +3,6 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import { apiService } from './apiService';
 
 interface QueuedRequest {
   id: string;
@@ -77,6 +76,7 @@ class OfflineQueueService {
    */
   private async processRequest(request: QueuedRequest): Promise<void> {
     try {
+      const { apiService } = await import('./apiService');
       let response;
 
       switch (request.method) {

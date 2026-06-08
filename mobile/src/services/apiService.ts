@@ -4,7 +4,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { offlineQueue } from './offlineQueue';
 import * as Sentry from '@sentry/react-native';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8095';
 const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION || 'v1';
 const BASE_URL = `${API_URL}/api/${API_VERSION}`;
 

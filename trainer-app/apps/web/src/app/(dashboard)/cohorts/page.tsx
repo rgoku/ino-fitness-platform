@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Plus, Users, Calendar, TrendingUp, Play, Check, Clock, DollarSign } from 'lucide-react';
+import { Plus, Users, Calendar, TrendingUp, Play, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

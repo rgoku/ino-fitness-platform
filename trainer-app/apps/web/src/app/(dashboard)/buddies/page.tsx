@@ -1,7 +1,7 @@
 'use client';
 
-import { Plus, Users, Shuffle, MessageSquare, TrendingUp, Flame, Zap, Link } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Shuffle, MessageSquare, Flame, Zap, Link } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';

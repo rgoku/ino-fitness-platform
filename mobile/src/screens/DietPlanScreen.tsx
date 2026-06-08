@@ -40,6 +40,7 @@ const DietPlanScreen = React.memo(() => {
   const [dietPlan, setDietPlan] = useState<DietPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
+  const [noPlan, setNoPlan] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() =>
     new Date().toLocaleDateString('en-US', { weekday: 'long' })
   );
@@ -58,11 +59,16 @@ const DietPlanScreen = React.memo(() => {
     try {
       const plan = await apiService.get<DietPlan>('/diet-plans/current');
       setDietPlan(plan);
+      setNoPlan(false);
       await offlineCache.setCached(offlineCache.CACHE_KEYS.DIET_PLAN, plan);
       setIsOffline(false);
     } catch (error: any) {
       if (error?.message === 'Offline' && cached) {
         setIsOffline(true);
+      } else if (error?.status === 404 || error?.response?.status === 404 || error?.message?.includes('404')) {
+        // Backend doesn't have this endpoint yet — show friendly empty state
+        setNoPlan(true);
+        setDietPlan(null);
       } else {
         console.error('Error loading diet plan:', error);
       }
@@ -134,7 +140,7 @@ const DietPlanScreen = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2563EB" />
       </View>
     );
   }
@@ -142,7 +148,11 @@ const DietPlanScreen = React.memo(() => {
   if (!dietPlan) {
     return (
       <View style={styles.container}>
-        <Text style={styles.noPlanText}>No diet plan available</Text>
+        <Text style={styles.noPlanText}>
+          {noPlan
+            ? 'No diet plan assigned yet. Ask your coach to set one up!'
+            : 'No diet plan available'}
+        </Text>
         <TouchableOpacity style={styles.generateButton}>
           <Text style={styles.generateButtonText}>Generate AI Plan</Text>
         </TouchableOpacity>
@@ -209,7 +219,7 @@ DietPlanScreen.displayName = 'DietPlanScreen';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#0A0F1E',
   },
   content: {
     padding: 20,
@@ -226,7 +236,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   groceryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2563EB',
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 8,
@@ -239,7 +249,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginBottom: 20,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#0C1220',
     borderRadius: 12,
     padding: 5,
   },
@@ -250,10 +260,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   dayButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2563EB',
   },
   dayButtonText: {
-    color: '#8E8E93',
+    color: '#64748B',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -261,14 +271,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   mealCard: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#0C1220',
     borderRadius: 16,
     padding: 20,
     marginBottom: 15,
   },
   mealType: {
     fontSize: 12,
-    color: '#007AFF',
+    color: '#2563EB',
     fontWeight: '600',
     marginBottom: 5,
   },
@@ -285,10 +295,10 @@ const styles = StyleSheet.create({
   },
   macroText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#64748B',
   },
   swapButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2563EB',
     padding: 10,
     borderRadius: 8,
     alignItems: 'center',
@@ -299,7 +309,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   citationsCard: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#0C1220',
     borderRadius: 16,
     padding: 20,
     marginTop: 20,
@@ -312,17 +322,17 @@ const styles = StyleSheet.create({
   },
   citation: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: '#64748B',
     marginBottom: 10,
   },
   noPlanText: {
     fontSize: 16,
-    color: '#8E8E93',
+    color: '#64748B',
     textAlign: 'center',
     marginBottom: 20,
   },
   generateButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2563EB',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -333,13 +343,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   offlineBanner: {
-    backgroundColor: '#3A3A3C',
+    backgroundColor: '#1E293B',
     padding: 10,
     marginBottom: 12,
     borderRadius: 8,
   },
   offlineBannerText: {
-    color: '#8E8E93',
+    color: '#64748B',
     fontSize: 12,
     textAlign: 'center',
   },

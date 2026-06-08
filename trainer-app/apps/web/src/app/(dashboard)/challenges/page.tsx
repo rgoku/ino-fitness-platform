@@ -1,11 +1,11 @@
 'use client';
 
-import { Plus, Trophy, Flame, Users, Calendar, DollarSign, Crown, Zap } from 'lucide-react';
+import { Plus, Trophy, Flame, Users, DollarSign, Crown, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
-import { ProgressBar } from '@/components/ui/progress-bar';
+
 
 const CHALLENGES = [
   {

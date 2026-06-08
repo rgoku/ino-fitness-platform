@@ -117,6 +117,7 @@ export function OnboardingTour() {
       const t = setTimeout(() => setOpen(true), 800);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, []);
 
   const complete = () => {

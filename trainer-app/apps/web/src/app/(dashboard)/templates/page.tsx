@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Filter, Download, Star, User, Dumbbell, Clock, Sparkles, TrendingUp } from 'lucide-react';
+import { Search, Filter, Download, Star, Dumbbell, Clock, Sparkles, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
