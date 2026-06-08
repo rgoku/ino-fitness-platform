@@ -161,15 +161,18 @@ export function ExerciseRow({ exercise, index, onUpdate, onDelete }: ExerciseRow
   const [videoOpen, setVideoOpen] = useState(false);
 
   return (
-    <div className="relative flex items-center gap-2 rounded-lg border border-border bg-surface p-3 transition-colors hover:bg-surface-secondary">
-      <GripVertical size={14} className="shrink-0 text-[var(--color-text-tertiary)] cursor-grab" />
-      <span className="w-6 shrink-0 text-xs text-[var(--color-text-tertiary)]">{index + 1}</span>
+    <div className="relative grid grid-cols-[20px_24px_1fr_64px_80px_72px_28px_28px] items-center gap-2 px-3 py-2.5 transition-colors hover:bg-[var(--color-surface-hover)]">
+      <GripVertical size={14} className="text-[var(--color-text-tertiary)] cursor-grab" />
+
+      <span className="text-body-sm font-semibold tabular-nums text-[var(--color-text-tertiary)] text-center">
+        {index + 1}
+      </span>
 
       <input
         type="text"
         value={exercise.exercise_name}
         onChange={(e) => onUpdate(exercise.id, 'exercise_name', e.target.value)}
-        className="flex-1 min-w-0 rounded border-0 bg-transparent px-2 py-1 text-sm font-medium text-[var(--color-text-primary)] focus:bg-surface-secondary focus:outline-none focus:ring-1 focus:ring-brand-500"
+        className="min-w-0 rounded-md border-0 bg-transparent px-2 py-1.5 text-body-sm font-medium text-[var(--color-text-primary)] focus:bg-[var(--color-surface-secondary)] focus:outline-none focus:ring-1 focus:ring-brand-500"
         placeholder="Exercise name"
       />
 
@@ -177,7 +180,7 @@ export function ExerciseRow({ exercise, index, onUpdate, onDelete }: ExerciseRow
         type="number"
         value={exercise.sets}
         onChange={(e) => onUpdate(exercise.id, 'sets', parseInt(e.target.value) || 0)}
-        className="w-14 rounded border border-border bg-surface px-2 py-1 text-center text-sm text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 text-center text-body-sm tabular-nums text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20"
         placeholder="Sets"
         title="Sets"
       />
@@ -186,7 +189,7 @@ export function ExerciseRow({ exercise, index, onUpdate, onDelete }: ExerciseRow
         type="text"
         value={exercise.reps}
         onChange={(e) => onUpdate(exercise.id, 'reps', e.target.value)}
-        className="w-20 rounded border border-border bg-surface px-2 py-1 text-center text-sm text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 text-center text-body-sm tabular-nums text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20"
         placeholder="Reps"
         title="Reps"
       />
@@ -195,15 +198,15 @@ export function ExerciseRow({ exercise, index, onUpdate, onDelete }: ExerciseRow
         type="number"
         value={exercise.rest_seconds}
         onChange={(e) => onUpdate(exercise.id, 'rest_seconds', parseInt(e.target.value) || 0)}
-        className="w-16 rounded border border-border bg-surface px-2 py-1 text-center text-sm text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-        placeholder="Rest (s)"
+        className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 text-center text-body-sm tabular-nums text-[var(--color-text-primary)] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500/20"
+        placeholder="Rest"
         title="Rest (seconds)"
       />
 
-      <div className="relative">
+      <div className="relative flex justify-center">
         <button
           onClick={() => setVideoOpen(!videoOpen)}
-          className={`shrink-0 rounded-md p-1 transition-colors ${
+          className={`rounded-md p-1.5 transition-colors ${
             exercise.video_url
               ? 'text-brand-500 hover:text-brand-600 bg-brand-50 dark:bg-brand-900/20'
               : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]'
@@ -221,12 +224,14 @@ export function ExerciseRow({ exercise, index, onUpdate, onDelete }: ExerciseRow
         )}
       </div>
 
-      <button
-        onClick={() => onDelete(exercise.id)}
-        className="shrink-0 rounded-md p-1 text-[var(--color-text-tertiary)] hover:text-red-500"
-      >
-        <Trash2 size={14} />
-      </button>
+      <div className="flex justify-center">
+        <button
+          onClick={() => onDelete(exercise.id)}
+          className="rounded-md p-1.5 text-[var(--color-text-tertiary)] hover:text-red-500 transition-colors"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
     </div>
   );
 }

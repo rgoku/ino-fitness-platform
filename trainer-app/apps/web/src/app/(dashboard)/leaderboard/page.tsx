@@ -86,7 +86,7 @@ export default function LeaderboardPage() {
                   <Crown size={20} className="absolute top-3 right-3 text-amber-500" />
                 )}
                 <div className={cn(
-                  'flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold mb-3 bg-gradient-to-br',
+                  'flex h-14 w-14 items-center justify-center rounded-full text-sub-md font-semibold mb-3 bg-gradient-to-br',
                   rankColors(actualRank)
                 )}>
                   {actualRank}

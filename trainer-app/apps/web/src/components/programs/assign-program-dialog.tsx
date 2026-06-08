@@ -31,7 +31,7 @@ export function AssignProgramDialog({ open, onClose, templateName }: AssignProgr
   return (
     <Dialog open={open} onClose={onClose} title="Assign Program">
       <div className="space-y-4">
-        <p className="text-sm text-[var(--color-text-secondary)]">
+        <p className="text-body-sm text-[var(--color-text-secondary)]">
           Assign <strong className="text-[var(--color-text-primary)]">{templateName}</strong> to a client.
         </p>
 
@@ -49,8 +49,8 @@ export function AssignProgramDialog({ open, onClose, templateName }: AssignProgr
             >
               <Avatar name={client.name} size="sm" />
               <div>
-                <p className="text-sm font-medium text-[var(--color-text-primary)]">{client.name}</p>
-                <p className="text-xs text-[var(--color-text-tertiary)]">{client.email}</p>
+                <p className="text-body-sm font-medium text-[var(--color-text-primary)]">{client.name}</p>
+                <p className="text-body-xs text-[var(--color-text-tertiary)]">{client.email}</p>
               </div>
             </button>
           ))}

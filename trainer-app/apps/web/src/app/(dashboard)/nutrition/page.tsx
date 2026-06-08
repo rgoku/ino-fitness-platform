@@ -56,7 +56,7 @@ export default function NutritionPage() {
       <h1 className="text-[1.6rem] font-semibold tracking-tight text-[var(--color-text-primary)]">
         Nutrition
         {plans && plans.length > 0 && (
-          <span className="ml-2 text-base font-normal text-[var(--color-text-tertiary)]">
+          <span className="ml-2 text-body-md font-normal text-[var(--color-text-tertiary)]">
             {plans.length} plans
           </span>
         )}
