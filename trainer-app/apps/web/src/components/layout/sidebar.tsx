@@ -29,6 +29,12 @@ import {
   LogOut,
   X,
   Sparkles,
+  ShoppingCart,
+  Bot,
+  UserCheck,
+  Syringe,
+  BookOpen,
+  UtensilsCrossed,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/stores/sidebar-store';
@@ -38,12 +44,18 @@ import { getInitials } from '@/lib/utils';
 const navItems = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard },
   { label: 'Clients', href: '/clients', icon: Users },
+  { label: 'Members', href: '/members', icon: UserCheck },
   { label: 'Programs', href: '/programs', icon: Dumbbell },
   { label: 'Videos', href: '/videos', icon: Video },
+  { label: 'Diet', href: '/diet', icon: UtensilsCrossed },
   { label: 'Nutrition', href: '/nutrition', icon: Leaf },
+  { label: 'Grocery List', href: '/grocery-calculator', icon: ShoppingCart },
   { label: 'Check-ins', href: '/check-ins', icon: ClipboardCheck },
   { label: 'Questionnaires', href: '/questionnaires', icon: FileText },
   { label: 'Messages', href: '/messages', icon: MessageSquare },
+  { label: 'AI Assistant', href: '/ai-assistant', icon: Bot },
+  { label: 'GLP-1 & Peptides', href: '/glp-tracking', icon: Syringe },
+  { label: 'Journal', href: '/journal', icon: BookOpen },
   { label: 'Cohorts', href: '/cohorts', icon: UsersRound },
   { label: 'Challenges', href: '/challenges', icon: Flame },
   { label: 'Habits', href: '/habits', icon: CheckSquare },
