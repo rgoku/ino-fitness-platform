@@ -1,7 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Download, Instagram, Trophy, TrendingUp, Flame, Copy, Check } from 'lucide-react';
+import { useRef, useState } from 'react';
+import {
+  Download, Instagram, Trophy, TrendingUp, Flame, Copy, Check,
+  Share2, MessageCircle, Mail, Facebook, Twitter, Music2, MessageSquare, ImageDown,
+} from 'lucide-react';
+import { toPng } from 'html-to-image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -18,12 +22,112 @@ const CARD_TYPES = [
   { id: 'streak', label: 'Streak', icon: Flame },
 ];
 
+const CLIENT_NAME = 'James Wilson';
+const SHARE_URL = typeof window !== 'undefined' ? window.location.origin + '/share/jw' : 'https://ino.fitness/share/jw';
+
 export default function ShareCardsPage() {
   const [style, setStyle] = useState('dark');
   const [type, setType] = useState('transformation');
   const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const currentStyle = CARD_STYLES.find((s) => s.id === style) || CARD_STYLES[0];
+
+  const cardLabel =
+    type === 'transformation' ? '12 Week Transformation' :
+    type === 'pr' ? 'New Personal Record' : 'Streak Achievement';
+
+  const shareText = `${CLIENT_NAME} just hit a ${cardLabel.toLowerCase()} with INÖ Fitness`;
+
+  async function renderToBlob(): Promise<Blob | null> {
+    if (!previewRef.current) return null;
+    const dataUrl = await toPng(previewRef.current, {
+      pixelRatio: 2,
+      cacheBust: true,
+      backgroundColor: style === 'minimal' ? '#ffffff' : '#0A0F1E',
+    });
+    const res = await fetch(dataUrl);
+    return await res.blob();
+  }
+
+  async function downloadCard() {
+    setBusy('download');
+    try {
+      const blob = await renderToBlob();
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${CLIENT_NAME.replace(/\s+/g, '-').toLowerCase()}-${type}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally { setBusy(null); }
+  }
+
+  async function nativeShare() {
+    setBusy('share');
+    try {
+      const blob = await renderToBlob();
+      if (!blob) return;
+      const file = new File([blob], `${CLIENT_NAME}-${type}.png`, { type: 'image/png' });
+      const data: ShareData = { title: 'INÖ Progress', text: shareText, files: [file] };
+      // @ts-ignore — canShare is supported on mobile browsers
+      if (navigator.canShare && navigator.canShare(data)) {
+        await navigator.share(data);
+      } else {
+        await downloadCard();
+        window.open(SHARE_URL, '_blank');
+      }
+    } catch (err) {
+      // user cancelled — silent
+    } finally { setBusy(null); }
+  }
+
+  async function shareToInstagram() {
+    // Web cannot upload directly to IG Stories. Best UX: download the image, open IG.
+    await downloadCard();
+    const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+    if (isMobile) window.location.href = 'instagram://story-camera';
+    else window.open('https://www.instagram.com/', '_blank');
+  }
+
+  async function shareToTikTok() {
+    await downloadCard();
+    const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+    if (isMobile) window.location.href = 'snssdk1233://upload?source=share_card';
+    else window.open('https://www.tiktok.com/upload', '_blank');
+  }
+
+  function shareToFacebook() {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent(shareText)}`;
+    window.open(url, '_blank', 'width=600,height=500');
+  }
+
+  function shareToTwitter() {
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(SHARE_URL)}`;
+    window.open(url, '_blank', 'width=600,height=500');
+  }
+
+  function shareToWhatsApp() {
+    const url = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${SHARE_URL}`)}`;
+    window.open(url, '_blank');
+  }
+
+  function shareViaSMS() {
+    window.location.href = `sms:?&body=${encodeURIComponent(`${shareText} ${SHARE_URL}`)}`;
+  }
+
+  function shareViaEmail() {
+    const subject = `${CLIENT_NAME}'s ${cardLabel}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`${shareText}\n\n${SHARE_URL}`)}`;
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(SHARE_URL);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <div className="space-y-6 animate-slide-up">
@@ -38,21 +142,24 @@ export default function ShareCardsPage() {
         {/* Preview */}
         <div>
           <p className="text-body-xs font-medium text-[var(--color-text-tertiary)] uppercase tracking-wider mb-3">Preview</p>
-          <div className={cn('rounded-2xl p-8 aspect-square flex flex-col justify-between', currentStyle.bg, currentStyle.text)}>
+          <div
+            ref={previewRef}
+            className={cn('rounded-2xl p-8 aspect-square flex flex-col justify-between', currentStyle.bg, currentStyle.text)}
+          >
             <div>
               <p className={cn('text-body-xs uppercase tracking-widest', style === 'minimal' ? 'text-gray-500' : 'opacity-70')}>
-                {type === 'transformation' ? '12 WEEK TRANSFORMATION' : type === 'pr' ? 'NEW PERSONAL RECORD' : 'STREAK ACHIEVEMENT'}
+                {cardLabel.toUpperCase()}
               </p>
-              <h2 className="text-3xl font-bold mt-2">James Wilson</h2>
+              <h2 className="text-3xl font-bold mt-2">{CLIENT_NAME}</h2>
             </div>
 
             {type === 'transformation' && (
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-4">
                   {[
-                    { label: 'Weight', before: '85kg', after: '81kg', change: '-4kg' },
-                    { label: 'Body Fat', before: '18.5%', after: '14.2%', change: '-4.3%' },
-                    { label: 'Strength', before: '—', after: '+120kg', change: 'total' },
+                    { label: 'Weight', change: '-4kg' },
+                    { label: 'Body Fat', change: '-4.3%' },
+                    { label: 'Strength', change: 'total' },
                   ].map((m) => (
                     <div key={m.label}>
                       <p className={cn('text-body-xs', style === 'minimal' ? 'text-gray-500' : 'opacity-60')}>{m.label}</p>
@@ -130,19 +237,31 @@ export default function ShareCardsPage() {
           </div>
 
           <div className="space-y-2 pt-4">
-            <Button variant="primary" size="lg" className="w-full" icon={<Download size={16} />}>
-              Download Card (1080×1080)
+            <Button variant="primary" size="lg" className="w-full" icon={<Share2 size={16} />} onClick={nativeShare} disabled={busy !== null}>
+              {busy === 'share' ? 'Opening share sheet…' : 'Share to apps (Instagram, TikTok, more…)'}
             </Button>
-            <Button variant="secondary" size="lg" className="w-full" icon={<Instagram size={16} />}>
-              Share to Instagram Story
+            <Button variant="secondary" size="lg" className="w-full" icon={<ImageDown size={16} />} onClick={downloadCard} disabled={busy !== null}>
+              {busy === 'download' ? 'Generating…' : 'Save to phone (1080×1080 PNG)'}
             </Button>
-            <Button
-              variant="ghost" size="md" className="w-full"
-              icon={copied ? <Check size={14} /> : <Copy size={14} />}
-              onClick={() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-            >
-              {copied ? 'Link Copied' : 'Copy Share Link'}
-            </Button>
+          </div>
+
+          <div>
+            <p className="text-body-xs font-medium text-[var(--color-text-tertiary)] uppercase tracking-wider mb-3">Quick share</p>
+            <div className="grid grid-cols-4 gap-2">
+              <PlatformButton icon={<Instagram size={18} />} label="Instagram" onClick={shareToInstagram} accent="from-fuchsia-500 to-orange-400" />
+              <PlatformButton icon={<Music2 size={18} />} label="TikTok" onClick={shareToTikTok} accent="from-cyan-400 to-pink-500" />
+              <PlatformButton icon={<Facebook size={18} />} label="Facebook" onClick={shareToFacebook} accent="from-blue-600 to-blue-500" />
+              <PlatformButton icon={<Twitter size={18} />} label="X" onClick={shareToTwitter} accent="from-slate-700 to-slate-900" />
+              <PlatformButton icon={<MessageCircle size={18} />} label="WhatsApp" onClick={shareToWhatsApp} accent="from-emerald-500 to-emerald-600" />
+              <PlatformButton icon={<MessageSquare size={18} />} label="SMS" onClick={shareViaSMS} accent="from-sky-500 to-sky-600" />
+              <PlatformButton icon={<Mail size={18} />} label="Email" onClick={shareViaEmail} accent="from-amber-500 to-orange-500" />
+              <PlatformButton
+                icon={copied ? <Check size={18} /> : <Copy size={18} />}
+                label={copied ? 'Copied' : 'Copy Link'}
+                onClick={copyLink}
+                accent="from-zinc-500 to-zinc-600"
+              />
+            </div>
           </div>
 
           <Card className="card-domain">
@@ -155,5 +274,26 @@ export default function ShareCardsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+interface PlatformButtonProps {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  accent: string;
+}
+
+function PlatformButton({ icon, label, onClick, accent }: PlatformButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className="group flex flex-col items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 text-[var(--color-text-secondary)] transition-all hover:border-[var(--color-border-strong)] hover:text-[var(--color-text-primary)] hover:-translate-y-0.5"
+    >
+      <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br text-white shadow-sm', accent)}>
+        {icon}
+      </span>
+      <span className="text-body-xs font-medium leading-tight">{label}</span>
+    </button>
   );
 }
