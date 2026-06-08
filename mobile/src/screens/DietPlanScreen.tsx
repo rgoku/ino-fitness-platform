@@ -148,7 +148,11 @@ const DietPlanScreen = React.memo(() => {
   if (!dietPlan) {
     return (
       <View style={styles.container}>
-        <Text style={styles.noPlanText}>No diet plan available</Text>
+        <Text style={styles.noPlanText}>
+          {noPlan
+            ? 'No diet plan assigned yet. Ask your coach to set one up!'
+            : 'No diet plan available'}
+        </Text>
         <TouchableOpacity style={styles.generateButton}>
           <Text style={styles.generateButtonText}>Generate AI Plan</Text>
         </TouchableOpacity>
