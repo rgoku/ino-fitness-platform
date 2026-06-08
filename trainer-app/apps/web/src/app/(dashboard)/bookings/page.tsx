@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Clock, Video, User, Calendar, MapPin, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Clock, Video, Calendar, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
