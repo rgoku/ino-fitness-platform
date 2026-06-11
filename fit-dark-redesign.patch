@@ -1,0 +1,1269 @@
+From 8a937d23d7b657afd71275dacbf78247d7aa2c54 Mon Sep 17 00:00:00 2001
+From: Ruben Gonzalez <123gonzalezruben@gmail.com>
+Date: Thu, 16 Apr 2026 11:01:33 -0700
+Subject: [PATCH] feat: redesign /fit client app with premium dark cinematic UI
+
+Transform the client-facing fitness app from light mode to a premium
+dark theme matching the landing page aesthetic. All 6 screens + TabBar
+redesigned with glassmorphism cards, brand-green accents, SVG icons
+(replacing emojis), ring charts, glow effects, and opacity-based
+typography hierarchy.
+
+Files: 8 changed, +623 -233 lines
+Screens: Home, Diet, Progress, Chat, Profile, Reminders, TabBar, Layout
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+---
+ DEV_LOG.md                                    |  57 +++++
+ web-app/app/fit/page.tsx                      |   2 +-
+ web-app/components/TabBar.tsx                 |  21 +-
+ web-app/components/screens/ChatScreen.tsx     | 100 +++++---
+ web-app/components/screens/DietScreen.tsx     | 134 +++++++----
+ web-app/components/screens/HomeScreen.tsx     | 172 ++++++++++----
+ web-app/components/screens/ProfileScreen.tsx  |  80 ++++---
+ web-app/components/screens/ProgressScreen.tsx | 220 ++++++++++++++----
+ .../components/screens/RemindersScreen.tsx    | 127 +++++++---
+ 9 files changed, 680 insertions(+), 233 deletions(-)
+ create mode 100644 DEV_LOG.md
+
+diff --git a/DEV_LOG.md b/DEV_LOG.md
+new file mode 100644
+index 0000000..2b429b7
+--- /dev/null
++++ b/DEV_LOG.md
+@@ -0,0 +1,57 @@
++# DEV_LOG — INÖ Fitness Platform
++
++## 2026-04-16 — /fit Client App Dark UI Redesign
++
++### Task
++Redesign the `/fit` client-facing fitness app with a premium dark cinematic theme that matches the existing landing page aesthetic.
++
++### Actions Performed
++1. **Analyzed existing screens** — Read all 6 screen components (Home, Diet, Progress, Chat, Profile, Reminders) and the TabBar to understand the current light-mode UI structure.
++2. **Designed new dark theme** — Created a cohesive dark cinematic design system:
++   - Background: `#030303` (near-black)
++   - Cards: Glassmorphism (`rgba(255,255,255,0.02)` + `border: rgba(255,255,255,0.06)`)
++   - Accent: Brand green `#10B981` with glow effects
++   - Typography: White with opacity-based hierarchy (100/60/30%)
++   - Removed all emojis, replaced with Lucide-style SVG icons
++3. **Redesigned all 8 files:**
++   - `app/fit/page.tsx` — Dark background shell
++   - `components/TabBar.tsx` — Dark tab bar with active indicator line
++   - `components/screens/HomeScreen.tsx` — Glassmorphism workout cards, gradient stat cards, SVG quick actions
++   - `components/screens/DietScreen.tsx` — SVG ring charts for macros, gradient calorie bar, dark meal cards
++   - `components/screens/ProgressScreen.tsx` — Dark muscle heatmap (green shades on dark), glow bar charts
++   - `components/screens/ChatScreen.tsx` — Dark chat bubbles, brand-green user messages, coach avatar header
++   - `components/screens/ProfileScreen.tsx` — Dark profile cards, subscription badge, gradient avatar
++   - `components/screens/RemindersScreen.tsx` — Dark toggle switches with glow, SVG reminder icons
++4. **Verified TypeScript** — `npx tsc --noEmit` passes with 0 errors
++5. **Verified dev server** — Fresh clone builds and serves both `/` (200) and `/fit` (200) correctly
++
++### Issues Encountered
++- User's local `.next` cache from a previous Windows build was corrupted, preventing the dev server from starting (`✓ Starting...` but never reaching `✓ Ready`)
++- Sandbox environment blocked `gh` CLI installation (proxy restrictions)
++- Sandbox killed long-running build processes (memory limits)
++
++### Fixes Applied
++- Instructed user to delete stale `.next` cache folder before restarting dev server
++- Verified all code compiles and runs correctly from a clean clone
++- Created feature branch for clean PR workflow
++
++### Files Changed
++| File | Change |
++|------|--------|
++| `web-app/app/fit/page.tsx` | Dark background shell (`bg-[#030303]`) |
++| `web-app/components/TabBar.tsx` | Dark glassmorphism tab bar with active indicator |
++| `web-app/components/screens/HomeScreen.tsx` | Premium dark home with gradient stat cards |
++| `web-app/components/screens/DietScreen.tsx` | SVG ring macros, dark meal cards |
++| `web-app/components/screens/ProgressScreen.tsx` | Dark muscle heatmap, glow bar charts |
++| `web-app/components/screens/ChatScreen.tsx` | Dark chat UI with coach header |
++| `web-app/components/screens/ProfileScreen.tsx` | Dark profile with subscription badge |
++| `web-app/components/screens/RemindersScreen.tsx` | Dark toggles with glow, SVG icons |
++
++### How to Test
++```bash
++cd web-app
++rm -rf .next
++npm install
++npx next dev --port 3001
++# Visit http://localhost:3001/fit
++```
+diff --git a/web-app/app/fit/page.tsx b/web-app/app/fit/page.tsx
+index 1baed37..0c0f525 100644
+--- a/web-app/app/fit/page.tsx
++++ b/web-app/app/fit/page.tsx
+@@ -36,7 +36,7 @@ export default function FitAppPage() {
+   };
+ 
+   return (
+-    <div className="flex flex-col h-screen bg-gray-50">
++    <div className="flex flex-col h-screen bg-[#030303] text-white">
+       <div className="flex-1 overflow-hidden">{renderScreen()}</div>
+       <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
+     </div>
+diff --git a/web-app/components/TabBar.tsx b/web-app/components/TabBar.tsx
+index 418ddab..6a060c1 100644
+--- a/web-app/components/TabBar.tsx
++++ b/web-app/components/TabBar.tsx
+@@ -15,19 +15,24 @@ const tabs = [
+ 
+ export default function TabBar({ activeTab, setActiveTab }: TabBarProps) {
+   return (
+-    <div className="flex bg-white/90 backdrop-blur-xl border-t border-border-light">
++    <div className="flex bg-[#0A0A0A]/95 backdrop-blur-2xl border-t border-white/[0.06]">
+       {tabs.map(tab => {
+         const isActive = activeTab === tab.id;
+         return (
+           <button
+             key={tab.id}
+             onClick={() => setActiveTab(tab.id)}
+-            className={`flex-1 flex flex-col items-center py-2 pt-2.5 transition-colors ${
+-              isActive ? 'text-brand-600' : 'text-text-tertiary'
++            className={`flex-1 flex flex-col items-center py-2.5 pt-3 transition-all duration-300 relative ${
++              isActive ? 'text-brand-400' : 'text-white/30 hover:text-white/50'
+             }`}
+           >
++            {isActive && (
++              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-brand-400" />
++            )}
+             <tab.icon active={isActive} />
+-            <span className={`text-[10px] mt-1 ${isActive ? 'font-medium' : ''}`}>{tab.label}</span>
++            <span className={`text-[10px] mt-1 transition-all duration-300 ${isActive ? 'font-semibold' : 'font-normal'}`}>
++              {tab.label}
++            </span>
+           </button>
+         );
+       })}
+@@ -47,9 +52,11 @@ function HomeIcon({ active }: { active: boolean }) {
+ function NutritionIcon({ active }: { active: boolean }) {
+   return (
+     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.6} strokeLinecap="round" strokeLinejoin="round">
+-      <path d="M2 2v20M6 12V2M10 12V2M14 2v4M18 2v4M22 2v20" />
+-      <path d="M6 12a4 4 0 0 0 8 0" />
+-      <path d="M14 6a4 4 0 0 0 8 0" />
++      <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
++      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
++      <line x1="6" y1="1" x2="6" y2="4" />
++      <line x1="10" y1="1" x2="10" y2="4" />
++      <line x1="14" y1="1" x2="14" y2="4" />
+     </svg>
+   );
+ }
+diff --git a/web-app/components/screens/ChatScreen.tsx b/web-app/components/screens/ChatScreen.tsx
+index 945f2f2..5a08471 100644
+--- a/web-app/components/screens/ChatScreen.tsx
++++ b/web-app/components/screens/ChatScreen.tsx
+@@ -6,26 +6,31 @@ interface Message {
+   id: number;
+   text: string;
+   isBot: boolean;
++  time: string;
+ }
+ 
+ export default function ChatScreen() {
+   const [messages, setMessages] = useState<Message[]>([
+-    { id: 1, text: "Hi! I'm your AI fitness coach. How can I help you today?", isBot: true },
+-    { id: 2, text: 'I want to build muscle', isBot: false },
+-    { id: 3, text: 'Great! I recommend a strength training program with progressive overload. Focus on compound movements like squats, deadlifts, and bench press 3-4 times per week.', isBot: true },
++    { id: 1, text: "Hi! I'm your AI fitness coach. How can I help you today?", isBot: true, time: '9:30 AM' },
++    { id: 2, text: 'I want to build muscle', isBot: false, time: '9:31 AM' },
++    { id: 3, text: 'Great! I recommend a strength training program with progressive overload. Focus on compound movements like squats, deadlifts, and bench press 3-4 times per week.', isBot: true, time: '9:31 AM' },
+   ]);
+   const [input, setInput] = useState('');
+ 
+   const sendMessage = () => {
+     if (input.trim()) {
+-      setMessages([...messages, { id: messages.length + 1, text: input, isBot: false }]);
++      const now = new Date();
++      const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
++
++      setMessages([...messages, { id: messages.length + 1, text: input, isBot: false, time }]);
+       setInput('');
+ 
+       setTimeout(() => {
+         setMessages(prev => [...prev, {
+           id: prev.length + 1,
+           text: "That's a great question! I'd be happy to help you with that. Let me provide you with some personalized advice based on your fitness goals.",
+-          isBot: true
++          isBot: true,
++          time,
+         }]);
+       }, 1000);
+     }
+@@ -33,32 +38,75 @@ export default function ChatScreen() {
+ 
+   return (
+     <div className="flex flex-col h-full">
+-      <div className="flex-1 overflow-y-auto p-4 pb-20">
++      {/* Header */}
++      <div className="px-6 pt-6 pb-4 border-b border-white/[0.06]"
++        style={{ background: 'rgba(255,255,255,0.01)' }}>
++        <div className="flex items-center gap-3">
++          <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-brand-500/20"
++            style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05))' }}>
++            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
++              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
++            </svg>
++          </div>
++          <div>
++            <p className="text-sm font-semibold text-white">INÖ Coach</p>
++            <div className="flex items-center gap-1.5">
++              <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
++              <span className="text-xs text-brand-400">Online</span>
++            </div>
++          </div>
++        </div>
++      </div>
++
++      {/* Messages */}
++      <div className="flex-1 overflow-y-auto px-4 py-6 pb-4">
+         {messages.map(msg => (
+-          <div key={msg.id} className={`flex mb-3 ${msg.isBot ? 'justify-start' : 'justify-end'}`}>
+-            <div className={`max-w-xs px-4 py-3 rounded-2xl ${
+-              msg.isBot ? 'bg-white shadow-sm' : 'bg-blue-500 text-white'
+-            }`}>
+-              <p className="text-sm">{msg.text}</p>
++          <div key={msg.id} className={`flex mb-4 ${msg.isBot ? 'justify-start' : 'justify-end'}`}>
++            {msg.isBot && (
++              <div className="w-7 h-7 rounded-lg bg-brand-500/10 border border-brand-500/15 flex items-center justify-center mr-2 mt-1 shrink-0">
++                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
++                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
++                </svg>
++              </div>
++            )}
++            <div className="flex flex-col">
++              <div className={`max-w-[280px] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
++                msg.isBot
++                  ? 'bg-white/[0.04] border border-white/[0.06] text-white/80 rounded-tl-md'
++                  : 'bg-brand-500 text-white rounded-tr-md shadow-lg shadow-brand-500/20'
++              }`}>
++                {msg.text}
++              </div>
++              <span className={`text-[10px] text-white/20 mt-1 tabular-nums ${msg.isBot ? '' : 'text-right'}`}>
++                {msg.time}
++              </span>
+             </div>
+           </div>
+         ))}
+       </div>
+-      <div className="border-t bg-white p-4 flex gap-3">
+-        <input
+-          type="text"
+-          value={input}
+-          onChange={(e) => setInput(e.target.value)}
+-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+-          placeholder="Ask your coach anything..."
+-          className="flex-1 bg-gray-100 rounded-full px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+-        />
+-        <button
+-          onClick={sendMessage}
+-          className="bg-blue-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-blue-600 transition"
+-        >
+-          Send
+-        </button>
++
++      {/* Input */}
++      <div className="px-4 py-4 border-t border-white/[0.06]"
++        style={{ background: 'rgba(255,255,255,0.01)' }}>
++        <div className="flex gap-3 items-center">
++          <input
++            type="text"
++            value={input}
++            onChange={(e) => setInput(e.target.value)}
++            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
++            placeholder="Ask your coach anything..."
++            className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-brand-500/30 focus:ring-1 focus:ring-brand-500/20 transition-all"
++          />
++          <button
++            onClick={sendMessage}
++            className="w-11 h-11 rounded-xl bg-brand-500 flex items-center justify-center text-white hover:bg-brand-400 transition-all duration-300 shadow-lg shadow-brand-500/20 shrink-0"
++          >
++            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
++              <line x1="22" y1="2" x2="11" y2="13" />
++              <polygon points="22 2 15 22 11 13 2 9 22 2" />
++            </svg>
++          </button>
++        </div>
+       </div>
+     </div>
+   );
+diff --git a/web-app/components/screens/DietScreen.tsx b/web-app/components/screens/DietScreen.tsx
+index fbfdd80..d0bfd29 100644
+--- a/web-app/components/screens/DietScreen.tsx
++++ b/web-app/components/screens/DietScreen.tsx
+@@ -1,104 +1,142 @@
+ export default function DietScreen() {
+   const meals = [
+-    { id: 1, name: 'Breakfast', items: 'Oatmeal with berries, Green tea', calories: 350, protein: 12, carbs: 52, fat: 8 },
+-    { id: 2, name: 'Lunch', items: 'Grilled chicken salad, Brown rice', calories: 550, protein: 35, carbs: 45, fat: 18 },
+-    { id: 3, name: 'Snack', items: 'Greek yogurt, Almonds', calories: 200, protein: 15, carbs: 12, fat: 10 },
+-    { id: 4, name: 'Dinner', items: 'Salmon, Vegetables, Quinoa', calories: 600, protein: 40, carbs: 35, fat: 22 },
++    { id: 1, name: 'Breakfast', items: 'Oatmeal with berries, Green tea', calories: 350, protein: 12, carbs: 52, fat: 8, time: '7:30 AM' },
++    { id: 2, name: 'Lunch', items: 'Grilled chicken salad, Brown rice', calories: 550, protein: 35, carbs: 45, fat: 18, time: '12:30 PM' },
++    { id: 3, name: 'Snack', items: 'Greek yogurt, Almonds', calories: 200, protein: 15, carbs: 12, fat: 10, time: '3:00 PM' },
++    { id: 4, name: 'Dinner', items: 'Salmon, Vegetables, Quinoa', calories: 600, protein: 40, carbs: 35, fat: 22, time: '7:00 PM' },
+   ];
+ 
+   const totalCal = meals.reduce((s, m) => s + m.calories, 0);
+   const targetCal = 2200;
++  const pct = Math.round((totalCal / targetCal) * 100);
+ 
+   return (
+     <div className="p-6 pb-24 overflow-y-auto h-full">
+       {/* Header */}
+       <div className="mb-8">
+-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-1">Nutrition</p>
+-        <h1 className="text-3xl font-bold text-text-primary tracking-tight">Diet Plan</h1>
++        <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-1.5">Nutrition</p>
++        <h1 className="text-3xl font-black text-white tracking-tight">Diet Plan</h1>
+       </div>
+ 
+-      {/* Macro Rings */}
+-      <div className="bg-white rounded-2xl border border-border-light p-6 mb-8 shadow-xs">
+-        <div className="flex items-center justify-between mb-4">
+-          <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase">Today's Macros</p>
+-          <span className="text-sm font-medium text-text-secondary tabular-nums">
+-            {totalCal} / {targetCal} cal
++      {/* Calorie Overview Card */}
++      <div className="rounded-2xl p-6 mb-6 border border-white/[0.06] relative overflow-hidden"
++        style={{ background: 'rgba(255,255,255,0.02)' }}>
++        <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-brand-500/[0.04] blur-[60px] pointer-events-none" />
++
++        <div className="flex items-center justify-between mb-5 relative">
++          <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase">Today&apos;s Macros</p>
++          <span className="text-sm font-semibold text-white tabular-nums">
++            {totalCal} <span className="text-white/30">/ {targetCal} cal</span>
+           </span>
+         </div>
+-        <div className="flex justify-around">
+-          <MacroDisplay value={102} target={165} label="Protein" unit="g" color="text-blue-500" />
+-          <MacroDisplay value={144} target={250} label="Carbs" unit="g" color="text-orange-500" />
+-          <MacroDisplay value={58} target={70} label="Fat" unit="g" color="text-purple-500" />
++
++        {/* Macro Rings */}
++        <div className="flex justify-around mb-5 relative">
++          <MacroDisplay value={102} target={165} label="Protein" unit="g" color="text-blue-400" ringColor="#3B82F6" />
++          <MacroDisplay value={144} target={250} label="Carbs" unit="g" color="text-amber-400" ringColor="#F59E0B" />
++          <MacroDisplay value={58} target={70} label="Fat" unit="g" color="text-purple-400" ringColor="#A855F7" />
+         </div>
+ 
+         {/* Calorie progress */}
+-        <div className="mt-5 pt-4 border-t border-border-light">
+-          <div className="flex justify-between text-xs mb-1.5">
+-            <span className="text-text-tertiary">Calorie progress</span>
+-            <span className="font-medium text-text-secondary tabular-nums">{Math.round((totalCal / targetCal) * 100)}%</span>
++        <div className="pt-4 border-t border-white/[0.06] relative">
++          <div className="flex justify-between text-xs mb-2">
++            <span className="text-white/30">Calorie progress</span>
++            <span className="font-semibold text-white tabular-nums">{pct}%</span>
+           </div>
+-          <div className="w-full h-1.5 rounded-full bg-surface-tertiary">
++          <div className="w-full h-2 rounded-full bg-white/[0.06]">
+             <div
+-              className="h-full rounded-full bg-brand-500 transition-all duration-500"
+-              style={{ width: `${Math.min((totalCal / targetCal) * 100, 100)}%` }}
++              className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-400 transition-all duration-700 shadow-[0_0_12px_rgba(16,185,129,0.3)]"
++              style={{ width: `${Math.min(pct, 100)}%` }}
+             />
+           </div>
+         </div>
+       </div>
+ 
+       {/* Meals */}
+-      <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-3">Meals</p>
+-      <div className="space-y-2">
++      <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-3">Meals</p>
++      <div className="space-y-3 mb-6">
+         {meals.map(meal => (
+-          <div key={meal.id} className="bg-white rounded-xl border border-border-light p-4 shadow-xs hover:shadow-card transition-shadow">
+-            <div className="flex justify-between items-start mb-2">
++          <div key={meal.id} className="rounded-2xl p-4 transition-all duration-300 hover:translate-y-[-2px]"
++            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
++            <div className="flex justify-between items-start mb-3">
+               <div>
+-                <p className="font-medium text-sm text-text-primary">{meal.name}</p>
+-                <p className="text-xs text-text-tertiary mt-0.5">{meal.items}</p>
++                <div className="flex items-center gap-2">
++                  <p className="font-semibold text-sm text-white">{meal.name}</p>
++                  <span className="text-[10px] text-white/20 tabular-nums">{meal.time}</span>
++                </div>
++                <p className="text-xs text-white/30 mt-0.5">{meal.items}</p>
+               </div>
+-              <span className="text-sm font-bold text-text-primary tabular-nums">{meal.calories} cal</span>
++              <span className="text-sm font-bold text-white tabular-nums">{meal.calories} <span className="text-white/30 font-normal">cal</span></span>
+             </div>
+             <div className="flex gap-2">
+-              <MacroChip label="P" value={meal.protein} color="bg-blue-50 text-blue-600" />
+-              <MacroChip label="C" value={meal.carbs} color="bg-orange-50 text-orange-600" />
+-              <MacroChip label="F" value={meal.fat} color="bg-purple-50 text-purple-600" />
++              <MacroChip label="P" value={meal.protein} accent="blue" />
++              <MacroChip label="C" value={meal.carbs} accent="amber" />
++              <MacroChip label="F" value={meal.fat} accent="purple" />
+             </div>
+           </div>
+         ))}
+       </div>
+ 
+       {/* AI Suggestion */}
+-      <div className="bg-brand-50 rounded-xl p-4 mt-6 border border-brand-100">
+-        <div className="flex items-center gap-2 mb-1.5">
+-          <div className="w-5 h-5 rounded-md bg-brand-100 flex items-center justify-center">
+-            <span className="text-[9px] font-bold text-brand-600">AI</span>
++      <div className="rounded-2xl p-4 border border-brand-500/15 relative overflow-hidden"
++        style={{ background: 'linear-gradient(145deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02))' }}>
++        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-brand-400/5 blur-[50px] pointer-events-none" />
++        <div className="relative">
++          <div className="flex items-center gap-2 mb-2">
++            <div className="w-6 h-6 rounded-lg bg-brand-500/15 border border-brand-500/20 flex items-center justify-center">
++              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
++                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
++              </svg>
++            </div>
++            <span className="text-xs font-semibold text-brand-400">AI Suggestion</span>
+           </div>
+-          <span className="text-xs font-medium text-brand-600">AI Suggestion</span>
++          <p className="text-sm text-white/70 leading-relaxed">
++            You&apos;re 63g short on protein. A chicken breast with dinner would close the gap perfectly.
++          </p>
+         </div>
+-        <p className="text-sm text-text-primary leading-relaxed">
+-          You're 63g short on protein. A chicken breast with dinner would close the gap perfectly.
+-        </p>
+       </div>
+     </div>
+   );
+ }
+ 
+-function MacroDisplay({ value, target, label, unit, color }: {
+-  value: number; target: number; label: string; unit: string; color: string;
++/* ── Macro Display ── */
++function MacroDisplay({ value, target, label, unit, color, ringColor }: {
++  value: number; target: number; label: string; unit: string; color: string; ringColor: string;
+ }) {
+   const pct = Math.round((value / target) * 100);
++  const circumference = 2 * Math.PI * 28;
++  const offset = circumference - (pct / 100) * circumference;
++
+   return (
+     <div className="text-center">
+-      <p className={`text-2xl font-bold ${color} tabular-nums`}>{value}<span className="text-sm font-normal">{unit}</span></p>
+-      <p className="text-xs text-text-tertiary mt-0.5">/ {target}{unit}</p>
+-      <p className="text-[10px] text-text-tertiary mt-0.5">{label} ({pct}%)</p>
++      <div className="relative w-16 h-16 mx-auto mb-2">
++        <svg width="64" height="64" viewBox="0 0 64 64" className="rotate-[-90deg]">
++          <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
++          <circle cx="32" cy="32" r="28" fill="none" stroke={ringColor} strokeWidth="3"
++            strokeDasharray={circumference} strokeDashoffset={offset}
++            strokeLinecap="round" className="transition-all duration-700"
++            style={{ filter: `drop-shadow(0 0 6px ${ringColor}40)` }} />
++        </svg>
++        <div className="absolute inset-0 flex items-center justify-center">
++          <span className={`text-sm font-bold ${color} tabular-nums`}>{pct}%</span>
++        </div>
++      </div>
++      <p className="text-xs text-white/30">{label}</p>
++      <p className={`text-sm font-bold ${color} tabular-nums`}>{value}<span className="text-white/20 font-normal text-xs">/{target}{unit}</span></p>
+     </div>
+   );
+ }
+ 
+-function MacroChip({ label, value, color }: { label: string; value: number; color: string }) {
++/* ── Macro Chip ── */
++function MacroChip({ label, value, accent }: { label: string; value: number; accent: string }) {
++  const styles: Record<string, string> = {
++    blue: 'bg-blue-500/10 text-blue-400 border-blue-500/15',
++    amber: 'bg-amber-500/10 text-amber-400 border-amber-500/15',
++    purple: 'bg-purple-500/10 text-purple-400 border-purple-500/15',
++  };
++
+   return (
+-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${color} tabular-nums`}>
++    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border tabular-nums ${styles[accent]}`}>
+       {label} {value}g
+     </span>
+   );
+diff --git a/web-app/components/screens/HomeScreen.tsx b/web-app/components/screens/HomeScreen.tsx
+index e406249..78ae53f 100644
+--- a/web-app/components/screens/HomeScreen.tsx
++++ b/web-app/components/screens/HomeScreen.tsx
+@@ -1,58 +1,76 @@
+ export default function HomeScreen() {
+   const workouts = [
+-    { id: 1, name: 'Upper Body Strength', duration: '45 min', calories: 320, exercises: 5 },
+-    { id: 2, name: 'HIIT Cardio', duration: '25 min', calories: 280, exercises: 8 },
+-    { id: 3, name: 'Mobility & Recovery', duration: '20 min', calories: 80, exercises: 6 },
++    { id: 1, name: 'Upper Body Strength', duration: '45 min', calories: 320, exercises: 5, muscle: 'Chest & Shoulders' },
++    { id: 2, name: 'HIIT Cardio', duration: '25 min', calories: 280, exercises: 8, muscle: 'Full Body' },
++    { id: 3, name: 'Mobility & Recovery', duration: '20 min', calories: 80, exercises: 6, muscle: 'Flexibility' },
+   ];
+ 
+   return (
+     <div className="p-6 pb-24 overflow-y-auto h-full">
+       {/* Header */}
+       <div className="mb-8">
+-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-1">Good Morning</p>
+-        <h1 className="text-3xl font-bold text-text-primary tracking-tight">Let's train.</h1>
++        <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-1.5">Good Morning</p>
++        <h1 className="text-3xl font-black tracking-tight">
++          <span className="text-gradient">Let&apos;s train.</span>
++        </h1>
+       </div>
+ 
+       {/* Weekly Stats */}
+       <div className="grid grid-cols-3 gap-3 mb-8">
+-        <StatCard value="1,450" label="Calories" color="brand" />
+-        <StatCard value="4/5" label="Workouts" color="blue" />
+-        <StatCard value="12d" label="Streak" color="orange" />
++        <StatCard value="1,450" label="Calories" icon={<FlameIcon />} accent="brand" />
++        <StatCard value="4/5" label="Workouts" icon={<DumbbellIcon />} accent="blue" />
++        <StatCard value="12d" label="Streak" icon={<ZapIcon />} accent="amber" />
+       </div>
+ 
+       {/* AI Insight */}
+-      <div className="bg-brand-50 rounded-xl p-4 mb-8 border border-brand-100">
+-        <div className="flex items-center gap-2 mb-1.5">
+-          <div className="w-5 h-5 rounded-md bg-brand-100 flex items-center justify-center">
+-            <span className="text-[9px] font-bold text-brand-600">AI</span>
++      <div className="rounded-2xl p-4 mb-8 relative overflow-hidden border border-purple-500/15"
++        style={{ background: 'linear-gradient(145deg, rgba(139,92,246,0.06), rgba(6,182,212,0.03), rgba(0,0,0,0))' }}>
++        <div className="absolute inset-0 opacity-40"
++          style={{ background: 'radial-gradient(ellipse at top right, rgba(139,92,246,0.08), transparent 60%), radial-gradient(ellipse at bottom left, rgba(6,182,212,0.06), transparent 60%)' }} />
++        <div className="relative z-10">
++          <div className="flex items-center gap-2 mb-2">
++            <div className="w-6 h-6 rounded-lg flex items-center justify-center"
++              style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.2), rgba(59,130,246,0.15))', border: '1px solid rgba(139,92,246,0.15)' }}>
++              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="url(#aiGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
++                <defs><linearGradient id="aiGrad" x1="0" y1="0" x2="24" y2="24"><stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#22D3EE" /></linearGradient></defs>
++                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
++              </svg>
++            </div>
++            <span className="text-xs font-semibold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
++              AI Insight
++            </span>
+           </div>
+-          <span className="text-xs font-medium text-brand-600">AI Insight</span>
++          <p className="text-sm text-white/70 leading-relaxed">
++            Your protein intake has been below target this week. Add a post-workout shake to hit your goals.
++          </p>
+         </div>
+-        <p className="text-sm text-text-primary leading-relaxed">
+-          Your protein intake has been below target this week. Add a post-workout shake to hit your goals.
+-        </p>
+       </div>
+ 
+       {/* Today's Workouts */}
+-      <div className="mb-6">
+-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-3">Today's Workouts</p>
+-        <div className="space-y-2">
++      <div className="mb-8">
++        <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-3">Today&apos;s Workouts</p>
++        <div className="space-y-3">
+           {workouts.map(workout => (
+             <div
+               key={workout.id}
+-              className="bg-white rounded-xl border border-border-light p-4 flex justify-between items-center shadow-xs hover:shadow-card transition-shadow"
++              className="group rounded-2xl p-4 flex justify-between items-center transition-all duration-300 hover:translate-y-[-2px]"
++              style={{
++                background: 'rgba(255,255,255,0.02)',
++                border: '1px solid rgba(255,255,255,0.06)',
++                backdropFilter: 'blur(20px)',
++              }}
+             >
+-              <div>
+-                <p className="font-medium text-sm text-text-primary">{workout.name}</p>
+-                <div className="flex items-center gap-2 mt-1">
+-                  <span className="text-xs text-text-tertiary">{workout.exercises} exercises</span>
+-                  <span className="w-1 h-1 rounded-full bg-text-tertiary" />
+-                  <span className="text-xs text-text-tertiary">{workout.duration}</span>
+-                  <span className="w-1 h-1 rounded-full bg-text-tertiary" />
+-                  <span className="text-xs text-text-tertiary">{workout.calories} cal</span>
++              <div className="flex-1">
++                <p className="font-semibold text-sm text-white mb-1">{workout.name}</p>
++                <div className="flex items-center gap-2">
++                  <span className="text-xs text-white/30">{workout.muscle}</span>
++                  <span className="w-1 h-1 rounded-full bg-white/15" />
++                  <span className="text-xs text-white/30">{workout.duration}</span>
++                  <span className="w-1 h-1 rounded-full bg-white/15" />
++                  <span className="text-xs text-white/30 tabular-nums">{workout.calories} cal</span>
+                 </div>
+               </div>
+-              <button className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors shadow-xs">
++              <button className="bg-brand-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-brand-400 shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30">
+                 Start
+               </button>
+             </div>
+@@ -61,37 +79,99 @@ export default function HomeScreen() {
+       </div>
+ 
+       {/* Quick Actions */}
+-      <div className="grid grid-cols-3 gap-3">
+-        <QuickAction icon="📸" label="Scan Food" bg="bg-brand-50" />
+-        <QuickAction icon="💬" label="Coach" bg="bg-blue-50" />
+-        <QuickAction icon="📊" label="Progress" bg="bg-purple-50" />
++      <div className="mb-4">
++        <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-3">Quick Actions</p>
++        <div className="grid grid-cols-3 gap-3">
++          <QuickAction icon={<CameraIcon />} label="Scan Food" />
++          <QuickAction icon={<MessageIcon />} label="Coach" />
++          <QuickAction icon={<TrendingUpIcon />} label="Progress" />
++        </div>
+       </div>
+     </div>
+   );
+ }
+ 
+-function StatCard({ value, label, color }: { value: string; label: string; color: string }) {
+-  const colorMap: Record<string, string> = {
+-    brand: 'bg-brand-500',
+-    blue: 'bg-blue-500',
+-    orange: 'bg-orange-500',
++/* ── Stat Card ── */
++function StatCard({ value, label, icon, accent }: { value: string; label: string; icon: React.ReactNode; accent: string }) {
++  const accentMap: Record<string, string> = {
++    brand: 'from-brand-500/20 to-brand-500/5 border-brand-500/15 text-brand-400',
++    blue: 'from-blue-500/20 to-blue-500/5 border-blue-500/15 text-blue-400',
++    amber: 'from-amber-500/20 to-amber-500/5 border-amber-500/15 text-amber-400',
+   };
++  const dotMap: Record<string, string> = { brand: 'bg-brand-400', blue: 'bg-blue-400', amber: 'bg-amber-400' };
++
+   return (
+-    <div className="bg-white rounded-xl border border-border-light p-4 shadow-xs">
+-      <div className={`w-2 h-2 rounded-full ${colorMap[color]} mb-2`} />
+-      <p className="text-xl font-bold text-text-primary tabular-nums">{value}</p>
+-      <p className="text-xs text-text-tertiary mt-0.5">{label}</p>
++    <div className="rounded-2xl p-4 border border-white/[0.06]"
++      style={{ background: 'rgba(255,255,255,0.02)' }}>
++      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${accentMap[accent]} border flex items-center justify-center mb-3`}>
++        {icon}
++      </div>
++      <p className="text-xl font-bold text-white tabular-nums tracking-tight">{value}</p>
++      <p className="text-xs text-white/30 mt-0.5">{label}</p>
+     </div>
+   );
+ }
+ 
+-function QuickAction({ icon, label, bg }: { icon: string; label: string; bg: string }) {
++/* ── Quick Action ── */
++function QuickAction({ icon, label }: { icon: React.ReactNode; label: string }) {
+   return (
+-    <button className="bg-white rounded-xl border border-border-light p-4 flex flex-col items-center gap-2 shadow-xs hover:shadow-card transition-shadow">
+-      <div className={`w-10 h-10 rounded-lg ${bg} flex items-center justify-center text-lg`}>
++    <button className="rounded-2xl p-4 flex flex-col items-center gap-2.5 transition-all duration-300 hover:translate-y-[-2px] group"
++      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
++      <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/15 flex items-center justify-center text-brand-400 group-hover:bg-brand-500/15 transition-colors">
+         {icon}
+       </div>
+-      <span className="text-xs font-medium text-text-primary">{label}</span>
++      <span className="text-xs font-medium text-white/60">{label}</span>
+     </button>
+   );
+ }
++
++/* ── Icons ── */
++function FlameIcon() {
++  return (
++    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
++      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
++    </svg>
++  );
++}
++
++function DumbbellIcon() {
++  return (
++    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
++      <path d="m6.5 6.5 11 11" /><path d="m21 21-1-1" /><path d="m3 3 1 1" /><path d="m18 22 4-4" /><path d="m2 6 4-4" /><path d="m3 10 7-7" /><path d="m14 21 7-7" />
++    </svg>
++  );
++}
++
++function ZapIcon() {
++  return (
++    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
++      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
++    </svg>
++  );
++}
++
++function CameraIcon() {
++  return (
++    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
++      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
++      <circle cx="12" cy="13" r="3" />
++    </svg>
++  );
++}
++
++function MessageIcon() {
++  return (
++    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
++      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
++    </svg>
++  );
++}
++
++function TrendingUpIcon() {
++  return (
++    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
++      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
++      <polyline points="16 7 22 7 22 13" />
++    </svg>
++  );
++}
+diff --git a/web-app/components/screens/ProfileScreen.tsx b/web-app/components/screens/ProfileScreen.tsx
+index c575434..4080f30 100644
+--- a/web-app/components/screens/ProfileScreen.tsx
++++ b/web-app/components/screens/ProfileScreen.tsx
+@@ -3,32 +3,33 @@ export default function ProfileScreen() {
+     <div className="p-6 pb-24 overflow-y-auto h-full">
+       {/* Avatar & Name */}
+       <div className="text-center mb-8 pt-4">
+-        <div className="w-20 h-20 bg-gradient-to-br from-brand-400 to-brand-600 rounded-full mx-auto flex items-center justify-center mb-4 shadow-glow">
+-          <span className="text-2xl font-bold text-white">JD</span>
++        <div className="w-20 h-20 rounded-2xl mx-auto flex items-center justify-center mb-4 relative overflow-hidden border border-brand-500/20"
++          style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05))' }}>
++          <div className="absolute inset-0 bg-brand-500/5" />
++          <span className="text-2xl font-black text-brand-400 relative z-10">JD</span>
+         </div>
+-        <h2 className="text-xl font-bold text-text-primary">John Doe</h2>
+-        <p className="text-sm text-text-tertiary mt-0.5">john.doe@email.com</p>
++        <h2 className="text-xl font-bold text-white">John Doe</h2>
++        <p className="text-sm text-white/30 mt-0.5">john.doe@email.com</p>
+       </div>
+ 
+       {/* Stats Summary */}
+       <div className="grid grid-cols-3 gap-3 mb-6">
+-        <div className="bg-white rounded-xl border border-border-light p-3 text-center shadow-xs">
+-          <p className="text-lg font-bold text-text-primary tabular-nums">12</p>
+-          <p className="text-[10px] text-text-tertiary mt-0.5">Streak</p>
+-        </div>
+-        <div className="bg-white rounded-xl border border-border-light p-3 text-center shadow-xs">
+-          <p className="text-lg font-bold text-text-primary tabular-nums">87%</p>
+-          <p className="text-[10px] text-text-tertiary mt-0.5">Consistency</p>
+-        </div>
+-        <div className="bg-white rounded-xl border border-border-light p-3 text-center shadow-xs">
+-          <p className="text-lg font-bold text-text-primary tabular-nums">52</p>
+-          <p className="text-[10px] text-text-tertiary mt-0.5">Workouts</p>
+-        </div>
++        {[
++          { value: '12', label: 'Streak', color: 'amber' },
++          { value: '87%', label: 'Consistency', color: 'brand' },
++          { value: '52', label: 'Workouts', color: 'blue' },
++        ].map((s) => (
++          <div key={s.label} className="rounded-2xl p-3 text-center border border-white/[0.06]"
++            style={{ background: 'rgba(255,255,255,0.02)' }}>
++            <p className="text-lg font-bold text-white tabular-nums">{s.value}</p>
++            <p className="text-[10px] text-white/30 mt-0.5">{s.label}</p>
++          </div>
++        ))}
+       </div>
+ 
+       {/* Personal Info */}
+-      <div className="bg-white rounded-2xl border border-border-light p-5 mb-6 shadow-xs">
+-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-4">Personal Info</p>
++      <div className="rounded-2xl p-5 mb-6 border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
++        <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-4">Personal Info</p>
+         <div className="space-y-0">
+           {[
+             { label: 'Age', value: '28 years' },
+@@ -36,37 +37,52 @@ export default function ProfileScreen() {
+             { label: 'Height', value: '180 cm' },
+             { label: 'Goal', value: 'Build Muscle' },
+           ].map((item, i, arr) => (
+-            <div key={item.label} className={`flex justify-between py-3 ${i < arr.length - 1 ? 'border-b border-border-light' : ''}`}>
+-              <span className="text-sm text-text-secondary">{item.label}</span>
+-              <span className="text-sm font-medium text-text-primary">{item.value}</span>
++            <div key={item.label} className={`flex justify-between py-3 ${i < arr.length - 1 ? 'border-b border-white/[0.06]' : ''}`}>
++              <span className="text-sm text-white/40">{item.label}</span>
++              <span className="text-sm font-medium text-white">{item.value}</span>
+             </div>
+           ))}
+         </div>
+       </div>
+ 
+       {/* Coach Info */}
+-      <div className="bg-white rounded-2xl border border-border-light p-5 mb-6 shadow-xs">
+-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-4">Your Coach</p>
++      <div className="rounded-2xl p-5 mb-6 border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
++        <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-4">Your Coach</p>
+         <div className="flex items-center gap-3">
+-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+-            <span className="text-sm font-bold text-white">MC</span>
++          <div className="w-11 h-11 rounded-xl flex items-center justify-center border border-blue-500/20"
++            style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(59,130,246,0.05))' }}>
++            <span className="text-sm font-bold text-blue-400">MC</span>
+           </div>
+-          <div>
+-            <p className="text-sm font-medium text-text-primary">Mike Chen</p>
+-            <p className="text-xs text-text-tertiary">Strength & Conditioning</p>
++          <div className="flex-1">
++            <p className="text-sm font-semibold text-white">Mike Chen</p>
++            <p className="text-xs text-white/30">Strength & Conditioning</p>
+           </div>
+-          <button className="ml-auto text-xs font-medium text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg">
++          <button className="text-xs font-semibold text-brand-400 bg-brand-500/10 border border-brand-500/15 px-3.5 py-2 rounded-lg hover:bg-brand-500/15 transition-colors">
+             Message
+           </button>
+         </div>
+       </div>
+ 
++      {/* Subscription */}
++      <div className="rounded-2xl p-5 mb-6 border border-brand-500/15 relative overflow-hidden"
++        style={{ background: 'linear-gradient(145deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02))' }}>
++        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-brand-400/5 blur-[50px] pointer-events-none" />
++        <div className="relative">
++          <div className="flex items-center justify-between mb-2">
++            <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase">Plan</p>
++            <span className="text-[10px] font-semibold text-brand-400 bg-brand-500/15 px-2 py-0.5 rounded-full border border-brand-500/20">PRO</span>
++          </div>
++          <p className="text-sm text-white/60">Your premium plan renews on <span className="text-white font-medium">May 15, 2026</span></p>
++        </div>
++      </div>
++
+       {/* Actions */}
+-      <div className="space-y-2">
+-        <button className="w-full bg-brand-500 text-white py-3.5 rounded-xl text-sm font-medium hover:bg-brand-600 transition-colors shadow-xs">
++      <div className="space-y-3">
++        <button className="w-full bg-brand-500 text-white py-3.5 rounded-xl text-sm font-semibold hover:bg-brand-400 transition-all duration-300 shadow-lg shadow-brand-500/20">
+           Edit Profile
+         </button>
+-        <button className="w-full bg-white text-error-600 py-3.5 rounded-xl text-sm font-medium border border-border hover:bg-error-50 transition-colors">
++        <button className="w-full py-3.5 rounded-xl text-sm font-medium text-red-400 border border-red-500/15 hover:bg-red-500/5 transition-all duration-300"
++          style={{ background: 'rgba(255,255,255,0.02)' }}>
+           Log Out
+         </button>
+       </div>
+diff --git a/web-app/components/screens/ProgressScreen.tsx b/web-app/components/screens/ProgressScreen.tsx
+index 24f420b..384e3b5 100644
+--- a/web-app/components/screens/ProgressScreen.tsx
++++ b/web-app/components/screens/ProgressScreen.tsx
+@@ -1,3 +1,97 @@
++// ─── Inline Muscle Heatmap (self-contained for web-app) ─────────────────────
++
++const muscleData = [
++  { id: 'chest', label: 'Chest', workouts: 12 },
++  { id: 'shoulders', label: 'Shoulders', workouts: 14 },
++  { id: 'biceps', label: 'Biceps', workouts: 10 },
++  { id: 'triceps', label: 'Triceps', workouts: 8 },
++  { id: 'abs', label: 'Abs', workouts: 6 },
++  { id: 'quads', label: 'Quads', workouts: 15 },
++  { id: 'hamstrings', label: 'Hamstrings', workouts: 11 },
++  { id: 'calves', label: 'Calves', workouts: 7 },
++  { id: 'glutes', label: 'Glutes', workouts: 13 },
++  { id: 'lats', label: 'Lats', workouts: 10 },
++  { id: 'traps', label: 'Traps', workouts: 9 },
++  { id: 'forearms', label: 'Forearms', workouts: 4 },
++];
++
++function getHeatColor(workouts: number, max: number): string {
++  if (workouts === 0) return 'rgba(255,255,255,0.04)';
++  const ratio = workouts / max;
++  if (ratio <= 0.15) return 'rgba(16,185,129,0.15)';
++  if (ratio <= 0.3) return 'rgba(16,185,129,0.25)';
++  if (ratio <= 0.5) return 'rgba(16,185,129,0.4)';
++  if (ratio <= 0.7) return 'rgba(16,185,129,0.6)';
++  return '#10B981';
++}
++
++// SVG paths for front-view muscle groups
++const frontPaths = [
++  { id: 'traps', d: 'M85,72 C88,65 95,60 100,58 C105,60 112,65 115,72 L110,78 L90,78 Z' },
++  { id: 'shoulders', d: 'M72,78 C68,75 62,78 60,85 C58,92 60,100 64,102 L80,98 L82,82 Z' },
++  { id: 'shoulders', d: 'M128,78 C132,75 138,78 140,85 C142,92 140,100 136,102 L120,98 L118,82 Z' },
++  { id: 'chest', d: 'M80,82 L82,98 L100,104 L100,82 C96,78 88,78 80,82 Z' },
++  { id: 'chest', d: 'M120,82 L118,98 L100,104 L100,82 C104,78 112,78 120,82 Z' },
++  { id: 'biceps', d: 'M60,102 C58,108 56,118 56,128 C56,134 58,138 62,138 L68,136 C70,130 70,118 68,106 L64,102 Z' },
++  { id: 'biceps', d: 'M140,102 C142,108 144,118 144,128 C144,134 142,138 138,138 L132,136 C130,130 130,118 132,106 L136,102 Z' },
++  { id: 'forearms', d: 'M56,138 C54,148 52,158 52,168 C52,174 54,178 56,178 L62,176 C64,170 64,158 62,146 L62,138 Z' },
++  { id: 'forearms', d: 'M144,138 C146,148 148,158 148,168 C148,174 146,178 144,178 L138,176 C136,170 136,158 138,146 L138,138 Z' },
++  { id: 'abs', d: 'M90,104 L88,120 L100,122 L112,120 L110,104 L100,106 Z' },
++  { id: 'abs', d: 'M88,120 L86,140 L92,148 L100,150 L108,148 L114,140 L112,120 L100,122 Z' },
++  { id: 'quads', d: 'M80,150 C78,152 76,154 78,164 L80,190 C82,204 84,216 86,224 L96,226 L100,226 L100,154 L92,150 Z' },
++  { id: 'quads', d: 'M120,150 C122,152 124,154 122,164 L120,190 C118,204 116,216 114,224 L104,226 L100,226 L100,154 L108,150 Z' },
++  { id: 'calves', d: 'M84,232 C82,242 80,258 80,270 C80,280 82,288 86,290 L94,288 C96,280 96,268 94,254 L90,232 Z' },
++  { id: 'calves', d: 'M116,232 C118,242 120,258 120,270 C120,280 118,288 114,290 L106,288 C104,280 104,268 106,254 L110,232 Z' },
++];
++
++const headOutline = 'M100,8 C92,8 86,14 86,22 C86,30 90,38 92,42 L88,48 C86,52 85,58 85,62 L85,72 C88,65 95,60 100,58 C105,60 112,65 115,72 L115,62 C115,58 114,52 112,48 L108,42 C110,38 114,30 114,22 C114,14 108,8 100,8 Z';
++
++function MuscleHeatmapInline() {
++  const max = Math.max(...muscleData.map(d => d.workouts), 1);
++  const dataMap = Object.fromEntries(muscleData.map(d => [d.id, d]));
++
++  return (
++    <div className="flex flex-col items-center">
++      <svg viewBox="0 0 200 314" width="200" height="320" className="select-none">
++        <path d={headOutline} fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" opacity="0.5" />
++        {frontPaths.map((p, i) => {
++          const d = dataMap[p.id];
++          const color = d ? getHeatColor(d.workouts, max) : 'rgba(255,255,255,0.04)';
++          return (
++            <path key={i} d={p.d} fill={color} stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" opacity="0.9" />
++          );
++        })}
++        <path d="M50,178 C48,182 46,186 46,188 C46,192 50,194 52,190 L56,180 Z" fill="rgba(255,255,255,0.04)" opacity="0.4" />
++        <path d="M150,178 C152,182 154,186 154,188 C154,192 150,194 148,190 L144,180 Z" fill="rgba(255,255,255,0.04)" opacity="0.4" />
++        <path d="M82,290 L80,300 C80,304 84,306 90,306 L96,304 L94,290 Z" fill="rgba(255,255,255,0.04)" opacity="0.4" />
++        <path d="M118,290 L120,300 C120,304 116,306 110,306 L104,304 L106,290 Z" fill="rgba(255,255,255,0.04)" opacity="0.4" />
++      </svg>
++
++      {/* Legend */}
++      <div className="mt-3 flex items-center gap-1">
++        <span className="text-[10px] text-white/20">Less</span>
++        {['rgba(255,255,255,0.04)', 'rgba(16,185,129,0.15)', 'rgba(16,185,129,0.25)', 'rgba(16,185,129,0.4)', 'rgba(16,185,129,0.6)', '#10B981'].map((c, i) => (
++          <div key={i} className="h-2.5 w-5 rounded-sm border border-white/[0.08]" style={{ backgroundColor: c }} />
++        ))}
++        <span className="text-[10px] text-white/20">More</span>
++      </div>
++
++      {/* Muscle stats */}
++      <div className="mt-4 grid grid-cols-3 gap-2 w-full">
++        {muscleData
++          .filter(d => ['chest', 'shoulders', 'quads', 'abs', 'biceps', 'calves'].includes(d.id))
++          .sort((a, b) => b.workouts - a.workouts)
++          .map(d => (
++            <div key={d.id} className="rounded-lg border border-white/[0.06] px-2.5 py-2" style={{ background: 'rgba(255,255,255,0.02)' }}>
++              <p className="text-[10px] text-white/30">{d.label}</p>
++              <p className="text-sm font-bold text-white tabular-nums">{d.workouts}</p>
++            </div>
++          ))}
++      </div>
++    </div>
++  );
++}
++
+ export default function ProgressScreen() {
+   const stats = [
+     { day: 'Mon', value: 80 },
+@@ -15,81 +109,113 @@ export default function ProgressScreen() {
+     <div className="p-6 pb-24 overflow-y-auto h-full">
+       {/* Header */}
+       <div className="mb-8">
+-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-1">Your Journey</p>
+-        <h1 className="text-3xl font-bold text-text-primary tracking-tight">Progress</h1>
++        <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-1.5">Your Journey</p>
++        <h1 className="text-3xl font-black text-white tracking-tight">Progress</h1>
++      </div>
++
++      {/* Muscle Heatmap */}
++      <div className="rounded-2xl p-6 mb-6 border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
++        <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-4">Muscle Heatmap</p>
++        <MuscleHeatmapInline />
+       </div>
+ 
+       {/* Streak Card */}
+-      <div className="bg-white rounded-2xl border border-border-light p-6 mb-6 shadow-xs text-center">
+-        <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center mx-auto mb-3">
+-          <span className="text-2xl">🔥</span>
++      <div className="rounded-2xl p-6 mb-6 text-center border border-amber-500/15 relative overflow-hidden"
++        style={{ background: 'linear-gradient(145deg, rgba(245,158,11,0.06), rgba(245,158,11,0.02))' }}>
++        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-amber-400/5 blur-[50px] pointer-events-none" />
++        <div className="relative">
++          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/15 flex items-center justify-center mx-auto mb-3">
++            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
++              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
++            </svg>
++          </div>
++          <p className="text-4xl font-black text-white tabular-nums">12</p>
++          <p className="text-sm font-semibold text-white/60 mt-1">Day Streak</p>
++          <p className="text-xs text-white/20 mt-0.5">Longest: 21 days</p>
+         </div>
+-        <p className="text-4xl font-bold text-text-primary tabular-nums">12</p>
+-        <p className="text-sm font-medium text-text-primary mt-1">Day Streak</p>
+-        <p className="text-xs text-text-tertiary mt-0.5">Longest: 21 days</p>
+       </div>
+ 
+       {/* Weekly Activity Chart */}
+-      <div className="bg-white rounded-2xl border border-border-light p-6 mb-6 shadow-xs">
+-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-4">Weekly Activity</p>
++      <div className="rounded-2xl p-6 mb-6 border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
++        <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-5">Weekly Activity</p>
+         <div className="flex justify-around items-end h-32">
+-          {stats.map((stat, index) => (
+-            <div key={index} className="flex flex-col items-center gap-1.5">
+-              <span className="text-[10px] font-medium text-text-tertiary tabular-nums">{stat.value}m</span>
+-              <div className="w-8 h-24 bg-surface-tertiary rounded-lg relative overflow-hidden">
+-                <div
+-                  className="absolute bottom-0 w-full rounded-lg transition-all duration-500 bg-brand-500"
+-                  style={{ height: `${(stat.value / maxValue) * 100}%` }}
+-                />
++          {stats.map((stat, index) => {
++            const isToday = index === new Date().getDay() - 1;
++            return (
++              <div key={index} className="flex flex-col items-center gap-1.5">
++                <span className="text-[10px] font-medium text-white/30 tabular-nums">{stat.value}m</span>
++                <div className="w-8 h-24 bg-white/[0.04] rounded-lg relative overflow-hidden">
++                  <div
++                    className={`absolute bottom-0 w-full rounded-lg transition-all duration-700 ${
++                      isToday ? 'bg-brand-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]' : 'bg-brand-500/40'
++                    }`}
++                    style={{ height: `${(stat.value / maxValue) * 100}%` }}
++                  />
++                </div>
++                <span className={`text-[11px] ${isToday ? 'text-brand-400 font-semibold' : 'text-white/20'}`}>{stat.day}</span>
+               </div>
+-              <span className="text-[11px] text-text-tertiary">{stat.day}</span>
+-            </div>
+-          ))}
++            );
++          })}
+         </div>
+       </div>
+ 
+       {/* This Week Stats */}
+       <div className="grid grid-cols-3 gap-3 mb-6">
+-        <StatTile value="4/5" label="Workouts" dot="bg-brand-500" />
+-        <StatTile value="180m" label="Duration" dot="bg-blue-500" />
+-        <StatTile value="2,840" label="Calories" dot="bg-orange-500" />
++        <StatTile value="4/5" label="Workouts" color="brand" />
++        <StatTile value="180m" label="Duration" color="blue" />
++        <StatTile value="2,840" label="Calories" color="amber" />
+       </div>
+ 
+       {/* Personal Records */}
+-      <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-3">Personal Records</p>
+-      <div className="space-y-2 mb-6">
++      <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-3">Personal Records</p>
++      <div className="space-y-3 mb-6">
+         {[
+           { exercise: 'Bench Press', weight: '102.5 kg', date: '2 weeks ago' },
+           { exercise: 'Squat', weight: '142.5 kg', date: '1 week ago' },
+           { exercise: 'Deadlift', weight: '185 kg', date: '3 days ago' },
+         ].map((pr, i) => (
+-          <div key={i} className="bg-white rounded-xl border border-border-light p-4 flex items-center gap-3 shadow-xs">
+-            <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+-              <span className="text-base">🏆</span>
++          <div key={i} className="rounded-2xl p-4 flex items-center gap-3 transition-all duration-300 hover:translate-y-[-2px]"
++            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
++            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/15 flex items-center justify-center shrink-0">
++              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
++                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
++                <path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
++                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
++                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
++              </svg>
+             </div>
+             <div className="flex-1">
+-              <p className="text-sm font-medium text-text-primary">{pr.exercise}</p>
+-              <p className="text-xs text-text-tertiary">{pr.date}</p>
++              <p className="text-sm font-semibold text-white">{pr.exercise}</p>
++              <p className="text-xs text-white/20">{pr.date}</p>
+             </div>
+-            <p className="text-sm font-semibold text-brand-600 tabular-nums">{pr.weight}</p>
++            <p className="text-sm font-bold text-brand-400 tabular-nums">{pr.weight}</p>
+           </div>
+         ))}
+       </div>
+ 
+       {/* Achievements */}
+-      <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-3">Achievements</p>
+-      <div className="space-y-2">
++      <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-3">Achievements</p>
++      <div className="space-y-3">
+         {[
+-          { icon: '🔥', title: '7 Day Streak', desc: 'Completed workouts 7 days in a row' },
+-          { icon: '💪', title: 'Strong Start', desc: 'Completed 50 workouts' },
++          { title: '7 Day Streak', desc: 'Completed workouts 7 days in a row', icon: 'flame' },
++          { title: 'Strong Start', desc: 'Completed 50 workouts', icon: 'muscle' },
+         ].map((a, i) => (
+-          <div key={i} className="bg-white rounded-xl border border-border-light p-4 flex items-center gap-3 shadow-xs">
+-            <div className="w-10 h-10 rounded-xl bg-surface-tertiary flex items-center justify-center text-xl shrink-0">
+-              {a.icon}
++          <div key={i} className="rounded-2xl p-4 flex items-center gap-3"
++            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
++            <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/15 flex items-center justify-center shrink-0">
++              {a.icon === 'flame' ? (
++                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
++                  <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
++                </svg>
++              ) : (
++                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
++                  <path d="m6.5 6.5 11 11" /><path d="m21 21-1-1" /><path d="m3 3 1 1" /><path d="m18 22 4-4" /><path d="m2 6 4-4" /><path d="m3 10 7-7" /><path d="m14 21 7-7" />
++                </svg>
++              )}
+             </div>
+             <div>
+-              <p className="text-sm font-medium text-text-primary">{a.title}</p>
+-              <p className="text-xs text-text-tertiary">{a.desc}</p>
++              <p className="text-sm font-semibold text-white">{a.title}</p>
++              <p className="text-xs text-white/30">{a.desc}</p>
+             </div>
+           </div>
+         ))}
+@@ -98,12 +224,14 @@ export default function ProgressScreen() {
+   );
+ }
+ 
+-function StatTile({ value, label, dot }: { value: string; label: string; dot: string }) {
++function StatTile({ value, label, color }: { value: string; label: string; color: string }) {
++  const dotColors: Record<string, string> = { brand: 'bg-brand-400', blue: 'bg-blue-400', amber: 'bg-amber-400' };
++
+   return (
+-    <div className="bg-white rounded-xl border border-border-light p-4 shadow-xs">
+-      <div className={`w-2 h-2 rounded-full ${dot} mb-2`} />
+-      <p className="text-xl font-bold text-text-primary tabular-nums">{value}</p>
+-      <p className="text-xs text-text-tertiary mt-0.5">{label}</p>
++    <div className="rounded-2xl p-4 border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
++      <div className={`w-2 h-2 rounded-full ${dotColors[color]} mb-2`} />
++      <p className="text-xl font-bold text-white tabular-nums">{value}</p>
++      <p className="text-xs text-white/30 mt-0.5">{label}</p>
+     </div>
+   );
+ }
+diff --git a/web-app/components/screens/RemindersScreen.tsx b/web-app/components/screens/RemindersScreen.tsx
+index fe9a418..d9fc3e1 100644
+--- a/web-app/components/screens/RemindersScreen.tsx
++++ b/web-app/components/screens/RemindersScreen.tsx
+@@ -7,14 +7,15 @@ interface Reminder {
+   title: string;
+   time: string;
+   enabled: boolean;
++  icon: 'sun' | 'droplet' | 'footprints' | 'dumbbell';
+ }
+ 
+ export default function RemindersScreen() {
+   const [reminders, setReminders] = useState<Reminder[]>([
+-    { id: 1, title: 'Morning Workout', time: '7:00 AM', enabled: true },
+-    { id: 2, title: 'Drink Water', time: '10:00 AM', enabled: true },
+-    { id: 3, title: 'Lunch Break Walk', time: '12:30 PM', enabled: false },
+-    { id: 4, title: 'Evening Gym', time: '6:00 PM', enabled: true },
++    { id: 1, title: 'Morning Workout', time: '7:00 AM', enabled: true, icon: 'sun' },
++    { id: 2, title: 'Drink Water', time: '10:00 AM', enabled: true, icon: 'droplet' },
++    { id: 3, title: 'Lunch Break Walk', time: '12:30 PM', enabled: false, icon: 'footprints' },
++    { id: 4, title: 'Evening Gym', time: '6:00 PM', enabled: true, icon: 'dumbbell' },
+   ]);
+ 
+   const toggleReminder = (id: number) => {
+@@ -24,34 +25,106 @@ export default function RemindersScreen() {
+   };
+ 
+   return (
+-    <div className="p-4 pb-20 overflow-y-auto h-full">
+-      <div className="mb-6">
+-        <h1 className="text-3xl font-bold text-gray-800 mb-1">Your Reminders 🔔</h1>
+-        <p className="text-gray-600">Stay on track with notifications</p>
++    <div className="p-6 pb-24 overflow-y-auto h-full">
++      {/* Header */}
++      <div className="mb-8">
++        <p className="text-xs font-medium tracking-[0.15em] text-white/30 uppercase mb-1.5">Notifications</p>
++        <h1 className="text-3xl font-black text-white tracking-tight">Reminders</h1>
+       </div>
+ 
+-      {reminders.map(reminder => (
+-        <div key={reminder.id} className="bg-white rounded-xl shadow-sm p-4 mb-3 flex justify-between items-center">
+-          <div>
+-            <div className="font-semibold text-gray-800 mb-1">{reminder.title}</div>
+-            <div className="text-sm text-gray-600">{reminder.time}</div>
+-          </div>
+-          <button
+-            onClick={() => toggleReminder(reminder.id)}
+-            className={`w-12 h-7 rounded-full p-1 transition-colors ${
+-              reminder.enabled ? 'bg-blue-500' : 'bg-gray-300'
+-            }`}
+-          >
+-            <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+-              reminder.enabled ? 'translate-x-5' : 'translate-x-0'
+-            }`}></div>
+-          </button>
++      {/* Active count */}
++      <div className="rounded-2xl p-4 mb-6 flex items-center gap-3 border border-brand-500/15"
++        style={{ background: 'linear-gradient(145deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02))' }}>
++        <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/15 flex items-center justify-center">
++          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
++            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
++            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
++          </svg>
++        </div>
++        <div>
++          <p className="text-sm font-semibold text-white">
++            {reminders.filter(r => r.enabled).length} active reminders
++          </p>
++          <p className="text-xs text-white/30">Stay on track with notifications</p>
+         </div>
+-      ))}
++      </div>
+ 
+-      <button className="w-full bg-blue-500 text-white py-4 rounded-xl font-semibold mt-2 hover:bg-blue-600 transition">
+-        + Add New Reminder
++      {/* Reminders list */}
++      <div className="space-y-3 mb-6">
++        {reminders.map(reminder => (
++          <div key={reminder.id}
++            className={`rounded-2xl p-4 flex justify-between items-center transition-all duration-300 ${
++              reminder.enabled ? 'border border-white/[0.06]' : 'border border-white/[0.03] opacity-50'
++            }`}
++            style={{ background: 'rgba(255,255,255,0.02)' }}>
++            <div className="flex items-center gap-3">
++              <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
++                <ReminderIcon type={reminder.icon} />
++              </div>
++              <div>
++                <p className="font-semibold text-sm text-white">{reminder.title}</p>
++                <p className="text-xs text-white/30 tabular-nums">{reminder.time}</p>
++              </div>
++            </div>
++            <button
++              onClick={() => toggleReminder(reminder.id)}
++              className={`w-12 h-7 rounded-full p-0.5 transition-all duration-300 ${
++                reminder.enabled
++                  ? 'bg-brand-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
++                  : 'bg-white/[0.08]'
++              }`}
++            >
++              <div className={`w-6 h-6 bg-white rounded-full transition-all duration-300 shadow-sm ${
++                reminder.enabled ? 'translate-x-5' : 'translate-x-0'
++              }`} />
++            </button>
++          </div>
++        ))}
++      </div>
++
++      {/* Add button */}
++      <button className="w-full py-4 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 border border-white/[0.08] hover:border-brand-500/20 hover:bg-brand-500/5 text-white/60 hover:text-brand-400"
++        style={{ background: 'rgba(255,255,255,0.02)' }}>
++        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
++          <line x1="12" y1="5" x2="12" y2="19" />
++          <line x1="5" y1="12" x2="19" y2="12" />
++        </svg>
++        Add New Reminder
+       </button>
+     </div>
+   );
+ }
++
++function ReminderIcon({ type }: { type: string }) {
++  const props = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'rgba(255,255,255,0.4)', strokeWidth: 1.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
++
++  switch (type) {
++    case 'sun':
++      return (
++        <svg {...props}>
++          <circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" />
++          <path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" />
++          <path d="m19.07 4.93-1.41 1.41" />
++        </svg>
++      );
++    case 'droplet':
++      return (
++        <svg {...props}>
++          <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
++        </svg>
++      );
++    case 'footprints':
++      return (
++        <svg {...props}>
++          <path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5 10 7.19 8.97 8 9 10.5c.03 1.5-.5 2-1 3" />
++          <path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 1.69 1.03 2.5 1 5 -.03 1.5.5 2 1 3" />
++        </svg>
++      );
++    default:
++      return (
++        <svg {...props}>
++          <path d="m6.5 6.5 11 11" /><path d="m21 21-1-1" /><path d="m3 3 1 1" /><path d="m18 22 4-4" /><path d="m2 6 4-4" /><path d="m3 10 7-7" /><path d="m14 21 7-7" />
++        </svg>
++      );
++  }
++}
+-- 
+2.34.1
+
