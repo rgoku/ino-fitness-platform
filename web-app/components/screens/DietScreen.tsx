@@ -13,33 +13,33 @@ export default function DietScreen() {
     <div className="p-6 pb-24 overflow-y-auto h-full">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-1">Nutrition</p>
-        <h1 className="text-3xl font-bold text-text-primary tracking-tight">Diet Plan</h1>
+        <p className="text-xs font-medium tracking-wider text-white/30 uppercase mb-1">Nutrition</p>
+        <h1 className="text-3xl font-bold text-white tracking-tight">Diet Plan</h1>
       </div>
 
       {/* Macro Rings */}
-      <div className="bg-white rounded-2xl border border-border-light p-6 mb-8 shadow-xs">
+      <div className="rounded-2xl p-6 mb-8" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase">Today's Macros</p>
-          <span className="text-sm font-medium text-text-secondary tabular-nums">
+          <p className="text-xs font-medium tracking-wider text-white/30 uppercase">Today&apos;s Macros</p>
+          <span className="text-sm font-medium text-white/60 tabular-nums">
             {totalCal} / {targetCal} cal
           </span>
         </div>
         <div className="flex justify-around">
-          <MacroDisplay value={102} target={165} label="Protein" unit="g" color="text-blue-500" />
-          <MacroDisplay value={144} target={250} label="Carbs" unit="g" color="text-orange-500" />
-          <MacroDisplay value={58} target={70} label="Fat" unit="g" color="text-purple-500" />
+          <MacroRing value={102} target={165} label="Protein" unit="g" color="#3B82F6" />
+          <MacroRing value={144} target={250} label="Carbs" unit="g" color="#F59E0B" />
+          <MacroRing value={58} target={70} label="Fat" unit="g" color="#8B5CF6" />
         </div>
 
         {/* Calorie progress */}
-        <div className="mt-5 pt-4 border-t border-border-light">
+        <div className="mt-5 pt-4 border-t border-white/[0.06]">
           <div className="flex justify-between text-xs mb-1.5">
-            <span className="text-text-tertiary">Calorie progress</span>
-            <span className="font-medium text-text-secondary tabular-nums">{Math.round((totalCal / targetCal) * 100)}%</span>
+            <span className="text-white/30">Calorie progress</span>
+            <span className="font-medium text-white/60 tabular-nums">{Math.round((totalCal / targetCal) * 100)}%</span>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-surface-tertiary">
+          <div className="w-full h-1.5 rounded-full bg-white/[0.06]">
             <div
-              className="h-full rounded-full bg-brand-500 transition-all duration-500"
+              className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-400 transition-all duration-500 shadow-[0_0_12px_rgba(16,185,129,0.3)]"
               style={{ width: `${Math.min((totalCal / targetCal) * 100, 100)}%` }}
             />
           </div>
@@ -47,58 +47,86 @@ export default function DietScreen() {
       </div>
 
       {/* Meals */}
-      <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-3">Meals</p>
+      <p className="text-xs font-medium tracking-wider text-white/30 uppercase mb-3">Meals</p>
       <div className="space-y-2">
         {meals.map(meal => (
-          <div key={meal.id} className="bg-white rounded-xl border border-border-light p-4 shadow-xs hover:shadow-card transition-shadow">
+          <div
+            key={meal.id}
+            className="rounded-xl p-4 transition-all hover:bg-white/[0.04]"
+            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
+          >
             <div className="flex justify-between items-start mb-2">
               <div>
-                <p className="font-medium text-sm text-text-primary">{meal.name}</p>
-                <p className="text-xs text-text-tertiary mt-0.5">{meal.items}</p>
+                <p className="font-medium text-sm text-white">{meal.name}</p>
+                <p className="text-xs text-white/30 mt-0.5">{meal.items}</p>
               </div>
-              <span className="text-sm font-bold text-text-primary tabular-nums">{meal.calories} cal</span>
+              <span className="text-sm font-bold text-white tabular-nums">{meal.calories} cal</span>
             </div>
             <div className="flex gap-2">
-              <MacroChip label="P" value={meal.protein} color="bg-blue-50 text-blue-600" />
-              <MacroChip label="C" value={meal.carbs} color="bg-orange-50 text-orange-600" />
-              <MacroChip label="F" value={meal.fat} color="bg-purple-50 text-purple-600" />
+              <MacroChip label="P" value={meal.protein} bg="bg-blue-500/10" text="text-blue-400" />
+              <MacroChip label="C" value={meal.carbs} bg="bg-amber-500/10" text="text-amber-400" />
+              <MacroChip label="F" value={meal.fat} bg="bg-purple-500/10" text="text-purple-400" />
             </div>
           </div>
         ))}
       </div>
 
       {/* AI Suggestion */}
-      <div className="bg-brand-50 rounded-xl p-4 mt-6 border border-brand-100">
-        <div className="flex items-center gap-2 mb-1.5">
-          <div className="w-5 h-5 rounded-md bg-brand-100 flex items-center justify-center">
-            <span className="text-[9px] font-bold text-brand-600">AI</span>
+      <div className="rounded-xl p-4 mt-6 relative overflow-hidden" style={{ background: 'linear-gradient(145deg, #111113, #09090B)', border: '1px solid rgba(16,185,129,0.15)' }}>
+        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at top right, rgba(16,185,129,0.1), transparent 60%)' }} />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.15)' }}>
+              <span className="text-[9px] font-bold text-brand-400">AI</span>
+            </div>
+            <span className="text-xs font-medium text-brand-400">AI Suggestion</span>
           </div>
-          <span className="text-xs font-medium text-brand-600">AI Suggestion</span>
+          <p className="text-sm text-white/90 leading-relaxed">
+            You&apos;re 63g short on protein. A chicken breast with dinner would close the gap perfectly.
+          </p>
         </div>
-        <p className="text-sm text-text-primary leading-relaxed">
-          You're 63g short on protein. A chicken breast with dinner would close the gap perfectly.
-        </p>
       </div>
     </div>
   );
 }
 
-function MacroDisplay({ value, target, label, unit, color }: {
+/* ── SVG Ring Chart ──────────────────────────────────────────────── */
+function MacroRing({ value, target, label, unit, color }: {
   value: number; target: number; label: string; unit: string; color: string;
 }) {
-  const pct = Math.round((value / target) * 100);
+  const pct = Math.min(value / target, 1);
+  const r = 32;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - pct);
+
   return (
-    <div className="text-center">
-      <p className={`text-2xl font-bold ${color} tabular-nums`}>{value}<span className="text-sm font-normal">{unit}</span></p>
-      <p className="text-xs text-text-tertiary mt-0.5">/ {target}{unit}</p>
-      <p className="text-[10px] text-text-tertiary mt-0.5">{label} ({pct}%)</p>
+    <div className="flex flex-col items-center">
+      <div className="relative w-[76px] h-[76px]">
+        <svg viewBox="0 0 76 76" className="w-full h-full -rotate-90">
+          <circle cx="38" cy="38" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+          <circle
+            cx="38" cy="38" r={r} fill="none"
+            stroke={color} strokeWidth="5"
+            strokeLinecap="round"
+            strokeDasharray={circ}
+            strokeDashoffset={offset}
+            style={{ filter: `drop-shadow(0 0 6px ${color}40)` }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-sm font-bold text-white tabular-nums">{value}</span>
+          <span className="text-[9px] text-white/30">{unit}</span>
+        </div>
+      </div>
+      <p className="text-[10px] text-white/40 mt-1.5">{label}</p>
+      <p className="text-[9px] text-white/20">/ {target}{unit}</p>
     </div>
   );
 }
 
-function MacroChip({ label, value, color }: { label: string; value: number; color: string }) {
+function MacroChip({ label, value, bg, text }: { label: string; value: number; bg: string; text: string }) {
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${color} tabular-nums`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${bg} ${text} tabular-nums`}>
       {label} {value}g
     </span>
   );

@@ -1,4 +1,4 @@
-// ─── Inline Muscle Heatmap (self-contained for web-app) ─────────────────────
+// ─── Inline Muscle Heatmap (dark theme) ──────────────────────────────────────
 
 const muscleData = [
   { id: 'chest', label: 'Chest', workouts: 12 },
@@ -16,16 +16,15 @@ const muscleData = [
 ];
 
 function getHeatColor(workouts: number, max: number): string {
-  if (workouts === 0) return '#F4F4F5';
+  if (workouts === 0) return 'rgba(255,255,255,0.04)';
   const ratio = workouts / max;
-  if (ratio <= 0.15) return '#D1FAE5';
-  if (ratio <= 0.3) return '#A7F3D0';
-  if (ratio <= 0.5) return '#6EE7B7';
-  if (ratio <= 0.7) return '#34D399';
-  return '#10B981';
+  if (ratio <= 0.15) return 'rgba(16,185,129,0.12)';
+  if (ratio <= 0.3) return 'rgba(16,185,129,0.25)';
+  if (ratio <= 0.5) return 'rgba(16,185,129,0.4)';
+  if (ratio <= 0.7) return 'rgba(16,185,129,0.6)';
+  return 'rgba(16,185,129,0.85)';
 }
 
-// SVG paths for front-view muscle groups
 const frontPaths = [
   { id: 'traps', d: 'M85,72 C88,65 95,60 100,58 C105,60 112,65 115,72 L110,78 L90,78 Z' },
   { id: 'shoulders', d: 'M72,78 C68,75 62,78 60,85 C58,92 60,100 64,102 L80,98 L82,82 Z' },
@@ -53,27 +52,27 @@ function MuscleHeatmapInline() {
   return (
     <div className="flex flex-col items-center">
       <svg viewBox="0 0 200 314" width="220" height="340" className="select-none">
-        <path d={headOutline} fill="#F4F4F5" stroke="#E4E4E7" strokeWidth="0.5" opacity="0.5" />
+        <path d={headOutline} fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" opacity="0.5" />
         {frontPaths.map((p, i) => {
           const d = dataMap[p.id];
-          const color = d ? getHeatColor(d.workouts, max) : '#F4F4F5';
+          const color = d ? getHeatColor(d.workouts, max) : 'rgba(255,255,255,0.04)';
           return (
-            <path key={i} d={p.d} fill={color} stroke="#E4E4E7" strokeWidth="0.5" opacity="0.85" />
+            <path key={i} d={p.d} fill={color} stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" opacity="0.85" />
           );
         })}
-        <path d="M50,178 C48,182 46,186 46,188 C46,192 50,194 52,190 L56,180 Z" fill="#F4F4F5" opacity="0.4" />
-        <path d="M150,178 C152,182 154,186 154,188 C154,192 150,194 148,190 L144,180 Z" fill="#F4F4F5" opacity="0.4" />
-        <path d="M82,290 L80,300 C80,304 84,306 90,306 L96,304 L94,290 Z" fill="#F4F4F5" opacity="0.4" />
-        <path d="M118,290 L120,300 C120,304 116,306 110,306 L104,304 L106,290 Z" fill="#F4F4F5" opacity="0.4" />
+        <path d="M50,178 C48,182 46,186 46,188 C46,192 50,194 52,190 L56,180 Z" fill="rgba(255,255,255,0.04)" opacity="0.4" />
+        <path d="M150,178 C152,182 154,186 154,188 C154,192 150,194 148,190 L144,180 Z" fill="rgba(255,255,255,0.04)" opacity="0.4" />
+        <path d="M82,290 L80,300 C80,304 84,306 90,306 L96,304 L94,290 Z" fill="rgba(255,255,255,0.04)" opacity="0.4" />
+        <path d="M118,290 L120,300 C120,304 116,306 110,306 L104,304 L106,290 Z" fill="rgba(255,255,255,0.04)" opacity="0.4" />
       </svg>
 
       {/* Legend */}
       <div className="mt-3 flex items-center gap-1">
-        <span className="text-[10px] text-text-tertiary">Less</span>
-        {['#F4F4F5', '#D1FAE5', '#A7F3D0', '#6EE7B7', '#34D399', '#10B981'].map((c, i) => (
-          <div key={i} className="h-2.5 w-5 rounded-sm border border-border-light" style={{ backgroundColor: c }} />
+        <span className="text-[10px] text-white/30">Less</span>
+        {['rgba(255,255,255,0.04)', 'rgba(16,185,129,0.12)', 'rgba(16,185,129,0.25)', 'rgba(16,185,129,0.4)', 'rgba(16,185,129,0.6)', 'rgba(16,185,129,0.85)'].map((c, i) => (
+          <div key={i} className="h-2.5 w-5 rounded-sm border border-white/[0.08]" style={{ backgroundColor: c }} />
         ))}
-        <span className="text-[10px] text-text-tertiary">More</span>
+        <span className="text-[10px] text-white/30">More</span>
       </div>
 
       {/* Muscle stats */}
@@ -82,9 +81,9 @@ function MuscleHeatmapInline() {
           .filter(d => ['chest', 'shoulders', 'quads', 'abs', 'biceps', 'calves'].includes(d.id))
           .sort((a, b) => b.workouts - a.workouts)
           .map(d => (
-            <div key={d.id} className="rounded-lg border border-border-light px-2 py-1.5">
-              <p className="text-[10px] text-text-tertiary">{d.label}</p>
-              <p className="text-sm font-bold text-text-primary tabular-nums">{d.workouts}</p>
+            <div key={d.id} className="rounded-lg px-2 py-1.5" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="text-[10px] text-white/30">{d.label}</p>
+              <p className="text-sm font-bold text-white tabular-nums">{d.workouts}</p>
             </div>
           ))}
       </div>
@@ -93,6 +92,9 @@ function MuscleHeatmapInline() {
 }
 
 export default function ProgressScreen() {
+  const today = new Date().getDay(); // 0=Sun
+  const dayIndex = today === 0 ? 6 : today - 1;
+
   const stats = [
     { day: 'Mon', value: 80 },
     { day: 'Tue', value: 65 },
@@ -109,87 +111,90 @@ export default function ProgressScreen() {
     <div className="p-6 pb-24 overflow-y-auto h-full">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-1">Your Journey</p>
-        <h1 className="text-3xl font-bold text-text-primary tracking-tight">Progress</h1>
+        <p className="text-xs font-medium tracking-wider text-white/30 uppercase mb-1">Your Journey</p>
+        <h1 className="text-3xl font-bold text-white tracking-tight">Progress</h1>
       </div>
 
       {/* Muscle Heatmap */}
-      <div className="bg-white rounded-2xl border border-border-light p-6 mb-6 shadow-xs">
-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-4">Muscle Heatmap</p>
+      <div className="rounded-2xl p-6 mb-6" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <p className="text-xs font-medium tracking-wider text-white/30 uppercase mb-4">Muscle Heatmap</p>
         <MuscleHeatmapInline />
       </div>
 
       {/* Streak Card */}
-      <div className="bg-white rounded-2xl border border-border-light p-6 mb-6 shadow-xs text-center">
-        <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center mx-auto mb-3">
-          <span className="text-2xl">🔥</span>
+      <div className="rounded-2xl p-6 mb-6 text-center relative overflow-hidden" style={{ background: 'linear-gradient(145deg, rgba(245,158,11,0.08), rgba(251,191,36,0.02))', border: '1px solid rgba(245,158,11,0.12)' }}>
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(245,158,11,0.1)' }}>
+          <StreakIcon />
         </div>
-        <p className="text-4xl font-bold text-text-primary tabular-nums">12</p>
-        <p className="text-sm font-medium text-text-primary mt-1">Day Streak</p>
-        <p className="text-xs text-text-tertiary mt-0.5">Longest: 21 days</p>
+        <p className="text-4xl font-bold text-white tabular-nums">12</p>
+        <p className="text-sm font-medium text-white mt-1">Day Streak</p>
+        <p className="text-xs text-white/30 mt-0.5">Longest: 21 days</p>
       </div>
 
       {/* Weekly Activity Chart */}
-      <div className="bg-white rounded-2xl border border-border-light p-6 mb-6 shadow-xs">
-        <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-4">Weekly Activity</p>
+      <div className="rounded-2xl p-6 mb-6" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <p className="text-xs font-medium tracking-wider text-white/30 uppercase mb-4">Weekly Activity</p>
         <div className="flex justify-around items-end h-32">
-          {stats.map((stat, index) => (
-            <div key={index} className="flex flex-col items-center gap-1.5">
-              <span className="text-[10px] font-medium text-text-tertiary tabular-nums">{stat.value}m</span>
-              <div className="w-8 h-24 bg-surface-tertiary rounded-lg relative overflow-hidden">
-                <div
-                  className="absolute bottom-0 w-full rounded-lg transition-all duration-500 bg-brand-500"
-                  style={{ height: `${(stat.value / maxValue) * 100}%` }}
-                />
+          {stats.map((stat, index) => {
+            const isToday = index === dayIndex;
+            return (
+              <div key={index} className="flex flex-col items-center gap-1.5">
+                <span className="text-[10px] font-medium text-white/30 tabular-nums">{stat.value}m</span>
+                <div className="w-8 h-24 bg-white/[0.04] rounded-lg relative overflow-hidden">
+                  <div
+                    className={`absolute bottom-0 w-full rounded-lg transition-all duration-500 ${isToday ? 'bg-brand-400 shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'bg-brand-500/60'}`}
+                    style={{ height: `${(stat.value / maxValue) * 100}%` }}
+                  />
+                </div>
+                <span className={`text-[11px] ${isToday ? 'text-brand-400 font-medium' : 'text-white/30'}`}>{stat.day}</span>
               </div>
-              <span className="text-[11px] text-text-tertiary">{stat.day}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       {/* This Week Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <StatTile value="4/5" label="Workouts" dot="bg-brand-500" />
-        <StatTile value="180m" label="Duration" dot="bg-blue-500" />
-        <StatTile value="2,840" label="Calories" dot="bg-orange-500" />
+        <StatTile value="4/5" label="Workouts" color="bg-brand-500/20" dot="bg-brand-400" />
+        <StatTile value="180m" label="Duration" color="bg-blue-500/20" dot="bg-blue-400" />
+        <StatTile value="2,840" label="Calories" color="bg-orange-500/20" dot="bg-orange-400" />
       </div>
 
       {/* Personal Records */}
-      <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-3">Personal Records</p>
+      <p className="text-xs font-medium tracking-wider text-white/30 uppercase mb-3">Personal Records</p>
       <div className="space-y-2 mb-6">
         {[
           { exercise: 'Bench Press', weight: '102.5 kg', date: '2 weeks ago' },
           { exercise: 'Squat', weight: '142.5 kg', date: '1 week ago' },
           { exercise: 'Deadlift', weight: '185 kg', date: '3 days ago' },
         ].map((pr, i) => (
-          <div key={i} className="bg-white rounded-xl border border-border-light p-4 flex items-center gap-3 shadow-xs">
-            <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-              <span className="text-base">🏆</span>
+          <div key={i} className="rounded-xl p-4 flex items-center gap-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(245,158,11,0.1)' }}>
+              <TrophyIcon />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-text-primary">{pr.exercise}</p>
-              <p className="text-xs text-text-tertiary">{pr.date}</p>
+              <p className="text-sm font-medium text-white">{pr.exercise}</p>
+              <p className="text-xs text-white/30">{pr.date}</p>
             </div>
-            <p className="text-sm font-semibold text-brand-600 tabular-nums">{pr.weight}</p>
+            <p className="text-sm font-semibold text-brand-400 tabular-nums">{pr.weight}</p>
           </div>
         ))}
       </div>
 
       {/* Achievements */}
-      <p className="text-xs font-medium tracking-wider text-text-tertiary uppercase mb-3">Achievements</p>
+      <p className="text-xs font-medium tracking-wider text-white/30 uppercase mb-3">Achievements</p>
       <div className="space-y-2">
         {[
-          { icon: '🔥', title: '7 Day Streak', desc: 'Completed workouts 7 days in a row' },
-          { icon: '💪', title: 'Strong Start', desc: 'Completed 50 workouts' },
+          { icon: <StreakIcon />, title: '7 Day Streak', desc: 'Completed workouts 7 days in a row' },
+          { icon: <MuscleIcon />, title: 'Strong Start', desc: 'Completed 50 workouts' },
         ].map((a, i) => (
-          <div key={i} className="bg-white rounded-xl border border-border-light p-4 flex items-center gap-3 shadow-xs">
-            <div className="w-10 h-10 rounded-xl bg-surface-tertiary flex items-center justify-center text-xl shrink-0">
+          <div key={i} className="rounded-xl p-4 flex items-center gap-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-brand-400 shrink-0" style={{ background: 'rgba(16,185,129,0.08)' }}>
               {a.icon}
             </div>
             <div>
-              <p className="text-sm font-medium text-text-primary">{a.title}</p>
-              <p className="text-xs text-text-tertiary">{a.desc}</p>
+              <p className="text-sm font-medium text-white">{a.title}</p>
+              <p className="text-xs text-white/30">{a.desc}</p>
             </div>
           </div>
         ))}
@@ -198,12 +203,48 @@ export default function ProgressScreen() {
   );
 }
 
-function StatTile({ value, label, dot }: { value: string; label: string; dot: string }) {
+function StatTile({ value, label, color, dot }: { value: string; label: string; color: string; dot: string }) {
   return (
-    <div className="bg-white rounded-xl border border-border-light p-4 shadow-xs">
+    <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
       <div className={`w-2 h-2 rounded-full ${dot} mb-2`} />
-      <p className="text-xl font-bold text-text-primary tabular-nums">{value}</p>
-      <p className="text-xs text-text-tertiary mt-0.5">{label}</p>
+      <p className="text-xl font-bold text-white tabular-nums">{value}</p>
+      <p className="text-xs text-white/40 mt-0.5">{label}</p>
     </div>
+  );
+}
+
+/* ── SVG Icons ──────────────────────────────────────────────────── */
+function TrophyIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" />
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" />
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+    </svg>
+  );
+}
+
+function StreakIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+    </svg>
+  );
+}
+
+function MuscleIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m6.5 6.5 11 11" />
+      <path d="m21 21-1-1" />
+      <path d="m3 3 1 1" />
+      <path d="m18 22 4-4" />
+      <path d="m2 6 4-4" />
+      <path d="m3 10 7-7" />
+      <path d="m14 21 7-7" />
+    </svg>
   );
 }

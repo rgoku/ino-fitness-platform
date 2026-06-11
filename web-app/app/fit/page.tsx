@@ -36,7 +36,7 @@ export default function FitAppPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-[#030303] text-white">
       <div className="flex-1 overflow-hidden">{renderScreen()}</div>
       <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>

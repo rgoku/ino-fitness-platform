@@ -15,17 +15,20 @@ const tabs = [
 
 export default function TabBar({ activeTab, setActiveTab }: TabBarProps) {
   return (
-    <div className="flex bg-white/90 backdrop-blur-xl border-t border-border-light">
+    <div className="flex bg-[#0A0A0A]/95 backdrop-blur-2xl border-t border-white/[0.06]">
       {tabs.map(tab => {
         const isActive = activeTab === tab.id;
         return (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex flex-col items-center py-2 pt-2.5 transition-colors ${
-              isActive ? 'text-brand-600' : 'text-text-tertiary'
+            className={`flex-1 flex flex-col items-center py-2 pt-2.5 relative transition-colors ${
+              isActive ? 'text-brand-400' : 'text-white/30'
             }`}
           >
+            {isActive && (
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-brand-400 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+            )}
             <tab.icon active={isActive} />
             <span className={`text-[10px] mt-1 ${isActive ? 'font-medium' : ''}`}>{tab.label}</span>
           </button>
