@@ -18,10 +18,10 @@ body {
   background-color: #0A0A0A;
   letter-spacing: -0.018em;
   overflow-x: hidden;
-  cursor: none;
 }
 
-/* ── Custom Cursor ── */
+/* ── Custom Cursor (scoped — only active when .custom-cursor-active is on a parent) ── */
+.custom-cursor-active { cursor: none; }
 .cursor-ball-big,
 .cursor-ball-small {
   position: fixed;
@@ -59,9 +59,9 @@ body {
   .cursor-ball-big, .cursor-ball-small { display: none; }
 }
 
-a, button, .hoverable { cursor: none; }
+.custom-cursor-active a, .custom-cursor-active button, .custom-cursor-active .hoverable { cursor: none; }
 @media (hover: none), (pointer: coarse) {
-  a, button, .hoverable { cursor: auto; }
+  .custom-cursor-active a, .custom-cursor-active button, .custom-cursor-active .hoverable { cursor: auto; }
 }
 
 ::selection { background: rgba(58, 134, 255, 0.3); color: #fff; }

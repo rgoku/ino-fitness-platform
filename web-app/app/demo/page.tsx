@@ -175,15 +175,15 @@ export default function DemoPage() {
 
   if (!booted) {
     return (
-      <>
+      <div className="custom-cursor-active">
         <CustomCursor />
         <BootSequence onDone={() => setBooted(true)} />
-      </>
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen noise bg-[#0A0A0A]">
+    <div className="min-h-screen noise bg-[#0A0A0A] custom-cursor-active">
       <CustomCursor />
 
       {/* Top bar */}

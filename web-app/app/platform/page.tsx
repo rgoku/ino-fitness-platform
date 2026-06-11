@@ -111,7 +111,7 @@ export default function PlatformLandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen noise">
+    <div className="min-h-screen noise custom-cursor-active">
       <CustomCursor />
 
       {/* ══ NAV ══ */}
