@@ -14,17 +14,31 @@ Usage
 """
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from angle_calculator import (
-    PoseLandmark as P,
-    get_landmark_coords as gc,
-    get_landmark_visibility as gv,
-    calculate_angle,
-)
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+try:
+    from core.angle_calculator import (
+        PoseLandmark as P,
+        get_landmark_coords as gc,
+        get_landmark_visibility as gv,
+        calculate_angle,
+    )
+except ImportError:
+    from angle_calculator import (  # type: ignore[no-redef]
+        PoseLandmark as P,
+        get_landmark_coords as gc,
+        get_landmark_visibility as gv,
+        calculate_angle,
+    )
 
 Point = Tuple[float, float]
 

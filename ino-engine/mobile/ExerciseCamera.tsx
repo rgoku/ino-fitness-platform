@@ -156,6 +156,7 @@ interface ExerciseCameraProps {
   setNumber?: number;
   apiBaseUrl?: string;
   sessionId?: string;
+  userId?: string;
   onEndSet?: () => void;
   onFinish?: (summary: EngineState) => void;
 }
@@ -166,17 +167,22 @@ interface ExerciseCameraProps {
 export default function ExerciseCamera({
   exerciseName = 'Barbell Curl',
   setNumber = 1,
-  apiBaseUrl = 'http://localhost:8095',
-  sessionId,
+  apiBaseUrl,
+  sessionId: externalSessionId,
+  userId = 'default',
   onEndSet,
   onFinish,
 }: ExerciseCameraProps) {
+  const API_BASE = apiBaseUrl || process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8095';
+
   // --- state ---------------------------------------------------------------
   const [engine, setEngine] = useState<EngineState | null>(null);
   const [prevReps, setPrevReps] = useState({ left: 0, right: 0 });
   const [isActive, setIsActive] = useState(true);
   const [currentSet, setCurrentSet] = useState(setNumber);
   const [elapsed, setElapsed] = useState(0);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(externalSessionId ?? null);
+  const [isOffline, setIsOffline] = useState(false);
 
   // --- animated values -----------------------------------------------------
   const repFlashLeft = useRef(new Animated.Value(0)).current;
@@ -186,25 +192,67 @@ export default function ExerciseCamera({
   const injurySlide = useRef(new Animated.Value(-80)).current;
   const cueOpacity = useRef(new Animated.Value(1)).current;
 
-  // tick counter for mock data
+  // tick counter for mock data fallback
   const tickRef = useRef(0);
+
+  // --- start session on mount ----------------------------------------------
+  useEffect(() => {
+    if (externalSessionId) return; // session already provided externally
+
+    let cancelled = false;
+
+    async function startSession() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/engine/start-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, exercise: exerciseName }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) {
+          setActiveSessionId(data.session_id);
+          setIsOffline(false);
+        }
+      } catch {
+        // API unreachable — operate in offline/mock mode
+        if (!cancelled) {
+          setIsOffline(true);
+        }
+      }
+    }
+
+    startSession();
+    return () => { cancelled = true; };
+  }, [API_BASE, exerciseName, userId, externalSessionId]);
 
   // --- polling loop (200 ms) -----------------------------------------------
   useEffect(() => {
     if (!isActive) return;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       tickRef.current += 1;
 
-      // In production, replace this with:
-      // fetch(`${apiBaseUrl}/api/v1/engine/state/${sessionId}`)
-      //   .then(r => r.json()).then(setEngine);
-      const next = generateMockState(tickRef.current);
-      setEngine(next);
+      // Try real API if we have a session ID
+      if (activeSessionId && !isOffline) {
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/engine/state/${activeSessionId}`);
+          if (res.ok) {
+            const data = await res.json();
+            setEngine(data);
+            return;
+          }
+        } catch {
+          // API unreachable — fall through to mock
+        }
+      }
+
+      // Fallback: generate mock state (offline mode)
+      setEngine(generateMockState(tickRef.current));
     }, 200);
 
     return () => clearInterval(interval);
-  }, [isActive, apiBaseUrl, sessionId]);
+  }, [isActive, API_BASE, activeSessionId, isOffline]);
 
   // --- session timer -------------------------------------------------------
   useEffect(() => {
@@ -311,16 +359,30 @@ export default function ExerciseCamera({
     v >= 80 ? C.accent : v >= 60 ? C.warning : C.error;
 
   // --- handlers ------------------------------------------------------------
-  const handleEndSet = () => {
+  const handleEndSet = useCallback(() => {
     setCurrentSet((s) => s + 1);
     tickRef.current = 0;
     onEndSet?.();
-  };
+  }, [onEndSet]);
 
-  const handleFinish = () => {
+  const handleFinish = useCallback(async () => {
     setIsActive(false);
+
+    // End the session on the backend
+    if (activeSessionId && !isOffline) {
+      try {
+        await fetch(`${API_BASE}/api/v1/engine/end-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: activeSessionId }),
+        });
+      } catch {
+        // Ignore — session cleanup is best-effort
+      }
+    }
+
     if (engine) onFinish?.(engine);
-  };
+  }, [engine, onFinish, activeSessionId, isOffline, API_BASE]);
 
   // --- render --------------------------------------------------------------
   return (
@@ -335,7 +397,7 @@ export default function ExerciseCamera({
           <Text style={styles.cameraPlaceholderIcon}>{'{ }'}</Text>
           <Text style={styles.cameraPlaceholderText}>Camera Feed</Text>
           <Text style={styles.cameraPlaceholderSub}>
-            Frames sent to engine at {apiBaseUrl}
+            {isOffline ? 'Offline mode — using mock analysis' : `Connected to ${API_BASE}`}
           </Text>
         </View>
 

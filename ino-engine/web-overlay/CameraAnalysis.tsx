@@ -168,6 +168,7 @@ interface CameraAnalysisProps {
   setNumber?: number;
   apiBaseUrl?: string;
   sessionId?: string;
+  userId?: string;
   onEndSet?: () => void;
   onFinish?: (summary: EngineState) => void;
 }
@@ -179,7 +180,8 @@ export default function CameraAnalysis({
   exerciseName = 'Barbell Curl',
   setNumber = 1,
   apiBaseUrl = 'http://localhost:8095',
-  sessionId,
+  sessionId: externalSessionId,
+  userId = 'default',
   onEndSet,
   onFinish,
 }: CameraAnalysisProps) {
@@ -192,6 +194,8 @@ export default function CameraAnalysis({
   const [isActive, setIsActive] = useState(true);
   const [currentSet, setCurrentSet] = useState(setNumber);
   const [elapsed, setElapsed] = useState(0);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(externalSessionId ?? null);
+  const [isOffline, setIsOffline] = useState(false);
 
   const tickRef = useRef(0);
   const streamRef = useRef<MediaStream | null>(null);
@@ -233,34 +237,82 @@ export default function CameraAnalysis({
     };
   }, []);
 
-  // --- engine polling (200 ms) ---------------------------------------------
+  // --- start session on mount -----------------------------------------------
+  useEffect(() => {
+    if (externalSessionId) return;
+
+    let cancelled = false;
+
+    async function startSession() {
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/v1/engine/start-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, exercise: exerciseName }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) {
+          setActiveSessionId(data.session_id);
+          setIsOffline(false);
+        }
+      } catch {
+        if (!cancelled) setIsOffline(true);
+      }
+    }
+
+    startSession();
+    return () => { cancelled = true; };
+  }, [apiBaseUrl, exerciseName, userId, externalSessionId]);
+
+  // --- engine polling (200 ms) — capture frame + POST to API ---------------
   useEffect(() => {
     if (!isActive) return;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       tickRef.current += 1;
 
-      // In production, capture a frame and POST to the engine:
-      // const canvas = canvasRef.current;
-      // const video = videoRef.current;
-      // if (canvas && video) {
-      //   canvas.getContext('2d')?.drawImage(video, 0, 0, 640, 480);
-      //   canvas.toBlob(async (blob) => {
-      //     if (!blob) return;
-      //     const form = new FormData();
-      //     form.append('frame', blob, 'frame.jpg');
-      //     const res = await fetch(`${apiBaseUrl}/api/v1/engine/analyze`, {
-      //       method: 'POST', body: form,
-      //     });
-      //     setEngine(await res.json());
-      //   }, 'image/jpeg', 0.7);
-      // }
+      // Try real API: capture a frame and POST to the engine
+      if (!isOffline && cameraReady) {
+        try {
+          const canvas = canvasRef.current;
+          const video = videoRef.current;
+          if (canvas && video) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(video, 0, 0, 640, 480);
+              const blob = await new Promise<Blob | null>((resolve) =>
+                canvas.toBlob(resolve, 'image/jpeg', 0.7),
+              );
+              if (blob) {
+                const form = new FormData();
+                form.append('frame', blob, 'frame.jpg');
+                if (activeSessionId) {
+                  form.append('session_id', activeSessionId);
+                }
+                const res = await fetch(`${apiBaseUrl}/api/v1/engine/analyze`, {
+                  method: 'POST',
+                  body: form,
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  setEngine(data);
+                  return;
+                }
+              }
+            }
+          }
+        } catch {
+          // API unreachable — fall through to mock
+        }
+      }
 
+      // Fallback: generate mock state (offline mode)
       setEngine(generateMockState(tickRef.current));
     }, 200);
 
     return () => clearInterval(interval);
-  }, [isActive, apiBaseUrl]);
+  }, [isActive, apiBaseUrl, activeSessionId, isOffline, cameraReady]);
 
   // --- session timer -------------------------------------------------------
   useEffect(() => {
@@ -276,11 +328,25 @@ export default function CameraAnalysis({
     onEndSet?.();
   }, [onEndSet]);
 
-  const handleFinish = useCallback(() => {
+  const handleFinish = useCallback(async () => {
     setIsActive(false);
     streamRef.current?.getTracks().forEach((t) => t.stop());
+
+    // End the session on the backend
+    if (activeSessionId && !isOffline) {
+      try {
+        await fetch(`${apiBaseUrl}/api/v1/engine/end-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: activeSessionId }),
+        });
+      } catch {
+        // Ignore — session cleanup is best-effort
+      }
+    }
+
     if (engine) onFinish?.(engine);
-  }, [engine, onFinish]);
+  }, [engine, onFinish, activeSessionId, isOffline, apiBaseUrl]);
 
   // --- derived -------------------------------------------------------------
   const injuryEntries = useMemo(

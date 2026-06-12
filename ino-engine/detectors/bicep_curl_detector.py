@@ -15,19 +15,33 @@ ROM, tempo, a coaching cue) that main.py forwards to muscle_state.js.
 
 from __future__ import annotations
 
+import sys
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
 
 import cv2
 import numpy as np
 
-from angle_calculator import (
-    PoseLandmark,
-    calculate_angle_from_landmarks,
-    get_landmark_visibility,
-    smooth_angle,
-)
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+try:
+    from core.angle_calculator import (
+        PoseLandmark,
+        calculate_angle_from_landmarks,
+        get_landmark_visibility,
+        smooth_angle,
+    )
+except ImportError:
+    from angle_calculator import (  # type: ignore[no-redef]
+        PoseLandmark,
+        calculate_angle_from_landmarks,
+        get_landmark_visibility,
+        smooth_angle,
+    )
 
 # ---------------------------------------------------------------------------
 # Config / result

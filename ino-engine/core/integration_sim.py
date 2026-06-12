@@ -4,15 +4,30 @@ Feeds synthetic full-body landmarks through every module exactly like
 main_engine.py does, writes muscle_state.js, then validates the contract
 the overlay consumes and confirms the coach reads the logged session.
 """
-import json, math, time, pathlib
+import json, math, sys, time, pathlib
+from pathlib import Path
 import numpy as np
-from bicep_curl_detector import BicepCurlConfig, BicepCurlDetector
-from injury_risk_detector import InjuryRiskDetector
-from fatigue_detector import FatigueDetector
-from imbalance_detector import ImbalanceDetector
-from session_logger import SessionLogger
-from ai_coach import PersonalCoach, UserProfile
-from angle_calculator import PoseLandmark as P
+
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+try:
+    from detectors.bicep_curl_detector import BicepCurlConfig, BicepCurlDetector
+    from detectors.injury_risk_detector import InjuryRiskDetector
+    from detectors.fatigue_detector import FatigueDetector
+    from detectors.imbalance_detector import ImbalanceDetector
+    from coaching.session_logger import SessionLogger
+    from coaching.ai_coach import PersonalCoach, UserProfile
+    from core.angle_calculator import PoseLandmark as P
+except ImportError:
+    from bicep_curl_detector import BicepCurlConfig, BicepCurlDetector  # type: ignore[no-redef]
+    from injury_risk_detector import InjuryRiskDetector  # type: ignore[no-redef]
+    from fatigue_detector import FatigueDetector  # type: ignore[no-redef]
+    from imbalance_detector import ImbalanceDetector  # type: ignore[no-redef]
+    from session_logger import SessionLogger  # type: ignore[no-redef]
+    from ai_coach import PersonalCoach, UserProfile  # type: ignore[no-redef]
+    from angle_calculator import PoseLandmark as P  # type: ignore[no-redef]
 
 class LM:
     def __init__(s,x,y,v=1.0): s.x,s.y,s.visibility=x,y,v

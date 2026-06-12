@@ -29,10 +29,17 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 import cv2
 import mediapipe as mp
 
-from bicep_curl_detector import BicepCurlConfig, BicepCurlDetector, FrameResult
+try:
+    from detectors.bicep_curl_detector import BicepCurlConfig, BicepCurlDetector, FrameResult
+except ImportError:
+    from bicep_curl_detector import BicepCurlConfig, BicepCurlDetector, FrameResult  # type: ignore[no-redef]
 
 # ---------------------------------------------------------------------------
 # Logging

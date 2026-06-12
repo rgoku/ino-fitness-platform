@@ -35,6 +35,7 @@ import {
   Syringe,
   BookOpen,
   UtensilsCrossed,
+  ScanEye,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/stores/sidebar-store';
@@ -47,6 +48,7 @@ const navItems = [
   { label: 'Members', href: '/members', icon: UserCheck },
   { label: 'Programs', href: '/programs', icon: Dumbbell },
   { label: 'Videos', href: '/videos', icon: Video },
+  { label: 'Exercise Analysis', href: '/exercise-analysis', icon: ScanEye },
   { label: 'Diet', href: '/diet', icon: UtensilsCrossed },
   { label: 'Nutrition', href: '/nutrition', icon: Leaf },
   { label: 'Grocery List', href: '/grocery-calculator', icon: ShoppingCart },

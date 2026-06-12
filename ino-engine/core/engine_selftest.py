@@ -1,10 +1,25 @@
-import math, numpy as np
-from fatigue_detector import FatigueDetector
-from imbalance_detector import ImbalanceDetector
-from injury_risk_detector import InjuryRiskDetector
-from progressive_overload import ProgressiveOverloadEngine, OverloadConfig
-from session_logger import SessionLogger
-from ai_coach import PersonalCoach, UserProfile
+import math, sys
+from pathlib import Path
+import numpy as np
+
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+try:
+    from detectors.fatigue_detector import FatigueDetector
+    from detectors.imbalance_detector import ImbalanceDetector
+    from detectors.injury_risk_detector import InjuryRiskDetector
+    from coaching.progressive_overload import ProgressiveOverloadEngine, OverloadConfig
+    from coaching.session_logger import SessionLogger
+    from coaching.ai_coach import PersonalCoach, UserProfile
+except ImportError:
+    from fatigue_detector import FatigueDetector  # type: ignore[no-redef]
+    from imbalance_detector import ImbalanceDetector  # type: ignore[no-redef]
+    from injury_risk_detector import InjuryRiskDetector  # type: ignore[no-redef]
+    from progressive_overload import ProgressiveOverloadEngine, OverloadConfig  # type: ignore[no-redef]
+    from session_logger import SessionLogger  # type: ignore[no-redef]
+    from ai_coach import PersonalCoach, UserProfile  # type: ignore[no-redef]
 
 print("="*60); print("1) FATIGUE - a set taken to failure")
 fd=FatigueDetector()
@@ -25,7 +40,10 @@ class LM:
     def __init__(s,x,y,v=1.0): s.x,s.y,s.visibility=x,y,v
 class LMS:
     def __init__(s,p): s.landmark=p
-from angle_calculator import PoseLandmark as P
+try:
+    from core.angle_calculator import PoseLandmark as P
+except ImportError:
+    from angle_calculator import PoseLandmark as P  # type: ignore[no-redef]
 pts=[LM(0.5,0.5) for _ in range(33)]
 pts[P.LEFT_SHOULDER]=LM(0.42,0.30); pts[P.RIGHT_SHOULDER]=LM(0.58,0.305)
 pts[P.LEFT_HIP]=LM(0.44,0.55);      pts[P.RIGHT_HIP]=LM(0.56,0.585)

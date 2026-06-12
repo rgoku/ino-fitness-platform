@@ -29,13 +29,19 @@ from __future__ import annotations
 
 import logging
 import math
+import sys
 import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Deque, Dict, List, Optional, Tuple
 
 import numpy as np
+
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
 # ---------------------------------------------------------------------------
 # Angle / landmark utilities (shared across all detectors)
@@ -61,29 +67,32 @@ except ImportError:
 # Exercise database — imported if available, stubbed otherwise
 # ---------------------------------------------------------------------------
 try:
-    from exercise_database import EXERCISE_DB, ExerciseDefinition, JointRule
+    from core.exercise_database import EXERCISE_DB, ExerciseDefinition, JointRule
 except ImportError:
-    # Stubs so the module is self-contained during parallel development.
-    EXERCISE_DB: Dict[str, "ExerciseDefinition"] = {}  # type: ignore[no-redef]
+    try:
+        from exercise_database import EXERCISE_DB, ExerciseDefinition, JointRule  # type: ignore[no-redef]
+    except ImportError:
+        # Stubs so the module is self-contained during parallel development.
+        EXERCISE_DB: Dict[str, "ExerciseDefinition"] = {}  # type: ignore[no-redef]
 
-    @dataclass
-    class JointRule:  # type: ignore[no-redef]
-        joint_name: str = ""
-        landmarks: Tuple[int, int, int] = (0, 0, 0)
-        contracted: float = 0.0
-        extended: float = 180.0
-        ideal_rom: float = 120.0
+        @dataclass
+        class JointRule:  # type: ignore[no-redef]
+            joint_name: str = ""
+            landmarks: Tuple[int, int, int] = (0, 0, 0)
+            contracted: float = 0.0
+            extended: float = 180.0
+            ideal_rom: float = 120.0
 
-    @dataclass
-    class ExerciseDefinition:  # type: ignore[no-redef]
-        slug: str = ""
-        name: str = ""
-        pattern: str = ""
-        primary_joints: List[JointRule] = field(default_factory=list)
-        stability_joints: List[Tuple[int, int, int]] = field(default_factory=list)
-        muscles: List[str] = field(default_factory=list)
-        bilateral: bool = True
-        ideal_tempo_s: Tuple[float, float] = (1.5, 4.0)
+        @dataclass
+        class ExerciseDefinition:  # type: ignore[no-redef]
+            slug: str = ""
+            name: str = ""
+            pattern: str = ""
+            primary_joints: List[JointRule] = field(default_factory=list)
+            stability_joints: List[Tuple[int, int, int]] = field(default_factory=list)
+            muscles: List[str] = field(default_factory=list)
+            bilateral: bool = True
+            ideal_tempo_s: Tuple[float, float] = (1.5, 4.0)
 
 log = logging.getLogger(__name__)
 

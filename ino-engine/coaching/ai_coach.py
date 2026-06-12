@@ -15,11 +15,21 @@ Usage
 """
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Dict, List, Optional
 
-from progressive_overload import ProgressiveOverloadEngine, OverloadConfig
-from session_logger import SessionLogger
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+try:
+    from coaching.progressive_overload import ProgressiveOverloadEngine, OverloadConfig
+    from coaching.session_logger import SessionLogger
+except ImportError:
+    from progressive_overload import ProgressiveOverloadEngine, OverloadConfig  # type: ignore[no-redef]
+    from session_logger import SessionLogger  # type: ignore[no-redef]
 
 
 @dataclass

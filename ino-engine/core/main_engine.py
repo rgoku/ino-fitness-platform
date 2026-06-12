@@ -23,14 +23,25 @@ import signal
 import sys
 from pathlib import Path
 
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 import cv2
 import mediapipe as mp
 
-from bicep_curl_detector import BicepCurlConfig, BicepCurlDetector
-from injury_risk_detector import InjuryRiskDetector
-from fatigue_detector import FatigueDetector
-from imbalance_detector import ImbalanceDetector
-from session_logger import SessionLogger
+try:
+    from detectors.bicep_curl_detector import BicepCurlConfig, BicepCurlDetector
+    from detectors.injury_risk_detector import InjuryRiskDetector
+    from detectors.fatigue_detector import FatigueDetector
+    from detectors.imbalance_detector import ImbalanceDetector
+    from coaching.session_logger import SessionLogger
+except ImportError:
+    from bicep_curl_detector import BicepCurlConfig, BicepCurlDetector  # type: ignore[no-redef]
+    from injury_risk_detector import InjuryRiskDetector  # type: ignore[no-redef]
+    from fatigue_detector import FatigueDetector  # type: ignore[no-redef]
+    from imbalance_detector import ImbalanceDetector  # type: ignore[no-redef]
+    from session_logger import SessionLogger  # type: ignore[no-redef]
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s  %(levelname)-7s  %(message)s",
