@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import ExerciseCamera, { EngineState } from '../../../ino-engine/mobile/ExerciseCamera';
+import ExerciseCamera, { EngineState } from '../components/exercise-engine/ExerciseCamera';
 
 const ExerciseCameraScreen = ({ route, navigation }: any) => {
   const { exerciseName, setNumber } = route.params || {};
