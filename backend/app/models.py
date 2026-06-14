@@ -14,6 +14,9 @@ from app.infrastructure.database.models import (
     Coach,
     Achievement,
     Subscription,
+    BodyAnalysisSession,
+    MuscleSnapshot,
+    FormAnalysisResult,
 )
 
 __all__ = [
@@ -31,4 +34,7 @@ __all__ = [
     "Coach",
     "Achievement",
     "Subscription",
+    "BodyAnalysisSession",
+    "MuscleSnapshot",
+    "FormAnalysisResult",
 ]

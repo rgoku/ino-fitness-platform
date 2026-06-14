@@ -250,3 +250,59 @@ class Subscription(Base):
     cancel_at_period_end = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class BodyAnalysisSession(Base):
+    """A single body analysis session (weekly snapshot)."""
+    __tablename__ = "body_analysis_sessions"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), index=True)
+    week_number = Column(Integer)  # ISO week number
+    year = Column(Integer)
+    total_volume = Column(Float, default=0)
+    symmetry_score = Column(Float, nullable=True)
+    imbalance_score = Column(Float, nullable=True)
+    training_readiness = Column(Float, nullable=True)
+    overall_grade = Column(String, nullable=True)  # A/B/C/D/F
+    ai_summary = Column(Text, nullable=True)
+    muscle_data = Column(JSON, nullable=True)  # Full per-muscle breakdown
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", backref="body_analysis_sessions")
+
+
+class MuscleSnapshot(Base):
+    """Per-muscle data point within an analysis session."""
+    __tablename__ = "muscle_snapshots"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    session_id = Column(String, ForeignKey("body_analysis_sessions.id"), index=True)
+    muscle_slug = Column(String, index=True)  # e.g. 'chest', 'quadriceps'
+    weekly_volume = Column(Float, default=0)
+    recovery_status = Column(String, nullable=True)  # recovered/recovering/fatigued/overtrained
+    recovery_readiness = Column(Float, nullable=True)  # 0-1
+    growth_phase = Column(String, nullable=True)  # detraining/maintenance/hypertrophy/overreaching/peak
+    trend_direction = Column(String, nullable=True)  # declining/stable/progressing/accelerating
+    imbalance_status = Column(String, nullable=True)  # balanced/mild/severe
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    session = relationship("BodyAnalysisSession", backref="muscle_snapshots")
+
+
+class FormAnalysisResult(Base):
+    """Results from AI exercise form analysis."""
+    __tablename__ = "form_analysis_results"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), index=True)
+    exercise_name = Column(String)
+    overall_score = Column(Float)  # 0-100
+    rep_count = Column(Integer, nullable=True)
+    form_issues = Column(JSON, nullable=True)  # List of detected issues
+    recommendations = Column(JSON, nullable=True)  # List of improvement suggestions
+    landmarks_data = Column(JSON, nullable=True)  # Raw pose data for replay
+    video_url = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", backref="form_analysis_results")
