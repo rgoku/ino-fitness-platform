@@ -104,6 +104,16 @@ app.include_router(body_analysis.router, prefix="/api/v1/body-analysis", tags=["
 
 
 @app.on_event("startup")
+async def create_tables_if_missing():
+    """Ensure all SQLAlchemy-declared tables exist (no-op for tables already present)."""
+    from app.database import init_db
+    try:
+        init_db()
+    except Exception as exc:
+        logger.warning("init_db failed at startup: %s", exc)
+
+
+@app.on_event("startup")
 async def start_reminder_loop():
     """
     Legacy in-process reminder worker (every 60s).
