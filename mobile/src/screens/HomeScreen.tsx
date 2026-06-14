@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Path, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { useAuth } from '../context/AuthContext';
 import { DailyMacros, Streak, Trophy } from '../types';
 import { apiService } from '../services/apiService';
@@ -101,28 +101,122 @@ const AIInsightCard = React.memo(({ message }: { message: string }) => (
   </View>
 ));
 
+// ─── Lucide-style Icons (inline SVG) ────────────────────────────────────────
+
+const CameraIcon = ({ color = '#fff', size = 20 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"
+      stroke={color}
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Circle cx={12} cy={13} r={4} stroke={color} strokeWidth={1.8} />
+  </Svg>
+);
+
+const DumbbellIcon = ({ color = '#fff', size = 20 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M6.5 6.5 17.5 17.5M4 16l4 4M16 4l4 4M2.5 13.5 5 16M19 8l2.5 2.5M7 21l2-2M15 5l2-2"
+      stroke={color}
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+const ChartIcon = ({ color = '#fff', size = 20 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M3 3v18h18M7 14l4-4 4 4 5-5"
+      stroke={color}
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 // ─── Quick Actions ──────────────────────────────────────────────────────────
+
+interface QuickActionProps {
+  label: string;
+  subtitle: string;
+  onPress?: () => void;
+  accent: string;
+  Icon: React.ComponentType<{ color?: string; size?: number }>;
+}
+
+const QuickActionCard = React.memo(({ label, subtitle, onPress, accent, Icon }: QuickActionProps) => {
+  const gradientId = `g-${label.replace(/\s/g, '')}`;
+  return (
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.actionCard}>
+      <View style={styles.actionCardInner}>
+        {/* Per-card gradient border */}
+        <Svg
+          height="100%"
+          width="100%"
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        >
+          <Defs>
+            <LinearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0" stopColor={accent} stopOpacity="0.45" />
+              <Stop offset="0.6" stopColor={accent} stopOpacity="0" />
+            </LinearGradient>
+          </Defs>
+          <Rect
+            x={0.5}
+            y={0.5}
+            rx={15.5}
+            ry={15.5}
+            width="99%"
+            height="99%"
+            stroke={`url(#${gradientId})`}
+            strokeWidth={1}
+            fill="transparent"
+          />
+        </Svg>
+
+        {/* Icon orb */}
+        <View style={[styles.actionIconOrb, { backgroundColor: `${accent}1A` }]}>
+          <View style={[styles.actionIconOrbInner, { borderColor: `${accent}40` }]}>
+            <Icon color={accent} size={22} />
+          </View>
+        </View>
+
+        <Text style={styles.actionLabel}>{label}</Text>
+        <Text style={styles.actionSubtitle}>{subtitle}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+});
 
 const QuickActions = React.memo(({ onFoodPhoto, onWorkout }: { onFoodPhoto: () => void; onWorkout: () => void }) => (
   <View style={styles.actionsRow}>
-    <TouchableOpacity style={styles.actionCard} onPress={onFoodPhoto}>
-      <View style={[styles.actionIcon, { backgroundColor: colors.accentLight }]}>
-        <Text style={{ fontSize: 18 }}>📸</Text>
-      </View>
-      <Text style={styles.actionLabel}>Scan Food</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.actionCard} onPress={onWorkout}>
-      <View style={[styles.actionIcon, { backgroundColor: colors.blueLight }]}>
-        <Text style={{ fontSize: 18 }}>💪</Text>
-      </View>
-      <Text style={styles.actionLabel}>Start Workout</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.actionCard}>
-      <View style={[styles.actionIcon, { backgroundColor: colors.purpleLight }]}>
-        <Text style={{ fontSize: 18 }}>📊</Text>
-      </View>
-      <Text style={styles.actionLabel}>Progress</Text>
-    </TouchableOpacity>
+    <QuickActionCard
+      label="Scan Food"
+      subtitle="Snap a meal"
+      accent={colors.accent}
+      Icon={CameraIcon}
+      onPress={onFoodPhoto}
+    />
+    <QuickActionCard
+      label="Start Workout"
+      subtitle="Today's plan"
+      accent={colors.blue}
+      Icon={DumbbellIcon}
+      onPress={onWorkout}
+    />
+    <QuickActionCard
+      label="Progress"
+      subtitle="Weekly stats"
+      accent={colors.purple}
+      Icon={ChartIcon}
+    />
   </View>
 ));
 
@@ -431,32 +525,58 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
 
-  // Quick Actions
+  // Quick Actions — premium look matching coaching dashboard
   actionsRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   actionCard: {
     flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  actionCardInner: {
     backgroundColor: colors.surface,
-    padding: 16,
-    borderRadius: 12,
+    paddingTop: 18,
+    paddingBottom: 16,
+    paddingHorizontal: 10,
+    borderRadius: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: '#1B2233',
+    minHeight: 130,
   },
-  actionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+  actionIconOrb: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  actionIconOrbInner: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
   actionLabel: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '700',
     color: colors.textPrimary,
+    letterSpacing: -0.1,
+    textAlign: 'center',
+  },
+  actionSubtitle: {
+    fontSize: 10.5,
+    fontWeight: '500',
+    color: colors.textTertiary,
+    letterSpacing: 0.4,
+    marginTop: 3,
+    textTransform: 'uppercase',
   },
 
   // Workout CTA
