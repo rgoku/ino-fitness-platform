@@ -23,6 +23,7 @@ import ChallengesScreen from '../screens/ChallengesScreen';
 import GroceryListScreen from '../screens/GroceryListScreen';
 import BookingsScreen from '../screens/BookingsScreen';
 import AIAssistantScreen from '../screens/AIAssistantScreen';
+import ExerciseCameraScreen from '../screens/ExerciseCameraScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -215,6 +216,11 @@ export default function AppNavigator() {
             name="AIAssistant"
             component={AIAssistantScreen}
             options={{ title: 'AI Assistant' }}
+          />
+          <Stack.Screen
+            name="ExerciseCamera"
+            component={ExerciseCameraScreen}
+            options={{ headerShown: false, title: 'Exercise Camera' }}
           />
         </>
       )}

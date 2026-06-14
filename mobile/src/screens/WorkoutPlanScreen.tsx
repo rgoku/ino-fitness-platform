@@ -28,7 +28,7 @@ const colors = {
   white: '#FFFFFF',
 };
 
-const ExerciseRow = React.memo(({ item, index }: { item: Exercise; index: number }) => (
+const ExerciseRow = React.memo(({ item, index, onStartCamera }: { item: Exercise; index: number; onStartCamera?: (name: string) => void }) => (
   <View style={styles.exerciseCard}>
     {/* Exercise Number */}
     <View style={styles.exerciseNumber}>
@@ -58,11 +58,19 @@ const ExerciseRow = React.memo(({ item, index }: { item: Exercise; index: number
           ))}
         </View>
       )}
-      {item.videoUrl ? (
-        <TouchableOpacity style={styles.demoButton}>
-          <Text style={styles.demoButtonText}>Watch Demo</Text>
+      <View style={styles.exerciseActions}>
+        {item.videoUrl ? (
+          <TouchableOpacity style={styles.demoButton}>
+            <Text style={styles.demoButtonText}>Watch Demo</Text>
+          </TouchableOpacity>
+        ) : null}
+        <TouchableOpacity
+          style={styles.formCheckButton}
+          onPress={() => onStartCamera?.(item.name)}
+        >
+          <Text style={styles.formCheckButtonText}>AI Form Check</Text>
         </TouchableOpacity>
-      ) : null}
+      </View>
     </View>
   </View>
 ));
@@ -105,6 +113,10 @@ const WorkoutPlanScreen = React.memo(({ navigation }: any) => {
       navigation.navigate('WorkoutSession', { workoutPlanId: workoutPlan.id });
     }
   }, [workoutPlan, navigation]);
+
+  const openExerciseCamera = useCallback((exerciseName: string) => {
+    navigation.navigate('ExerciseCamera', { exerciseName });
+  }, [navigation]);
 
   if (loading) {
     return (
@@ -160,7 +172,7 @@ const WorkoutPlanScreen = React.memo(({ navigation }: any) => {
         <View style={styles.exerciseSection}>
           <Text style={styles.sectionLabel}>EXERCISES</Text>
           {(workoutPlan.exercises ?? []).map((item, index) => (
-            <ExerciseRow key={item.id} item={item} index={index} />
+            <ExerciseRow key={item.id} item={item} index={index} onStartCamera={openExerciseCamera} />
           ))}
         </View>
       </ScrollView>
@@ -237,6 +249,19 @@ const styles = StyleSheet.create({
   exerciseMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   exerciseDetail: { fontSize: 13, color: colors.textTertiary },
   metaDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: colors.textTertiary },
+
+  // Exercise actions row
+  exerciseActions: { flexDirection: 'row', gap: 8, marginTop: 8, flexWrap: 'wrap' },
+
+  // Form check button
+  formCheckButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  formCheckButtonText: { fontSize: 12, fontWeight: '500', color: colors.blue },
 
   // Muscle chips
   muscleChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 8 },
