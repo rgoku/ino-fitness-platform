@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import CameraAnalysis, { EngineState } from '../../../../../../ino-engine/web-overlay/CameraAnalysis';
+import CameraAnalysis, { EngineState } from '@/components/exercise-engine/CameraAnalysis';
 
 export default function ExerciseAnalysisPage() {
   const [summary, setSummary] = useState<EngineState | null>(null);
