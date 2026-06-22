@@ -621,6 +621,108 @@ async def start_session(user_id: str = "default", exercise: str = "Barbell Curl"
 # POST /end-session
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# POST /analyze-frame — image-based pose detection (mobile-friendly)
+# ---------------------------------------------------------------------------
+
+import base64
+import io
+
+class AnalyzeFrameRequest(BaseModel):
+    """Request body: a single base64-encoded JPEG/PNG from the mobile camera."""
+    image_base64: str
+    exercise: str = "Barbell Curl"
+    user_id: str = "default"
+    session_id: Optional[str] = None
+
+
+# Lazy-init MediaPipe Pose (heavy import, share one instance across requests)
+_mp_pose_instance = None
+
+
+def _get_mp_pose():
+    global _mp_pose_instance
+    if _mp_pose_instance is None:
+        try:
+            from mediapipe import solutions as mp_solutions
+            _mp_pose_instance = mp_solutions.pose.Pose(
+                static_image_mode=False,
+                model_complexity=1,           # 1 is fast enough on server
+                smooth_landmarks=True,
+                min_detection_confidence=0.6,
+                min_tracking_confidence=0.5,
+            )
+        except Exception as exc:
+            logger.warning("MediaPipe Pose unavailable: %s", exc)
+            _mp_pose_instance = False  # sentinel so we don't retry
+    return _mp_pose_instance if _mp_pose_instance is not False else None
+
+
+@router.post("/analyze-frame", response_model=AnalyzeResponse)
+async def analyze_frame_image(req: AnalyzeFrameRequest):
+    """Server-side pose detection from a single camera frame.
+
+    The mobile client sends a base64-encoded JPEG; we run MediaPipe Pose,
+    extract 33 landmarks, then hand off to the regular /analyze pipeline.
+    Lets the mobile app skip native pose-detection deps entirely.
+    """
+    pose = _get_mp_pose()
+    if pose is None:
+        return AnalyzeResponse(cue="Pose engine unavailable on server")
+
+    # Decode the image. We import OpenCV + NumPy lazily so other endpoints
+    # don't pay the import cost.
+    try:
+        import cv2
+        import numpy as np
+        raw_b64 = req.image_base64.split(",", 1)[-1]   # strip data: prefix if present
+        img_bytes = base64.b64decode(raw_b64)
+        img_array = np.frombuffer(img_bytes, dtype=np.uint8)
+        bgr = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+        if bgr is None:
+            return AnalyzeResponse(cue="Could not decode camera frame")
+        rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+        h, w = rgb.shape[:2]
+    except Exception as exc:
+        logger.warning("frame decode failed: %s", exc)
+        return AnalyzeResponse(cue="Frame decode error")
+
+    # Run pose detection
+    try:
+        results = pose.process(rgb)
+    except Exception as exc:
+        logger.warning("pose.process failed: %s", exc)
+        return AnalyzeResponse(cue="Pose detection failed")
+
+    if not results.pose_landmarks:
+        # No body detected — return a hint, keep session alive
+        session_key = f"{req.user_id}:{req.session_id or 'default'}"
+        result = AnalyzeResponse(cue="No body detected — step into frame")
+        _last_results[session_key] = result
+        return result
+
+    # Convert MediaPipe landmarks to our API shape, then reuse analyze_frame
+    landmarks = [
+        PoseLandmark(
+            x=float(lm.x),
+            y=float(lm.y),
+            z=float(lm.z),
+            visibility=float(lm.visibility),
+        )
+        for lm in results.pose_landmarks.landmark
+    ]
+    return await analyze_frame(
+        AnalyzeRequest(
+            landmarks=landmarks,
+            exercise=req.exercise,
+            user_id=req.user_id,
+            session_id=req.session_id,
+            frame_width=w,
+            frame_height=h,
+        )
+    )
+
+
 @router.post("/end-session")
 async def end_session(user_id: str = "default", session_id: str = "default"):
     """End session and return summary."""

@@ -10,6 +10,7 @@ import {
   StatusBar,
   Easing,
 } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
 // ---------------------------------------------------------------------------
 // Theme — Midnight Athlete
@@ -183,6 +184,8 @@ export default function ExerciseCamera({
   const [elapsed, setElapsed] = useState(0);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(externalSessionId ?? null);
   const [isOffline, setIsOffline] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef<CameraView | null>(null);
 
   // --- animated values -----------------------------------------------------
   const repFlashLeft = useRef(new Animated.Value(0)).current;
@@ -253,6 +256,50 @@ export default function ExerciseCamera({
 
     return () => clearInterval(interval);
   }, [isActive, API_BASE, activeSessionId, isOffline]);
+
+  // --- frame capture loop (2 Hz) -------------------------------------------
+  // Snaps the live camera every 500 ms and ships it to /engine/analyze-frame.
+  // The backend runs MediaPipe pose detection server-side and updates the
+  // session state read by the polling loop above.
+  useEffect(() => {
+    if (!isActive || !activeSessionId || isOffline || !permission?.granted) return;
+
+    let cancelled = false;
+    let inFlight = false;
+
+    const captureInterval = setInterval(async () => {
+      if (cancelled || inFlight || !cameraRef.current) return;
+      inFlight = true;
+      try {
+        const photo = await cameraRef.current.takePictureAsync({
+          base64: true,
+          quality: 0.35,           // small payload → low latency
+          skipProcessing: true,
+          shutterSound: false,
+        });
+        if (cancelled || !photo?.base64) return;
+        await fetch(`${API_BASE}/api/v1/engine/analyze-frame`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image_base64: photo.base64,
+            exercise: exerciseName,
+            user_id: userId,
+            session_id: activeSessionId,
+          }),
+        });
+      } catch {
+        // Best-effort — drop this frame, try again on the next tick
+      } finally {
+        inFlight = false;
+      }
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      clearInterval(captureInterval);
+    };
+  }, [isActive, activeSessionId, isOffline, permission?.granted, API_BASE, exerciseName, userId]);
 
   // --- session timer -------------------------------------------------------
   useEffect(() => {
@@ -393,13 +440,39 @@ export default function ExerciseCamera({
       {/* Camera placeholder — swap with <CameraView> in production     */}
       {/* ============================================================ */}
       <View style={styles.cameraPreview}>
-        <View style={styles.cameraPlaceholder}>
-          <Text style={styles.cameraPlaceholderIcon}>{'{ }'}</Text>
-          <Text style={styles.cameraPlaceholderText}>Camera Feed</Text>
-          <Text style={styles.cameraPlaceholderSub}>
-            {isOffline ? 'Offline mode — using mock analysis' : `Connected to ${API_BASE}`}
-          </Text>
-        </View>
+        {permission?.granted ? (
+          <CameraView
+            ref={cameraRef}
+            style={StyleSheet.absoluteFill}
+            facing="front"
+            mute
+            mode="picture"
+            animateShutter={false}
+          />
+        ) : (
+          <View style={styles.cameraPlaceholder}>
+            <Text style={styles.cameraPlaceholderIcon}>{'{ }'}</Text>
+            <Text style={styles.cameraPlaceholderText}>
+              {permission ? 'Camera access required' : 'Initializing camera…'}
+            </Text>
+            <Text style={styles.cameraPlaceholderSub}>
+              {permission && !permission.granted
+                ? 'Tap below to grant camera access for live form analysis.'
+                : isOffline
+                ? 'Offline mode — using mock analysis'
+                : `Connected to ${API_BASE}`}
+            </Text>
+            {permission && !permission.granted && (
+              <TouchableOpacity
+                onPress={requestPermission}
+                style={styles.permissionCta}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.permissionCtaText}>Grant camera access</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
 
         {/* ---- Injury warning banner (slides in from top) ---------- */}
         {engine?.injury_worst && (
@@ -683,6 +756,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: C.textMuted,
     marginTop: 4,
+    paddingHorizontal: 24,
+    textAlign: 'center',
+  },
+  permissionCta: {
+    marginTop: 18,
+    paddingVertical: 11,
+    paddingHorizontal: 22,
+    backgroundColor: C.accent,
+    borderRadius: 10,
+  },
+  permissionCtaText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
 
   // Injury banner
