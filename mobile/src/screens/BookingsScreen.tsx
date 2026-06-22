@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { VideoIcon, DumbbellIcon } from '../components/icons';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -103,11 +104,15 @@ function StatusBadge({ status }: { status: 'confirmed' | 'pending' }) {
 }
 
 function ModeBadge({ mode }: { mode: 'video' | 'in-person' }) {
+  const isVideo = mode === 'video';
   return (
     <View style={styles.modeBadge}>
-      <Text style={styles.modeBadgeText}>
-        {mode === 'video' ? '📹 Video Call' : '🏋️ In-Person'}
-      </Text>
+      {isVideo ? (
+        <VideoIcon color="#94A3B8" size={13} strokeWidth={2} />
+      ) : (
+        <DumbbellIcon color="#94A3B8" size={13} strokeWidth={2} />
+      )}
+      <Text style={styles.modeBadgeText}>{isVideo ? 'Video Call' : 'In-Person'}</Text>
     </View>
   );
 }
@@ -336,6 +341,9 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 8,
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
   modeBadgeText: {
     fontSize: 12,

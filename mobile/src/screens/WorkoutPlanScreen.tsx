@@ -10,6 +10,7 @@ import {
 import { WorkoutPlan, Exercise } from '../types';
 import { apiService } from '../services/apiService';
 import * as offlineCache from '../services/offlineCache';
+import { DumbbellIcon } from '../components/icons';
 
 const colors = {
   bg: '#FAFAFA',
@@ -130,7 +131,7 @@ const WorkoutPlanScreen = React.memo(({ navigation }: any) => {
     return (
       <View style={[styles.container, styles.emptyState]}>
         <View style={styles.emptyIcon}>
-          <Text style={{ fontSize: 32 }}>💪</Text>
+          <DumbbellIcon color="#10B981" size={36} strokeWidth={2} />
         </View>
         <Text style={styles.emptyTitle}>No workout plan</Text>
         <Text style={styles.emptyDesc}>Ask your coach to assign a plan, or generate one with AI.</Text>

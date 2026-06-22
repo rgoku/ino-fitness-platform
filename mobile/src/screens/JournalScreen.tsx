@@ -9,6 +9,15 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import {
+  MoodSadIcon,
+  MoodMehIcon,
+  MoodNeutralIcon,
+  MoodHappyIcon,
+  FlameIcon,
+  CheckCircleIcon,
+  type IconProps,
+} from '../components/icons';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -38,7 +47,13 @@ interface JournalData {
 
 // ─── Mood Selector ──────────────────────────────────────────────────────────
 
-const moods = ['😫', '😕', '😐', '😊', '🔥'];
+const moods: Array<{ Icon: React.ComponentType<IconProps>; color: string }> = [
+  { Icon: MoodSadIcon,     color: '#EF4444' },
+  { Icon: MoodMehIcon,     color: '#F59E0B' },
+  { Icon: MoodNeutralIcon, color: '#94A3B8' },
+  { Icon: MoodHappyIcon,   color: '#10B981' },
+  { Icon: FlameIcon,       color: '#F97316' },
+];
 
 const MoodSelector = ({
   selected,
@@ -48,7 +63,7 @@ const MoodSelector = ({
   onSelect: (index: number) => void;
 }) => (
   <View style={styles.moodRow}>
-    {moods.map((emoji, index) => (
+    {moods.map(({ Icon, color }, index) => (
       <TouchableOpacity
         key={index}
         style={[
@@ -57,7 +72,7 @@ const MoodSelector = ({
         ]}
         onPress={() => onSelect(index)}
       >
-        <Text style={styles.moodEmoji}>{emoji}</Text>
+        <Icon color={color} size={28} strokeWidth={2} />
       </TouchableOpacity>
     ))}
   </View>
@@ -143,7 +158,9 @@ export default function JournalScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.successContainer}>
-          <Text style={styles.successIcon}>✓</Text>
+          <View style={styles.successIconWrap}>
+            <CheckCircleIcon color="#10B981" size={56} strokeWidth={1.8} />
+          </View>
           <Text style={styles.successTitle}>Journal saved for today</Text>
         </View>
       </View>
@@ -452,9 +469,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 40,
   },
-  successIcon: {
-    fontSize: 64,
-    color: colors.brandBlue,
+  successIconWrap: {
     marginBottom: 20,
   },
   successTitle: {

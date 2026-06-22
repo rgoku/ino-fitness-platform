@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { CheckIcon, CameraIcon, CheckCircleIcon } from '../components/icons';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -97,9 +98,13 @@ const PhotoBox = ({
     onPress={onPress}
   >
     {selected ? (
-      <Text style={styles.photoCheckmark}>✓</Text>
+      <View style={styles.photoIconWrap}>
+        <CheckIcon color="#10B981" size={28} strokeWidth={3} />
+      </View>
     ) : (
-      <Text style={styles.cameraIcon}>📷</Text>
+      <View style={styles.photoIconWrap}>
+        <CameraIcon color="#94A3B8" size={32} strokeWidth={1.8} />
+      </View>
     )}
     <Text style={styles.photoLabel}>{label}</Text>
     <Text style={styles.photoHint}>
@@ -142,7 +147,9 @@ export default function CheckInScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.successContainer}>
-          <Text style={styles.successIcon}>✓</Text>
+          <View style={{ marginBottom: 16 }}>
+            <CheckCircleIcon color="#10B981" size={56} strokeWidth={1.8} />
+          </View>
           <Text style={styles.successTitle}>Check-in submitted!</Text>
           <Text style={styles.successSubtitle}>
             Your coach will review it soon.
@@ -335,13 +342,7 @@ const styles = StyleSheet.create({
     borderColor: colors.brandBlue,
     borderStyle: 'solid',
   },
-  cameraIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  photoCheckmark: {
-    fontSize: 32,
-    color: colors.brandBlue,
+  photoIconWrap: {
     marginBottom: 8,
   },
   photoLabel: {

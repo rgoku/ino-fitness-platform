@@ -11,6 +11,7 @@ import { DietPlan, Meal } from '../types';
 import { apiService } from '../services/apiService';
 import * as offlineCache from '../services/offlineCache';
 import { offlineQueue } from '../services/offlineQueue';
+import { ShoppingCartIcon } from '../components/icons';
 
 const MealCard = React.memo(({ item, onSwapMeal }: { item: Meal; onSwapMeal?: (mealId: string, alternativeId: string) => void }) => {
   const handleSwap = onSwapMeal && item.alternativeMeals?.[0]
@@ -172,7 +173,8 @@ const DietPlanScreen = React.memo(() => {
       <View style={styles.header}>
         <Text style={styles.title}>Diet Plan</Text>
         <TouchableOpacity style={styles.groceryButton} onPress={generateGroceryList}>
-          <Text style={styles.groceryButtonText}>🛒 Grocery List</Text>
+          <ShoppingCartIcon color="#FFFFFF" size={16} />
+          <Text style={styles.groceryButtonText}>Grocery List</Text>
         </TouchableOpacity>
       </View>
 
@@ -236,10 +238,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   groceryButton: {
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
+    backgroundColor: '#10B981',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
   },
   groceryButtonText: {
     color: '#FFFFFF',

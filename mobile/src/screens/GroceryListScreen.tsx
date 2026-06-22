@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { CheckIcon } from '../components/icons';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -185,7 +186,7 @@ export default function GroceryListScreen() {
                   >
                     {/* Checkbox */}
                     <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
-                      {isChecked && <Text style={styles.checkmark}>{'✓'}</Text>}
+                      {isChecked && <CheckIcon color="#FFFFFF" size={14} strokeWidth={3} />}
                     </View>
                     {/* Item Text */}
                     <Text

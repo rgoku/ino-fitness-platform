@@ -9,6 +9,7 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SparklesIcon } from '../components/icons';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -204,7 +205,8 @@ export default function AIAssistantScreen() {
     <SafeAreaView style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>✨ AI Assistant</Text>
+        <SparklesIcon color="#10B981" size={22} strokeWidth={1.8} />
+        <Text style={styles.headerTitle}>AI Assistant</Text>
       </View>
 
       {/* Quick Chips */}
@@ -288,6 +290,9 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   headerTitle: {
     fontSize: 28,

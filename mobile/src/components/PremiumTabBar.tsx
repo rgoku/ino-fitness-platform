@@ -5,8 +5,15 @@
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import Svg, { Path, Circle } from 'react-native-svg';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import {
+  HomeIcon,
+  UtensilsIcon,
+  DumbbellIcon,
+  ChartIcon,
+  UserIcon,
+  type IconProps,
+} from './icons';
 
 // ─── Theme tokens (matches Home cards) ───────────────────────────────────────
 const TAB_COLORS = {
@@ -18,69 +25,6 @@ const TAB_COLORS = {
   inactive: '#64748B',
   inactiveText: '#94A3B8',
 };
-
-// ─── Lucide-style SVG icons ─────────────────────────────────────────────────
-type IconProps = { color: string; size?: number };
-
-const HomeIcon = ({ color, size = 22 }: IconProps) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7H10v7H4a1 1 0 0 1-1-1V9.5Z"
-      stroke={color}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const UtensilsIcon = ({ color, size = 22 }: IconProps) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M3 2v7a3 3 0 0 0 3 3h0V2M6 12v10M10 2v6a2 2 0 0 1-2 2M17 2c-2 0-4 3-4 6s2 4 4 4v10"
-      stroke={color}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const DumbbellIcon = ({ color, size = 22 }: IconProps) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M6.5 6.5 17.5 17.5M4 16l4 4M16 4l4 4M2.5 13.5 5 16M19 8l2.5 2.5M7 21l2-2M15 5l2-2"
-      stroke={color}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const ChartIcon = ({ color, size = 22 }: IconProps) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M3 3v18h18M7 14l4-4 4 4 5-5"
-      stroke={color}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const UserIcon = ({ color, size = 22 }: IconProps) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Circle cx={12} cy={8} r={4} stroke={color} strokeWidth={1.8} />
-    <Path
-      d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"
-      stroke={color}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-    />
-  </Svg>
-);
 
 const ICONS: Record<string, React.ComponentType<IconProps>> = {
   Home: HomeIcon,

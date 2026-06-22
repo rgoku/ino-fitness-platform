@@ -12,6 +12,12 @@ import {
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useAuth } from '../context/AuthContext';
 import { workoutService } from '../services/workoutService';
+import {
+  CheckCircleIcon,
+  PinIcon,
+  LightbulbIcon,
+  AlertTriangleIcon,
+} from '../components/icons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -158,7 +164,10 @@ export default function FormCheckScreen({ navigation, route }: any) {
         {/* Strengths */}
         {feedback.strengths && feedback.strengths.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>✅ Strengths</Text>
+            <View style={styles.sectionHeader}>
+              <CheckCircleIcon color="#10B981" size={18} />
+              <Text style={styles.sectionTitle}>Strengths</Text>
+            </View>
             {feedback.strengths.map((strength: string, idx: number) => (
               <View key={idx} style={styles.point}>
                 <Text style={styles.pointBullet}>•</Text>
@@ -171,7 +180,10 @@ export default function FormCheckScreen({ navigation, route }: any) {
         {/* Areas for Improvement */}
         {feedback.improvements && feedback.improvements.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📌 Areas to Improve</Text>
+            <View style={styles.sectionHeader}>
+              <PinIcon color="#3B82F6" size={18} />
+              <Text style={styles.sectionTitle}>Areas to Improve</Text>
+            </View>
             {feedback.improvements.map((improvement: string, idx: number) => (
               <View key={idx} style={styles.point}>
                 <Text style={styles.pointBullet}>•</Text>
@@ -184,7 +196,10 @@ export default function FormCheckScreen({ navigation, route }: any) {
         {/* Recommendations */}
         {feedback.recommendations && feedback.recommendations.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>💡 Recommendations</Text>
+            <View style={styles.sectionHeader}>
+              <LightbulbIcon color="#FBBF24" size={18} />
+              <Text style={styles.sectionTitle}>Recommendations</Text>
+            </View>
             {feedback.recommendations.map((rec: string, idx: number) => (
               <View key={idx} style={styles.point}>
                 <Text style={styles.pointBullet}>•</Text>
@@ -197,7 +212,10 @@ export default function FormCheckScreen({ navigation, route }: any) {
         {/* Warnings */}
         {feedback.warnings && feedback.warnings.length > 0 && (
           <View style={[styles.section, styles.warningSection]}>
-            <Text style={styles.sectionTitle}>⚠️ Warnings</Text>
+            <View style={styles.sectionHeader}>
+              <AlertTriangleIcon color="#F59E0B" size={18} />
+              <Text style={styles.sectionTitle}>Warnings</Text>
+            </View>
             {feedback.warnings.map((warning: string, idx: number) => (
               <View key={idx} style={styles.point}>
                 <Text style={styles.pointBullet}>•</Text>
@@ -437,11 +455,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 24,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
   sectionTitle: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 12,
+    letterSpacing: -0.1,
   },
   point: {
     flexDirection: 'row',

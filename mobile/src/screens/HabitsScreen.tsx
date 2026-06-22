@@ -6,6 +6,17 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import {
+  DropletIcon,
+  FootprintsIcon,
+  MoonIcon,
+  BeefIcon,
+  PillIcon,
+  LeafIcon,
+  FlameIcon,
+  CheckIcon,
+  type IconProps,
+} from '../components/icons';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -23,13 +34,25 @@ const colors = {
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
+type HabitIconKey = 'water' | 'steps' | 'sleep' | 'protein' | 'supplements' | 'stretch';
+
 interface Habit {
   id: string;
   name: string;
-  icon: string;
+  iconKey: HabitIconKey;
+  iconColor: string;
   completed: boolean;
   streak: number;
 }
+
+const HABIT_ICONS: Record<HabitIconKey, React.ComponentType<IconProps>> = {
+  water: DropletIcon,
+  steps: FootprintsIcon,
+  sleep: MoonIcon,
+  protein: BeefIcon,
+  supplements: PillIcon,
+  stretch: LeafIcon,
+};
 
 interface DayStatus {
   day: string;
@@ -39,12 +62,12 @@ interface DayStatus {
 // ─── Mock Data ──────────────────────────────────────────────────────────────
 
 const initialHabits: Habit[] = [
-  { id: '1', name: 'Drink 3L water', icon: '💧', completed: true, streak: 12 },
-  { id: '2', name: '10,000 steps', icon: '🚶', completed: true, streak: 5 },
-  { id: '3', name: '8h sleep', icon: '😴', completed: false, streak: 3 },
-  { id: '4', name: 'Hit protein goal', icon: '🥩', completed: true, streak: 8 },
-  { id: '5', name: 'Take supplements', icon: '💊', completed: true, streak: 21 },
-  { id: '6', name: 'Stretch 10min', icon: '🧘', completed: false, streak: 0 },
+  { id: '1', name: 'Drink 3L water', iconKey: 'water', iconColor: '#3B82F6', completed: true, streak: 12 },
+  { id: '2', name: '10,000 steps', iconKey: 'steps', iconColor: '#10B981', completed: true, streak: 5 },
+  { id: '3', name: '8h sleep', iconKey: 'sleep', iconColor: '#8B5CF6', completed: false, streak: 3 },
+  { id: '4', name: 'Hit protein goal', iconKey: 'protein', iconColor: '#EF4444', completed: true, streak: 8 },
+  { id: '5', name: 'Take supplements', iconKey: 'supplements', iconColor: '#F97316', completed: true, streak: 21 },
+  { id: '6', name: 'Stretch 10min', iconKey: 'stretch', iconColor: '#22C55E', completed: false, streak: 0 },
 ];
 
 const weeklyOverview: DayStatus[] = [
@@ -61,11 +84,11 @@ const weeklyOverview: DayStatus[] = [
 
 function getMotivationalText(completed: number, total: number): string {
   const pct = completed / total;
-  if (pct === 1) return 'Perfect day! You crushed every habit. 🔥';
-  if (pct >= 0.75) return 'Almost there! Just a few more to go. 💪';
-  if (pct >= 0.5) return 'Solid progress. Keep pushing! 🚀';
-  if (pct > 0) return 'Good start. Every habit counts! ⭐';
-  return 'New day, new opportunity. Let\'s go! 🌅';
+  if (pct === 1) return 'Perfect day. You crushed every habit.';
+  if (pct >= 0.75) return 'Almost there. Just a few more to go.';
+  if (pct >= 0.5) return 'Solid progress. Keep pushing.';
+  if (pct > 0) return 'Good start. Every habit counts.';
+  return "New day, new opportunity. Let's go.";
 }
 
 function getTodayFormatted(): string {
@@ -145,8 +168,15 @@ function HabitCard({
           ]}
           onPress={() => onToggle(habit.id)}
         >
-          {habit.completed && <Text style={styles.checkmark}>✓</Text>}
+          {habit.completed && <CheckIcon color="#FFFFFF" size={14} strokeWidth={3} />}
         </TouchableOpacity>
+        <View style={[styles.habitIcon, { backgroundColor: `${habit.iconColor}1A` }]}>
+          {React.createElement(HABIT_ICONS[habit.iconKey], {
+            color: habit.iconColor,
+            size: 18,
+            strokeWidth: 2,
+          })}
+        </View>
         <View style={styles.habitInfo}>
           <Text
             style={[
@@ -154,14 +184,15 @@ function HabitCard({
               habit.completed && styles.habitNameCompleted,
             ]}
           >
-            {habit.name} {habit.icon}
+            {habit.name}
           </Text>
         </View>
       </View>
       <View style={styles.habitRight}>
         {habit.streak > 0 && (
           <View style={styles.streakBadge}>
-            <Text style={styles.streakText}>🔥 {habit.streak} day streak</Text>
+            <FlameIcon color="#F97316" size={12} />
+            <Text style={styles.streakText}>{habit.streak} day streak</Text>
           </View>
         )}
       </View>
@@ -384,6 +415,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
+  habitIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
   habitInfo: {
     flex: 1,
   },
@@ -403,6 +442,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   streakText: {
     fontSize: 12,

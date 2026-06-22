@@ -8,6 +8,13 @@ import {
   Alert,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import {
+  EditIcon,
+  CreditCardIcon,
+  SettingsIcon,
+  HelpIcon,
+  FileTextIcon,
+} from '../components/icons';
 
 const ProfileScreen = React.memo(() => {
   const { user, logout } = useAuth();
@@ -46,19 +53,24 @@ const ProfileScreen = React.memo(() => {
 
       <View style={styles.section}>
         <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>📊 Edit Profile</Text>
+          <EditIcon color="#10B981" size={20} />
+          <Text style={styles.menuItemText}>Edit Profile</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={handleManageSubscription}>
-          <Text style={styles.menuItemText}>💳 Subscription</Text>
+          <CreditCardIcon color="#3B82F6" size={20} />
+          <Text style={styles.menuItemText}>Subscription</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>⚙️ Settings</Text>
+          <SettingsIcon color="#94A3B8" size={20} />
+          <Text style={styles.menuItemText}>Settings</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>📚 Help & Support</Text>
+          <HelpIcon color="#8B5CF6" size={20} />
+          <Text style={styles.menuItemText}>Help & Support</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>📄 Terms & Privacy</Text>
+          <FileTextIcon color="#94A3B8" size={20} />
+          <Text style={styles.menuItemText}>Terms & Privacy</Text>
         </TouchableOpacity>
       </View>
 
@@ -125,12 +137,17 @@ const styles = StyleSheet.create({
   },
   menuItem: {
     padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#0A0F1E',
   },
   menuItemText: {
     fontSize: 16,
     color: '#FFFFFF',
+    fontWeight: '500',
+    letterSpacing: -0.1,
   },
   logoutButton: {
     backgroundColor: '#EF4444',

@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { CrownIcon } from '../components/icons';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -166,7 +167,9 @@ function PodiumSection({
 
       {/* 1st place */}
       <View style={[styles.podiumCard, styles.podiumFirst]}>
-        <Text style={styles.crownEmoji}>👑</Text>
+        <View style={styles.crownEmoji}>
+          <CrownIcon color="#FBBF24" size={28} strokeWidth={2} />
+        </View>
         <View style={[styles.podiumAvatarLarge, { backgroundColor: first.avatarColor }]}>
           <Text style={styles.podiumInitialsLarge}>{first.initials}</Text>
         </View>

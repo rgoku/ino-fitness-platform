@@ -14,6 +14,7 @@ import { apiService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
 import * as offlineCache from '../services/offlineCache';
 import { offlineQueue } from '../services/offlineQueue';
+import { PartyIcon, CheckIcon, VideoIcon } from '../components/icons';
 
 const WorkoutSessionScreen = ({ route, navigation }: any) => {
   const { workoutPlanId } = route.params || {};
@@ -168,7 +169,9 @@ const WorkoutSessionScreen = ({ route, navigation }: any) => {
     return (
       <View style={styles.container}>
         <View style={styles.completedContainer}>
-          <Text style={styles.completedIcon}>🎉</Text>
+          <View style={{ marginBottom: 16 }}>
+            <PartyIcon color="#FBBF24" size={64} strokeWidth={1.5} />
+          </View>
           <Text style={styles.completedTitle}>Workout Complete!</Text>
           <TouchableOpacity
             style={styles.button}
@@ -264,9 +267,11 @@ const WorkoutSessionScreen = ({ route, navigation }: any) => {
                         updateExerciseSession(currentExercise.id, sets);
                       }}
                     >
-                      <Text style={styles.checkButtonText}>
-                        {set?.completed ? '✓' : '○'}
-                      </Text>
+                      {set?.completed ? (
+                        <CheckIcon color="#10B981" size={18} strokeWidth={3} />
+                      ) : (
+                        <View style={styles.emptyCircle} />
+                      )}
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -279,7 +284,8 @@ const WorkoutSessionScreen = ({ route, navigation }: any) => {
           style={styles.formCheckButton}
           onPress={() => navigation.navigate('FormCheck', { exerciseName: currentExercise?.name })}
         >
-          <Text style={styles.formCheckButtonText}>📹 Form Check</Text>
+          <VideoIcon color="#10B981" size={18} />
+          <Text style={styles.formCheckButtonText}>Form Check</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -427,11 +433,21 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#FFFFFF',
   },
+  emptyCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: '#64748B',
+  },
   formCheckButton: {
     backgroundColor: '#1C1C1E',
     padding: 15,
     borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     marginBottom: 20,
   },
   formCheckButtonText: {

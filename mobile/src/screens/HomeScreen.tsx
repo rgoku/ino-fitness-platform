@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import Svg, { Circle, Path, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+import { FlameIcon } from '../components/icons';
 import { useAuth } from '../context/AuthContext';
 import { DailyMacros, Streak, Trophy } from '../types';
 import { apiService } from '../services/apiService';
@@ -242,7 +243,7 @@ const WorkoutCTA = React.memo(({ onPress }: { onPress: () => void }) => (
 const StreakBanner = React.memo(({ streak }: { streak: Streak }) => (
   <View style={styles.streakBanner}>
     <View style={styles.streakIcon}>
-      <Text style={{ fontSize: 20 }}>🔥</Text>
+      <FlameIcon color="#F97316" size={22} />
     </View>
     <View style={{ flex: 1 }}>
       <Text style={styles.streakValue}>{streak.currentStreak} day streak</Text>

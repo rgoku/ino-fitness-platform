@@ -13,6 +13,7 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { FoodDetectionResult } from '../types';
 import { apiService } from '../services/apiService';
+import { CameraIcon } from '../components/icons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -105,7 +106,7 @@ const FoodPhotoScreen = () => {
     return (
       <View style={[styles.container, styles.centered]}>
         <View style={styles.permissionIcon}>
-          <Text style={{ fontSize: 32 }}>📸</Text>
+          <CameraIcon color="#10B981" size={36} strokeWidth={1.8} />
         </View>
         <Text style={styles.permissionTitle}>Camera Access</Text>
         <Text style={styles.permissionDesc}>

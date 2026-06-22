@@ -14,6 +14,7 @@ import { useAuth } from '../context/AuthContext';
 import * as offlineCache from '../services/offlineCache';
 import type { ProgressStatsCache } from '../services/offlineCache';
 import { MuscleHeatmapPro } from '../components/body-analysis/MuscleHeatmapPro';
+import { FlameIcon } from '../components/icons';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -140,7 +141,7 @@ const ProgressScreen = React.memo(() => {
       {streak && (
         <View style={styles.streakCard}>
           <View style={styles.streakIconContainer}>
-            <Text style={{ fontSize: 24 }}>🔥</Text>
+            <FlameIcon color="#F97316" size={26} />
           </View>
           <Text style={styles.streakNumber}>{streak.currentStreak}</Text>
           <Text style={styles.streakLabel}>Day Streak</Text>

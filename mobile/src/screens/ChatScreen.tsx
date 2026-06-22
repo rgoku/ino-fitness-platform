@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Message } from '../types';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
+import { BotIcon, CoachIcon } from '../components/icons';
 
 const MessageItem = React.memo(({ item }: { item: Message }) => {
   const isUser = item.senderType === 'user';
@@ -33,9 +34,14 @@ const MessageItem = React.memo(({ item }: { item: Message }) => {
         ]}
       >
         {!isUser && (
-          <Text style={styles.senderLabel}>
-            {isAI ? '🤖 AI Coach' : '👨‍💼 Coach'}
-          </Text>
+          <View style={styles.senderRow}>
+            {isAI ? (
+              <BotIcon color="#10B981" size={14} strokeWidth={2.2} />
+            ) : (
+              <CoachIcon color="#3B82F6" size={14} strokeWidth={2.2} />
+            )}
+            <Text style={styles.senderLabel}>{isAI ? 'AI Coach' : 'Coach'}</Text>
+          </View>
         )}
         <Text
           style={[
@@ -260,6 +266,12 @@ const styles = StyleSheet.create({
   aiMessage: {
     borderLeftWidth: 3,
     borderLeftColor: '#2563EB',
+  },
+  senderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 4,
   },
   senderLabel: {
     fontSize: 12,
