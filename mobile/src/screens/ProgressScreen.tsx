@@ -14,6 +14,7 @@ import { useAuth } from '../context/AuthContext';
 import * as offlineCache from '../services/offlineCache';
 import type { ProgressStatsCache } from '../services/offlineCache';
 import { MuscleHeatmapPro } from '../components/body-analysis/MuscleHeatmapPro';
+import type { MuscleSlug, BodyView } from '../components/body-analysis/core';
 import { FlameIcon } from '../components/icons';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -63,6 +64,10 @@ const ProgressScreen = React.memo(() => {
   const [trophies, setTrophies] = useState<Trophy[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
+  // Persisted body-diagram state — survives tab focus changes so the user's
+  // muscle selection stays where they put it.
+  const [selectedMuscle, setSelectedMuscle] = useState<MuscleSlug>('quadriceps');
+  const [bodyView, setBodyView] = useState<BodyView>('front');
 
   const loadProgressData = useCallback(async (fromCacheOnly = false) => {
     if (!user?.id) return;
@@ -183,6 +188,10 @@ const ProgressScreen = React.memo(() => {
       {/* Muscle Heatmap Pro */}
       <View style={styles.section}>
         <MuscleHeatmapPro
+          selectedMuscle={selectedMuscle}
+          onSelectMuscle={setSelectedMuscle}
+          view={bodyView}
+          onChangeView={setBodyView}
           thisWeek={{
             chest: 12, 'upper-back': 9, 'lower-back': 4,
             deltoids: 7, biceps: 5, triceps: 5,

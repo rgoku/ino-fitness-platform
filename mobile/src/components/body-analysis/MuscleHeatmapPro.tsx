@@ -2,7 +2,7 @@
  * Premium muscle heatmap with inspector panel (React Native).
  * Anatomy paths: react-native-body-highlighter (MIT © Hicham ELABBASSI)
  */
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import {
@@ -39,15 +39,86 @@ function colorFor(value: number | undefined): string {
   return RED_SCALE[RED_SCALE.length - 1].color;
 }
 
+/**
+ * Cheap-but-effective SVG path bounding box.
+ * Walks the `d` string for numeric pairs, returns the min/max of each.
+ * Doesn't honor arc/curve control points exactly — but for hit-testing
+ * a tap against a muscle, the bbox of the *vertices* is plenty accurate
+ * because the body anatomy paths are dense polylines.
+ */
+const _BBOX_CACHE = new Map<string, { minX: number; maxX: number; minY: number; maxY: number }>();
+function muscleBBox(paths: string[]): { minX: number; maxX: number; minY: number; maxY: number } | null {
+  const key = paths.join('|');
+  const cached = _BBOX_CACHE.get(key);
+  if (cached) return cached;
+
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  let any = false;
+  for (const d of paths) {
+    // Pull all signed numeric tokens out of the path string.
+    const nums = d.match(/-?\d+(\.\d+)?/g);
+    if (!nums) continue;
+    for (let i = 0; i + 1 < nums.length; i += 2) {
+      const x = parseFloat(nums[i]);
+      const y = parseFloat(nums[i + 1]);
+      if (Number.isFinite(x) && Number.isFinite(y)) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+        any = true;
+      }
+    }
+  }
+  if (!any) return null;
+  const box = { minX, maxX, minY, maxY };
+  _BBOX_CACHE.set(key, box);
+  return box;
+}
+
 interface Props {
   thisWeek: MuscleVolume;
   lastWeek: MuscleVolume;
+  /** Controlled selection (overrides internal state if provided). */
+  selectedMuscle?: MuscleSlug;
+  onSelectMuscle?: (slug: MuscleSlug) => void;
+  /** Controlled body view (overrides internal state if provided). */
+  view?: BodyView;
+  onChangeView?: (v: BodyView) => void;
 }
 
-export function MuscleHeatmapPro({ thisWeek, lastWeek }: Props) {
-  const [view, setView] = useState<BodyView>('front');
-  const [selected, setSelected] = useState<MuscleSlug>('quadriceps');
+export function MuscleHeatmapPro({
+  thisWeek,
+  lastWeek,
+  selectedMuscle,
+  onSelectMuscle,
+  view: controlledView,
+  onChangeView,
+}: Props) {
+  // Controlled / uncontrolled hybrid — parent can persist selection across
+  // tab focus by passing selectedMuscle + onSelectMuscle.
+  const [internalView, setInternalView] = useState<BodyView>('front');
+  const [internalSelected, setInternalSelected] = useState<MuscleSlug>('quadriceps');
   const [working, setWorking] = useState<MuscleVolume>(thisWeek);
+
+  const view = controlledView ?? internalView;
+  const selected = selectedMuscle ?? internalSelected;
+
+  const setView = useCallback(
+    (v: BodyView) => {
+      if (onChangeView) onChangeView(v);
+      else setInternalView(v);
+    },
+    [onChangeView],
+  );
+
+  const setSelected = useCallback(
+    (slug: MuscleSlug) => {
+      if (onSelectMuscle) onSelectMuscle(slug);
+      else setInternalSelected(slug);
+    },
+    [onSelectMuscle],
+  );
 
   useEffect(() => setWorking(thisWeek), [thisWeek]);
 
@@ -116,26 +187,68 @@ export function MuscleHeatmapPro({ thisWeek, lastWeek }: Props) {
           </View>
         </View>
 
-        {/* SVG body */}
+        {/* SVG body + overlay tap layer.
+            react-native-svg <Path onPress> is unreliable on Android
+            (especially inside a ScrollView, which captures gestures
+            first). We sidestep the SVG event system entirely: an
+            absolutely-positioned Pressable above the SVG receives all
+            taps, maps the touch into the SVG's viewBox coordinates,
+            then runs point-in-bounding-box hit detection against the
+            cached bboxes per muscle.
+
+            For a path collection P_i with vertices V, the bbox is
+            { minX, maxX, minY, maxY }. We pick the muscle whose bbox
+            contains the tap point AND has the smallest area (so the
+            chest doesn't swallow taps meant for the deltoids, etc.). */}
         <View style={styles.figure}>
-          <Svg width={svgWidth} height={svgHeight} viewBox={side.viewBox}>
-            <Path d={side.outline} fill={C.body} stroke={C.edge} strokeWidth={1.5} />
-            {side.muscles.map((m) => {
-              const slug = m.slug as MuscleSlug;
-              const isSelected = slug === selected;
-              const fill = colorFor(working[slug]);
-              return m.paths.map((d, i) => (
-                <Path
-                  key={`${m.slug}-${i}`}
-                  d={d}
-                  fill={fill}
-                  stroke={isSelected ? '#fff' : 'none'}
-                  strokeWidth={isSelected ? 4 : 0}
-                  onPress={() => setSelected(slug)}
-                />
-              ));
-            })}
-          </Svg>
+          <View style={{ width: svgWidth, height: svgHeight }}>
+            <Svg
+              width={svgWidth}
+              height={svgHeight}
+              viewBox={side.viewBox}
+              pointerEvents="none"
+            >
+              <Path d={side.outline} fill={C.body} stroke={C.edge} strokeWidth={1.5} />
+              {side.muscles.map((m) => {
+                const slug = m.slug as MuscleSlug;
+                const isSelected = slug === selected;
+                const fill = colorFor(working[slug]);
+                return m.paths.map((d, i) => (
+                  <Path
+                    key={`${m.slug}-${i}`}
+                    d={d}
+                    fill={fill}
+                    stroke={isSelected ? '#fff' : 'none'}
+                    strokeWidth={isSelected ? 3 : 0}
+                    strokeLinejoin="round"
+                  />
+                ));
+              })}
+            </Svg>
+
+            <Pressable
+              style={{ position: 'absolute', inset: 0 }}
+              onPress={(e) => {
+                const { locationX, locationY } = e.nativeEvent;
+                // Map screen-space tap → SVG viewBox space
+                const vx = vbX + (locationX / svgWidth) * vbW;
+                const vy = vbY + (locationY / svgHeight) * vbH;
+                let hit: MuscleSlug | null = null;
+                let hitArea = Infinity;
+                for (const m of side.muscles) {
+                  const bb = muscleBBox(m.paths);
+                  if (!bb) continue;
+                  if (vx < bb.minX || vx > bb.maxX || vy < bb.minY || vy > bb.maxY) continue;
+                  const area = (bb.maxX - bb.minX) * (bb.maxY - bb.minY);
+                  if (area < hitArea) {
+                    hitArea = area;
+                    hit = m.slug as MuscleSlug;
+                  }
+                }
+                if (hit) setSelected(hit);
+              }}
+            />
+          </View>
         </View>
 
         {/* Legend */}
