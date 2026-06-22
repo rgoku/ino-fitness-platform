@@ -11,7 +11,7 @@ import { DietPlan, Meal } from '../types';
 import { apiService } from '../services/apiService';
 import * as offlineCache from '../services/offlineCache';
 import { offlineQueue } from '../services/offlineQueue';
-import { ShoppingCartIcon } from '../components/icons';
+import { ShoppingCartIcon, UtensilsIcon } from '../components/icons';
 
 const MealCard = React.memo(({ item, onSwapMeal }: { item: Meal; onSwapMeal?: (mealId: string, alternativeId: string) => void }) => {
   const handleSwap = onSwapMeal && item.alternativeMeals?.[0]
@@ -148,15 +148,17 @@ const DietPlanScreen = React.memo(() => {
 
   if (!dietPlan) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.noPlanText}>
-          {noPlan
-            ? 'No diet plan assigned yet. Ask your coach to set one up!'
-            : 'No diet plan available'}
+      <View style={[styles.container, styles.emptyState]}>
+        <View style={styles.emptyIcon}>
+          <UtensilsIcon color="#10B981" size={36} strokeWidth={2} />
+        </View>
+        <Text style={styles.emptyTitle}>No diet plan yet</Text>
+        <Text style={styles.emptyDesc}>
+          Your coach hasn&apos;t set up a diet plan for you yet. As soon as they do, your meals, macros, and grocery list will land here.
         </Text>
-        <TouchableOpacity style={styles.generateButton}>
-          <Text style={styles.generateButtonText}>Generate AI Plan</Text>
-        </TouchableOpacity>
+        <View style={styles.emptyHintBadge}>
+          <Text style={styles.emptyHintText}>Waiting for coach</Text>
+        </View>
       </View>
     );
   }
@@ -330,22 +332,49 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginBottom: 10,
   },
-  noPlanText: {
-    fontSize: 16,
-    color: '#64748B',
-    textAlign: 'center',
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    backgroundColor: 'rgba(16,185,129,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
   },
-  generateButton: {
-    backgroundColor: '#2563EB',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  generateButtonText: {
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '800',
     color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
+    marginBottom: 8,
+    letterSpacing: -0.3,
+  },
+  emptyDesc: {
+    fontSize: 14,
+    color: '#94A3B8',
+    textAlign: 'center',
+    lineHeight: 21,
+    marginBottom: 24,
+    paddingHorizontal: 8,
+  },
+  emptyHintBadge: {
+    backgroundColor: 'rgba(16,185,129,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(16,185,129,0.30)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  emptyHintText: {
+    color: '#10B981',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
   offlineBanner: {
     backgroundColor: '#1E293B',

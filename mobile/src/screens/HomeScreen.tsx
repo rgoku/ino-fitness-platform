@@ -8,8 +8,8 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import Svg, { Circle, Path, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
-import { FlameIcon } from '../components/icons';
+import Svg, { Circle, Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+import { FlameIcon, CameraIcon, DumbbellIcon, ChartIcon, type IconProps } from '../components/icons';
 import { useAuth } from '../context/AuthContext';
 import { DailyMacros, Streak, Trophy } from '../types';
 import { apiService } from '../services/apiService';
@@ -102,45 +102,6 @@ const AIInsightCard = React.memo(({ message }: { message: string }) => (
   </View>
 ));
 
-// ─── Lucide-style Icons (inline SVG) ────────────────────────────────────────
-
-const CameraIcon = ({ color = '#fff', size = 20 }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"
-      stroke={color}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Circle cx={12} cy={13} r={4} stroke={color} strokeWidth={1.8} />
-  </Svg>
-);
-
-const DumbbellIcon = ({ color = '#fff', size = 20 }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M6.5 6.5 17.5 17.5M4 16l4 4M16 4l4 4M2.5 13.5 5 16M19 8l2.5 2.5M7 21l2-2M15 5l2-2"
-      stroke={color}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const ChartIcon = ({ color = '#fff', size = 20 }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M3 3v18h18M7 14l4-4 4 4 5-5"
-      stroke={color}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
 // ─── Quick Actions ──────────────────────────────────────────────────────────
 
 interface QuickActionProps {
@@ -148,7 +109,7 @@ interface QuickActionProps {
   subtitle: string;
   onPress?: () => void;
   accent: string;
-  Icon: React.ComponentType<{ color?: string; size?: number }>;
+  Icon: React.ComponentType<IconProps>;
 }
 
 const QuickActionCard = React.memo(({ label, subtitle, onPress, accent, Icon }: QuickActionProps) => {
@@ -185,7 +146,7 @@ const QuickActionCard = React.memo(({ label, subtitle, onPress, accent, Icon }: 
         {/* Icon orb */}
         <View style={[styles.actionIconOrb, { backgroundColor: `${accent}1A` }]}>
           <View style={[styles.actionIconOrbInner, { borderColor: `${accent}40` }]}>
-            <Icon color={accent} size={22} />
+            <Icon color={accent} size={22} strokeWidth={2} />
           </View>
         </View>
 

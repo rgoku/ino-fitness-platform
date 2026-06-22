@@ -12,20 +12,21 @@ import { apiService } from '../services/apiService';
 import * as offlineCache from '../services/offlineCache';
 import { DumbbellIcon } from '../components/icons';
 
+// Dark-theme tokens — match HomeScreen / PremiumTabBar
 const colors = {
-  bg: '#FAFAFA',
-  surface: '#FFFFFF',
-  surfaceTertiary: '#F1F1F1',
-  border: '#E4E4E7',
-  borderLight: '#F0F0F2',
-  textPrimary: '#09090B',
-  textSecondary: '#52525B',
-  textTertiary: '#A0A0AB',
+  bg: '#0A0F1E',
+  surface: '#0C1220',
+  surfaceTertiary: '#111827',
+  border: '#1E293B',
+  borderLight: '#1E293B',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#94A3B8',
+  textTertiary: '#64748B',
   accent: '#10B981',
-  accentLight: '#ECFDF5',
+  accentLight: 'rgba(16,185,129,0.12)',
   accentDark: '#059669',
   blue: '#3B82F6',
-  blueLight: '#EFF6FF',
+  blueLight: 'rgba(59,130,246,0.12)',
   white: '#FFFFFF',
 };
 
@@ -133,11 +134,13 @@ const WorkoutPlanScreen = React.memo(({ navigation }: any) => {
         <View style={styles.emptyIcon}>
           <DumbbellIcon color="#10B981" size={36} strokeWidth={2} />
         </View>
-        <Text style={styles.emptyTitle}>No workout plan</Text>
-        <Text style={styles.emptyDesc}>Ask your coach to assign a plan, or generate one with AI.</Text>
-        <TouchableOpacity style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Generate AI Plan</Text>
-        </TouchableOpacity>
+        <Text style={styles.emptyTitle}>No workout plan yet</Text>
+        <Text style={styles.emptyDesc}>
+          Your coach hasn&apos;t assigned a workout plan yet. They&apos;ll send one through soon — you&apos;ll see it here as soon as it lands.
+        </Text>
+        <View style={styles.emptyHintBadge}>
+          <Text style={styles.emptyHintText}>Waiting for coach</Text>
+        </View>
       </View>
     );
   }
@@ -315,8 +318,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentLight, alignItems: 'center', justifyContent: 'center',
     marginBottom: 20,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: colors.textPrimary, marginBottom: 8 },
-  emptyDesc: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 24 },
+  emptyTitle: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, marginBottom: 8, letterSpacing: -0.3 },
+  emptyDesc: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 21, marginBottom: 24, paddingHorizontal: 8 },
+  emptyHintBadge: {
+    backgroundColor: 'rgba(16,185,129,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(16,185,129,0.30)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  emptyHintText: {
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
 
   // Offline
   offlineBanner: { backgroundColor: colors.surfaceTertiary, padding: 10, marginHorizontal: 24, marginBottom: 12, borderRadius: 8 },
