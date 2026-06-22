@@ -1,7 +1,17 @@
 import React, { useEffect, useRef } from 'react';
+import { LogBox } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+// Silence non-blocking dev-only warnings for endpoints that gracefully fall back
+LogBox.ignoreLogs([
+  'Failed to load trophies',
+  'Failed to load macros',
+  'Failed to load streak',
+  'Failed to load workout plan',
+  'AxiosError',
+]);
 import { AuthProvider } from './src/context/AuthContext';
 import { NavigationContainer, type NavigationContainerRef } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
