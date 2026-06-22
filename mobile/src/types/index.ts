@@ -1,4 +1,6 @@
 // User Types
+export type UserRole = 'client' | 'coach';
+
 export interface User {
   id: string;
   email: string;
@@ -9,6 +11,10 @@ export interface User {
   hasOnboarded: boolean;
   subscriptionTier: 'free' | 'coach_pro' | 'premium_ai';
   biometricsEnabled: boolean;
+  // Role-based access. The mobile app is the *client* experience —
+  // coaches should use the trainer dashboard at trainer.ino.fit instead.
+  role?: UserRole;
+  coachId?: string | null;
 }
 
 export interface UserBiometrics {

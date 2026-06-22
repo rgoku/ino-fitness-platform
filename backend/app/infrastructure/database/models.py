@@ -25,6 +25,11 @@ class User(Base):
     subscription_tier = Column(String, default="free")
     has_onboarded = Column(Boolean, default=False)
     biometrics_enabled = Column(Boolean, default=False)
+    # Role-based access control: 'client' (default) or 'coach'.
+    # Coaches see analytics + can generate plans for clients; clients only consume.
+    role = Column(String, default="client", index=True, nullable=False)
+    # If role == 'client', which coach owns this client (FK to users.id).
+    coach_id = Column(String, ForeignKey("users.id"), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -32,6 +37,9 @@ class User(Base):
     diet_plans = relationship("DietPlan", back_populates="user")
     progress_entries = relationship("ProgressEntry", back_populates="user")
     messages = relationship("Message", back_populates="user")
+    # Coach's own clients (self-referential one-to-many)
+    clients = relationship("User", remote_side="User.coach_id", overlaps="coach")
+    coach = relationship("User", remote_side="User.id", overlaps="clients", foreign_keys=[coach_id])
 
 
 class WorkoutPlan(Base):

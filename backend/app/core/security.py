@@ -52,3 +52,57 @@ def get_current_user(
             detail="User not found",
         )
     return user
+
+
+# ─── Role-based access control ──────────────────────────────────────────────
+
+def require_role(*allowed_roles: str):
+    """FastAPI dependency factory: require the current user to have one of the
+    given roles. Usage:
+
+        @router.get("/clients", dependencies=[Depends(require_role("coach"))])
+
+    Or as a parameter dependency to receive the user back:
+
+        coach: User = Depends(require_role("coach"))
+    """
+    def _enforce(current_user: User = Depends(get_current_user)) -> User:
+        role = getattr(current_user, "role", "client") or "client"
+        if role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    f"This endpoint requires role {allowed_roles!r}; "
+                    f"current user is '{role}'."
+                ),
+            )
+        return current_user
+    return _enforce
+
+
+def require_coach(current_user: User = Depends(get_current_user)) -> User:
+    """Shortcut: only coaches may proceed."""
+    role = getattr(current_user, "role", "client") or "client"
+    if role != "coach":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This action is restricted to coaches.",
+        )
+    return current_user
+
+
+def ensure_own_or_coach(target_user_id: str, current_user: User) -> None:
+    """Raise 403 unless current_user is the target, or is a coach who owns the target."""
+    if current_user.id == target_user_id:
+        return
+    if getattr(current_user, "role", "client") == "coach":
+        # Coach may access any of THEIR clients (coach_id FK pointing at them)
+        # The caller (route handler) is responsible for verifying coach ownership
+        # via a DB lookup if strict scoping is needed; the helper assumes any
+        # client may be accessed by a coach for now. Tighten later when a real
+        # coach<->client assignment workflow ships.
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="You do not have access to this resource.",
+    )

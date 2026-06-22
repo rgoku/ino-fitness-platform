@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from app.models import User, WorkoutPlan, Exercise, WorkoutSession
 from app.database import get_db
 from app.auth import get_current_user
+from app.core.security import require_coach
 from app.ai_service import AIService
 from app.domain.ai.budget import check_and_increment
 from app.middleware.rate_limit import limiter
@@ -15,24 +16,31 @@ ai_service = AIService()
 @router.post("/plans/generate")
 async def generate_workout_plan(
     biometrics: dict,
-    current_user: User = Depends(get_current_user),
+    target_user_id: str | None = None,
+    coach: User = Depends(require_coach),
     db: Session = Depends(get_db)
 ):
-    """Generate an AI-powered workout plan based on user biometrics"""
-    tier = getattr(current_user, "subscription_tier", "free") or "free"
-    allowed, reason = check_and_increment(current_user.id, tier, "generate_workout")
+    """Generate an AI-powered workout plan.
+
+    Coach-only per spec ("Clients DO NOT Have Access To AI Workout Generator").
+    Optional `target_user_id` assigns the plan to one of the coach's clients;
+    otherwise it is created for the coach themselves (e.g. template builder).
+    """
+    target_id = target_user_id or coach.id
+    tier = getattr(coach, "subscription_tier", "free") or "free"
+    allowed, reason = check_and_increment(coach.id, tier, "generate_workout")
     if not allowed:
         raise HTTPException(status_code=429, detail=reason)
     try:
         # Use AI service to generate personalized plan
         plan_data = await ai_service.generate_workout_plan(
-            user_id=current_user.id,
+            user_id=target_id,
             biometrics=biometrics
         )
         
-        # Create and save plan
+        # Create and save plan — assigned to the target user, not the coach.
         workout_plan = WorkoutPlan(
-            user_id=current_user.id,
+            user_id=target_id,
             name=plan_data.get("name", "My Workout Plan"),
             description=plan_data.get("description", ""),
             difficulty=biometrics.get("experience_level", "beginner"),

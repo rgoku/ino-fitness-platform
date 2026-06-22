@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from app.models import User, DietPlan, Meal, FoodEntry
 from app.database import get_db
 from app.auth import get_current_user
+from app.core.security import require_coach
 from app.ai_service import AIService
 from app.domain.ai.budget import check_and_increment
 from app.middleware.rate_limit import limiter
@@ -15,23 +16,29 @@ ai_service = AIService()
 async def generate_diet_plan(
     biometrics: dict,
     preferences: dict,
-    current_user: User = Depends(get_current_user),
+    target_user_id: str | None = None,
+    coach: User = Depends(require_coach),
     db: Session = Depends(get_db)
 ):
-    """Generate evidence-based AI-powered diet plan backed by PubMed research"""
-    tier = getattr(current_user, "subscription_tier", "free") or "free"
-    allowed, reason = check_and_increment(current_user.id, tier, "generate_diet_plan")
+    """Generate evidence-based AI-powered diet plan backed by PubMed research.
+
+    Coach-only per spec. Optional `target_user_id` assigns the plan to a client;
+    otherwise it is created against the coach (template / draft).
+    """
+    target_id = target_user_id or coach.id
+    tier = getattr(coach, "subscription_tier", "free") or "free"
+    allowed, reason = check_and_increment(coach.id, tier, "generate_diet_plan")
     if not allowed:
         raise HTTPException(status_code=429, detail=reason)
     try:
         plan_data = await ai_service.generate_diet_plan(
-            user_id=current_user.id,
+            user_id=target_id,
             biometrics=biometrics,
             preferences=preferences
         )
-        
+
         diet_plan = DietPlan(
-            user_id=current_user.id,
+            user_id=target_id,
             name=plan_data.get("name", "My Diet Plan"),
             description=plan_data.get("description", ""),
             calorie_target=plan_data.get("calorie_target", 2000),

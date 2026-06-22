@@ -25,6 +25,7 @@ import GroceryListScreen from '../screens/GroceryListScreen';
 import BookingsScreen from '../screens/BookingsScreen';
 import AIAssistantScreen from '../screens/AIAssistantScreen';
 import ExerciseCameraScreen from '../screens/ExerciseCameraScreen';
+import CoachRedirectScreen from '../screens/CoachRedirectScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -93,24 +94,35 @@ export default function AppNavigator() {
     return null;
   }
 
+  // Coach guard: the mobile app is the client experience. If a coach signs
+  // in (e.g. checking notifications on the go), send them to a redirect
+  // screen instead of exposing client-only flows.
+  const isCoach = (user as any)?.role === 'coach';
+
   return (
     <Stack.Navigator screenOptions={STACK_SCREEN_OPTIONS}>
       {!user ? (
         <>
-          <Stack.Screen 
-            name="Login" 
+          <Stack.Screen
+            name="Login"
             component={LoginScreen}
             options={{ headerShown: false }}
           />
-          <Stack.Screen 
-            name="Signup" 
+          <Stack.Screen
+            name="Signup"
             component={SignupScreen}
             options={{ headerShown: false }}
           />
         </>
+      ) : isCoach ? (
+        <Stack.Screen
+          name="CoachRedirect"
+          component={CoachRedirectScreen}
+          options={{ headerShown: false }}
+        />
       ) : !hasOnboarded ? (
-        <Stack.Screen 
-          name="Onboarding" 
+        <Stack.Screen
+          name="Onboarding"
           component={OnboardingScreen}
           options={{ headerShown: false }}
         />

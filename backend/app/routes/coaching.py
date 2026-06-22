@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from app.models import User, Message, Coach, WorkoutSession, WorkoutPlan
 from app.database import get_db
 from app.auth import get_current_user
+from app.core.security import require_coach
 
 router = APIRouter()
 
@@ -43,14 +44,23 @@ def _client_to_dto(u: User, sessions_by_user: dict, plans_by_user: dict) -> dict
 
 @router.get("/clients")
 async def list_clients(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_coach),
     db: Session = Depends(get_db),
 ):
-    """List clients for the authenticated coach.
-    Until a true coach-client relationship is modeled, returns every user
-    except the coach themselves so the trainer dashboard renders.
+    """List clients assigned to the authenticated coach.
+    Falls back to all non-coach users if no coach_id assignment exists yet
+    (early-platform behavior; tighten when assignment workflow ships).
     """
-    users = db.query(User).filter(User.id != current_user.id).all()
+    owned = db.query(User).filter(User.coach_id == current_user.id).all()
+    if owned:
+        users = owned
+    else:
+        # Fallback during seeding: show all clients (role != 'coach')
+        users = (
+            db.query(User)
+            .filter(User.id != current_user.id, User.role != "coach")
+            .all()
+        )
     sessions = db.query(WorkoutSession).all()
     plans = db.query(WorkoutPlan.user_id, func.count(WorkoutPlan.id)).group_by(WorkoutPlan.user_id).all()
     plans_by_user = {uid: cnt for uid, cnt in plans}
@@ -63,7 +73,7 @@ async def list_clients(
 @router.get("/clients/{client_id}")
 async def get_client(
     client_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_coach),
     db: Session = Depends(get_db),
 ):
     """Get a single client by id."""
@@ -77,7 +87,7 @@ async def get_client(
 
 @router.get("/analytics")
 async def coaching_analytics(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_coach),
     db: Session = Depends(get_db),
 ):
     """Aggregate stats for the coach dashboard."""
