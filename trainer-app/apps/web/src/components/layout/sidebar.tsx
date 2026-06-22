@@ -49,6 +49,7 @@ const navItems = [
   { label: 'Clients', href: '/clients', icon: Users },
   { label: 'Members', href: '/members', icon: UserCheck },
   { label: 'Programs', href: '/programs', icon: Dumbbell },
+  { label: 'Program Builder', href: '/programs/builder-dnd', icon: Sparkles },
   { label: 'Videos', href: '/videos', icon: Video },
   { label: 'Exercise Analysis', href: '/exercise-analysis', icon: ScanEye },
   { label: 'Diet', href: '/diet', icon: UtensilsCrossed },
