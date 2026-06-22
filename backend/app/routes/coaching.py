@@ -85,6 +85,28 @@ async def get_client(
     return _client_to_dto(user, {client_id: sessions}, {client_id: plan_count})
 
 
+@router.get("/alerts")
+async def coach_alerts(
+    current_user: User = Depends(require_coach),
+    db: Session = Depends(get_db),
+):
+    """Risk signals across the coach's roster (weight stall, low adherence,
+    skipped workouts, nutrition miss). Coach-only per spec."""
+    from app.domain.alerts import alert_service
+    alerts = alert_service.compute_for_coach(db, current_user)
+    return [a.to_dict() for a in alerts]
+
+
+@router.get("/alerts/summary")
+async def coach_alerts_summary(
+    current_user: User = Depends(require_coach),
+    db: Session = Depends(get_db),
+):
+    """Per-severity alert counts for dashboard badges."""
+    from app.domain.alerts import alert_service
+    return alert_service.summary_for_coach(db, current_user)
+
+
 @router.get("/analytics")
 async def coaching_analytics(
     current_user: User = Depends(require_coach),

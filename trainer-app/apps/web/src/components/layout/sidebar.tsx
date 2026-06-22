@@ -36,6 +36,7 @@ import {
   BookOpen,
   UtensilsCrossed,
   ScanEye,
+  AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/stores/sidebar-store';
@@ -44,6 +45,7 @@ import { getInitials } from '@/lib/utils';
 
 const navItems = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { label: 'AI Alerts', href: '/alerts', icon: AlertTriangle },
   { label: 'Clients', href: '/clients', icon: Users },
   { label: 'Members', href: '/members', icon: UserCheck },
   { label: 'Programs', href: '/programs', icon: Dumbbell },
