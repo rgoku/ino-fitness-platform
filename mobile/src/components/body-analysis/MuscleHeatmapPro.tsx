@@ -201,7 +201,7 @@ export function MuscleHeatmapPro({
             contains the tap point AND has the smallest area (so the
             chest doesn't swallow taps meant for the deltoids, etc.). */}
         <View style={styles.figure}>
-          <View style={{ width: svgWidth, height: svgHeight }}>
+          <View style={{ width: svgWidth, height: svgHeight, position: 'relative' }}>
             <Svg
               width={svgWidth}
               height={svgHeight}
@@ -227,10 +227,9 @@ export function MuscleHeatmapPro({
             </Svg>
 
             <Pressable
-              style={{ position: 'absolute', inset: 0 }}
+              style={StyleSheet.absoluteFill}
               onPress={(e) => {
                 const { locationX, locationY } = e.nativeEvent;
-                // Map screen-space tap → SVG viewBox space
                 const vx = vbX + (locationX / svgWidth) * vbW;
                 const vy = vbY + (locationY / svgHeight) * vbH;
                 let hit: MuscleSlug | null = null;
