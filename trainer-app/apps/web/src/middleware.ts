@@ -13,8 +13,8 @@ export function middleware(req: NextRequest) {
   // Check for auth token in cookies
   const token = req.cookies.get('ino_auth_token')?.value;
 
-  // In dev mode without API, skip auth check
-  if (!process.env.NEXT_PUBLIC_API_URL) {
+  // Only bypass auth in explicit demo/mock mode.
+  if (process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
     return NextResponse.next();
   }
 

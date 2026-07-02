@@ -275,7 +275,6 @@ export default function ExerciseCamera({
           base64: true,
           quality: 0.35,           // small payload → low latency
           skipProcessing: true,
-          shutterSound: false,
         });
         if (cancelled || !photo?.base64) return;
         await fetch(`${API_BASE}/api/v1/engine/analyze-frame`, {

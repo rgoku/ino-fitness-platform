@@ -14,8 +14,18 @@ def get_secret_key() -> str:
 
 
 def get_cors_origins() -> list[str]:
-    raw = os.getenv("CORS_ORIGINS", "*")
-    return [o.strip() for o in raw.split(",")]
+    """Allowed CORS origins. Reads CORS_ORIGINS (comma-separated). Never
+    defaults to "*", which is invalid alongside allow_credentials=True."""
+    raw = os.getenv("CORS_ORIGINS", "").strip()
+    if raw:
+        return [o.strip() for o in raw.split(",") if o.strip()]
+    # Safe local-development defaults (dashboard + landing dev servers).
+    return [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+    ]
 
 
 def get_jwt_expiration_hours() -> int:

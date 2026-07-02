@@ -1,6 +1,8 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8095';
 
-export const USE_API = !!process.env.NEXT_PUBLIC_API_URL;
+// Demo/mock mode is now OPT-IN. Production is API-first by default.
+export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true';
+export const USE_API = !USE_MOCK;
 
 export class ApiError extends Error {
   status: number;

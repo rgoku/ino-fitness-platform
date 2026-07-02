@@ -91,17 +91,17 @@ def require_coach(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
-def ensure_own_or_coach(target_user_id: str, current_user: User) -> None:
-    """Raise 403 unless current_user is the target, or is a coach who owns the target."""
+def ensure_own_or_coach(target_user_id: str, current_user: User, db: Session) -> None:
+    """Raise 403 unless current_user is the target, or is a coach who owns the
+    target client (target.coach_id == coach.id). Unassigned clients
+    (coach_id is None) are accessible to any coach during early-platform
+    onboarding; assigned clients are scoped strictly to their coach."""
     if current_user.id == target_user_id:
         return
     if getattr(current_user, "role", "client") == "coach":
-        # Coach may access any of THEIR clients (coach_id FK pointing at them)
-        # The caller (route handler) is responsible for verifying coach ownership
-        # via a DB lookup if strict scoping is needed; the helper assumes any
-        # client may be accessed by a coach for now. Tighten later when a real
-        # coach<->client assignment workflow ships.
-        return
+        target = db.query(User).filter(User.id == target_user_id).first()
+        if target is not None and target.coach_id in (None, current_user.id):
+            return
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="You do not have access to this resource.",

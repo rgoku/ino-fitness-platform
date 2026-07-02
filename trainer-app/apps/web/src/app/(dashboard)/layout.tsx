@@ -7,10 +7,27 @@ import { TopBar } from '@/components/layout/top-bar';
 import { CommandPalette } from '@/components/command-palette';
 import { OnboardingTour } from '@/components/onboarding-tour';
 import { QuickActionsFAB } from '@/components/quick-actions-fab';
+import { useAuthStore } from '@/stores/auth-store';
+import { USE_MOCK } from '@/lib/api';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Role gate: only coaches/admins may use the coach dashboard. A client-role
+  // account (or an unauthenticated session, outside demo mode) is redirected away.
+  const { user, isAuthenticated } = useAuthStore();
+  useEffect(() => {
+    if (USE_MOCK) return;
+    if (!isAuthenticated) {
+      router.replace('/login');
+      return;
+    }
+    const role = user?.role;
+    if (role && !['coach', 'trainer', 'admin'].includes(role)) {
+      router.replace('/login?error=coach_only');
+    }
+  }, [isAuthenticated, user, router]);
 
   // Global keyboard shortcuts
   useEffect(() => {

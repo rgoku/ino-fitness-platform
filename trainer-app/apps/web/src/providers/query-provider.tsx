@@ -7,9 +7,9 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [client] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000,      // 5 min — don't refetch if data is fresh
+        staleTime: 30 * 1000,            // 30s — live coaching data shouldn't go stale
         gcTime: 30 * 60 * 1000,          // 30 min — keep in cache
-        refetchOnWindowFocus: false,     // don't refetch on tab switch
+        refetchOnWindowFocus: true,      // refresh when the coach returns to the tab
         retry: 1,                        // only retry once
         refetchOnReconnect: 'always',    // refetch when back online
       },

@@ -32,6 +32,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { api, ApiError, NetworkError } from '@/lib/api';
 
 // ─── Mock exercise library (replace with real API call) ─────────────────────
 
@@ -106,6 +107,8 @@ export default function DragDropBuilderPage() {
   const [plan, setPlan] = useState<PlanExercise[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -154,10 +157,46 @@ export default function DragDropBuilderPage() {
   const totalSets = plan.reduce((sum, ex) => sum + (Number(ex.sets) || 0), 0);
   const muscleGroups = [...new Set(plan.flatMap((p) => p.muscleGroups))];
 
-  const handleSave = () => {
-    // TODO: POST to /api/v1/programs once the backend save endpoint lands.
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async () => {
+    if (plan.length === 0) {
+      setSaveError('Add at least one exercise before saving.');
+      return;
+    }
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await api.post('/api/v1/programs', {
+        name: workoutName.trim() || 'Untitled Program',
+        weeks: 1,
+        days_per_week: 1,
+        exercises: plan.map((ex, idx) => ({
+          name: ex.name,
+          sets: Number(ex.sets) || 0,
+          reps: String(ex.reps ?? ''),
+          rest: ex.rest || null,
+          rpe: ex.rpe || null,
+          notes: ex.notes || null,
+          muscle_groups: ex.muscleGroups ?? [],
+          order_index: idx,
+        })),
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setSaveError(
+          err.status === 401 || err.status === 403
+            ? 'Your session expired or you are not signed in as a coach. Please log in again.'
+            : `Couldn't save program: ${err.detail}`,
+        );
+      } else if (err instanceof NetworkError) {
+        setSaveError("Couldn't reach the server. Is the backend running?");
+      } else {
+        setSaveError('Something went wrong while saving. Please try again.');
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -177,9 +216,20 @@ export default function DragDropBuilderPage() {
             Drag exercises from the library into your plan, then tweak sets, reps, rest, and RPE.
           </p>
         </div>
-        <Button variant="primary" size="md" icon={saved ? <CheckCircle2 size={14} /> : <Save size={14} />} onClick={handleSave}>
-          {saved ? 'Saved' : 'Save Program'}
-        </Button>
+        <div className="flex flex-col items-end gap-1">
+          <Button
+            variant="primary"
+            size="md"
+            icon={saved ? <CheckCircle2 size={14} /> : <Save size={14} />}
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? 'Saving…' : saved ? 'Saved' : 'Save Program'}
+          </Button>
+          {saveError && (
+            <p className="text-body-xs text-[var(--color-danger,#ef4444)] max-w-xs text-right">{saveError}</p>
+          )}
+        </div>
       </div>
 
       <DndContext

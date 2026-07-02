@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { VideoIcon, DumbbellIcon } from '../components/icons';
+import { socialService, BookingDTO } from '../services/socialService';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -162,8 +163,41 @@ function BookingCard({ booking }: { booking: Booking }) {
 
 // ─── Main Screen ────────────────────────────────────────────────────────────
 
+function toBooking(b: BookingDTO): Booking {
+  const dt = b.scheduled_at ? new Date(b.scheduled_at) : null;
+  const date = dt
+    ? dt.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+    : '';
+  const time = dt
+    ? dt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+    : '';
+  return {
+    id: b.id,
+    sessionType: b.session_type,
+    coachName: b.coach_name || 'Your coach',
+    date,
+    time,
+    duration: `${b.duration_min} min`,
+    mode: b.mode === 'in-person' ? 'in-person' : 'video',
+    status: b.status === 'confirmed' ? 'confirmed' : 'pending',
+  };
+}
+
 export default function BookingsScreen() {
-  const [bookings] = useState<Booking[]>(mockBookings);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+
+  const load = useCallback(async () => {
+    try {
+      const data = await socialService.getBookings();
+      setBookings(data.map(toBooking));
+    } catch (e) {
+      setBookings([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const nextSession = bookings[0];
   const upcomingSessions = bookings.slice(1);

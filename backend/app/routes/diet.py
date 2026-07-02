@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models import User, DietPlan, Meal, FoodEntry
@@ -8,6 +8,9 @@ from app.core.security import require_coach
 from app.ai_service import AIService
 from app.domain.ai.budget import check_and_increment
 from app.middleware.rate_limit import limiter
+from app.core.uploads import read_validated_upload
+from pydantic import BaseModel
+from typing import Optional
 
 router = APIRouter()
 ai_service = AIService()
@@ -110,14 +113,15 @@ async def get_diet_plans(
 @limiter.limit("50/hour")
 async def analyze_food_photo(
     request: Request,
-    file: bytes,
-    meal_type: str,
+    file: UploadFile = File(...),
+    meal_type: str = Form("snack"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Analyze food photo and extract macros"""
+    """Analyze food photo and extract macros (image upload)."""
     try:
-        result = await ai_service.analyze_food_photo(file)
+        content = await read_validated_upload(file, allowed_prefixes=("image/",))
+        result = await ai_service.analyze_food_photo(content)
         
         # Create food entry
         entry = FoodEntry(
@@ -139,6 +143,53 @@ async def analyze_food_photo(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+class FoodLogIn(BaseModel):
+    food_name: str
+    meal_type: str = "snack"
+    calories: float = 0
+    protein: float = 0
+    carbs: float = 0
+    fat: float = 0
+    quantity: float = 1
+    unit: str = "serving"
+    confidence: Optional[float] = None
+
+
+@router.post("/food")
+@limiter.limit("100/hour")
+async def log_food_entry(
+    request: Request,
+    body: FoodLogIn,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Log a food entry from already-detected macros (no re-analysis)."""
+    entry = FoodEntry(
+        user_id=current_user.id,
+        food_name=body.food_name,
+        meal_type=body.meal_type,
+        calories=body.calories,
+        protein=body.protein,
+        carbs=body.carbs,
+        fat=body.fat,
+        quantity=body.quantity,
+        unit=body.unit,
+        confidence=body.confidence,
+    )
+    db.add(entry)
+    db.commit()
+    db.refresh(entry)
+    return {
+        "id": entry.id,
+        "food_name": entry.food_name,
+        "meal_type": entry.meal_type,
+        "calories": entry.calories,
+        "protein": entry.protein,
+        "carbs": entry.carbs,
+        "fat": entry.fat,
+    }
+
 
 @router.get("/macros")
 async def get_daily_macros(

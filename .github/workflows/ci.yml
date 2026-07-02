@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SECRET_KEY: ci-test-secret
+      DATABASE_URL: sqlite:///./ci_test.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Verify migrations build a clean schema
+        run: alembic upgrade head
+      - name: Run API tests
+        run: pytest tests/test_auth.py tests/test_programs.py tests/test_habits.py -q
+
+  web:
+    name: Trainer dashboard (typecheck + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: trainer-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: trainer-app/package-lock.json
+      - name: Install dependencies
+        run: npm install
+      - name: Typecheck
+        run: npx --workspace trainer-app-web tsc --noEmit
+      - name: Build
+        run: npm run build --workspace trainer-app-web
+
+  mobile:
+    name: Mobile (typecheck)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install dependencies
+        run: npm install
+      - name: Typecheck
+        run: npx tsc --noEmit

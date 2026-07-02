@@ -1,4 +1,5 @@
-import React from '../lib/react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { socialService, ChallengeDTO } from '../services/socialService';
 import {
   View,
   Text,
@@ -21,55 +22,83 @@ const colors = {
 
 // ─── Mock Data ──────────────────────────────────────────────────────────────
 
-const activeChallenge = {
-  id: '1',
-  name: '30-Day Transformation Challenge',
-  daysRemaining: 18,
-  totalDays: 30,
-  rank: 5,
-  totalParticipants: 24,
-  prizePool: '$500',
+const EMPTY_ACTIVE = {
+  id: '',
+  name: 'No active challenge',
+  daysRemaining: 0,
+  totalDays: 1,
+  rank: 0,
+  totalParticipants: 0,
+  prizePool: '\u2014',
 };
 
-const upcomingChallenges = [
-  {
-    id: '2',
-    name: 'Summer Shred Challenge',
-    startDate: 'Jul 1, 2026',
-    entryFee: '$25',
-    participants: 42,
-  },
-  {
-    id: '3',
-    name: '10K Steps Daily',
-    startDate: 'Jul 15, 2026',
-    entryFee: 'Free',
-    participants: 67,
-  },
-];
+type ActiveChallenge = typeof EMPTY_ACTIVE;
+interface UpcomingChallenge { id: string; name: string; startDate: string; entryFee: string; participants: number; }
+interface PastChallenge { id: string; name: string; finalRank: number; totalParticipants: number; dateRange: string; badge: string; }
 
-const pastChallenges = [
-  {
-    id: '4',
-    name: 'New Year Power Challenge',
-    finalRank: 1,
-    totalParticipants: 32,
-    dateRange: 'Jan 1 – Jan 31, 2026',
-    badge: '\u{1F947} Winner',
-  },
-  {
-    id: '5',
-    name: 'Spring Cardio Blitz',
-    finalRank: 3,
-    totalParticipants: 28,
-    dateRange: 'Mar 1 – Mar 21, 2026',
-    badge: '\u{1F949} 3rd Place',
-  },
-];
+function fmtDate(iso: string | null): string {
+  return iso ? new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
+}
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function ChallengesScreen() {
+  const [activeChallenge, setActiveChallenge] = useState<ActiveChallenge>(EMPTY_ACTIVE);
+  const [upcomingChallenges, setUpcoming] = useState<UpcomingChallenge[]>([]);
+  const [pastChallenges, setPast] = useState<PastChallenge[]>([]);
+
+  const load = useCallback(async () => {
+    try {
+      const all = await socialService.getChallenges();
+      const active = all.find((c) => c.status === 'active' && c.joined) || all.find((c) => c.status === 'active');
+      if (active) {
+        let totalDays = active.days_left ?? 1;
+        if (active.starts_at && active.ends_at) {
+          const ms = new Date(active.ends_at).getTime() - new Date(active.starts_at).getTime();
+          totalDays = Math.max(1, Math.round(ms / 86400000));
+        }
+        setActiveChallenge({
+          id: active.id,
+          name: active.name,
+          daysRemaining: active.days_left ?? 0,
+          totalDays,
+          rank: active.my_rank ?? 0,
+          totalParticipants: active.participant_count,
+          prizePool: active.prize_pool || '\u2014',
+        });
+      } else {
+        setActiveChallenge(EMPTY_ACTIVE);
+      }
+      setUpcoming(
+        all.filter((c) => c.status === 'upcoming').map((c) => ({
+          id: c.id,
+          name: c.name,
+          startDate: fmtDate(c.starts_at),
+          entryFee: c.entry_fee || 'Free',
+          participants: c.participant_count,
+        })),
+      );
+      setPast(
+        all.filter((c) => c.status === 'past').map((c) => ({
+          id: c.id,
+          name: c.name,
+          finalRank: c.my_rank ?? 0,
+          totalParticipants: c.participant_count,
+          dateRange: `${fmtDate(c.starts_at)} \u2013 ${fmtDate(c.ends_at)}`,
+          badge: c.my_rank === 1 ? '\u{1F947} Winner' : c.my_rank ? `#${c.my_rank}` : '',
+        })),
+      );
+    } catch (e) {
+      setActiveChallenge(EMPTY_ACTIVE);
+      setUpcoming([]);
+      setPast([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
   const progress = (activeChallenge.totalDays - activeChallenge.daysRemaining) / activeChallenge.totalDays;
 
   return (

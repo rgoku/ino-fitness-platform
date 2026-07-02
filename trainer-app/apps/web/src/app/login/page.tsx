@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuthStore } from '@/stores/auth-store';
+import { USE_MOCK } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -86,9 +87,11 @@ export default function LoginPage() {
                 Sign in
               </Button>
 
-              <p className="text-center text-body-xs text-[var(--color-text-tertiary)]">
-                Dev mode: sarah@inocoach.com / password
-              </p>
+              {USE_MOCK && (
+                <p className="text-center text-body-xs text-[var(--color-text-tertiary)]">
+                  Demo mode: sarah@inocoach.com / password
+                </p>
+              )}
             </form>
           </CardContent>
         </Card>

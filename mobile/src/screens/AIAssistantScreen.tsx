@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SparklesIcon } from '../components/icons';
+import { apiService } from '../services/apiService';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -42,6 +43,7 @@ const quickChips = [
   'Supplements?',
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mockMessages: Message[] = [
   {
     id: '1',
@@ -168,33 +170,53 @@ function AssistantCard({ message }: { message: Message }) {
 // ─── Main Screen ────────────────────────────────────────────────────────────
 
 export default function AIAssistantScreen() {
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'welcome',
+      role: 'assistant',
+      text: "Hi! I'm your AI fitness coach. Ask me anything about training, nutrition, or recovery.",
+    },
+  ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  const handleSend = () => {
-    if (!inputText.trim()) return;
+  const handleSend = async () => {
+    const text = inputText.trim();
+    if (!text) return;
 
     const userMsg: Message = {
       id: Date.now().toString(),
       role: 'user',
-      text: inputText.trim(),
+      text,
     };
     setMessages((prev) => [...prev, userMsg]);
     setInputText('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Real AI coach (backend uses the authenticated user; returns { response })
+      const res = await apiService.post<{ response?: string }>('/ai/chat', { message: text });
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        text: 'Great question! Based on current research, I recommend consulting with your coach for a personalized answer tailored to your training program and goals.',
-        sources: ['General Guidance'],
+        text:
+          res?.response ||
+          "I couldn't generate a response just now. Please try again.",
       };
       setMessages((prev) => [...prev, aiMsg]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          text:
+            "I'm having trouble reaching the coaching service right now. Please check your connection and try again.",
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 2000);
+    }
   };
 
   const handleChipPress = (chip: string) => {

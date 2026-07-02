@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { CheckIcon } from '../components/icons';
+import { useEffect, useCallback } from 'react';
+import { socialService, GroceryCategoryDTO } from '../services/socialService';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -101,12 +103,43 @@ const groceryCategories: GroceryCategory[] = [
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
+const CATEGORY_ICONS: Record<string, string> = {
+  proteins: '\u{1F969}',
+  carbs: '\u{1F35A}',
+  produce: '\u{1F966}',
+  fats: '\u{1F9C0}',
+  other: '\u{1F6D2}',
+};
+
+function toCategory(c: GroceryCategoryDTO): GroceryCategory {
+  return {
+    id: c.id,
+    icon: CATEGORY_ICONS[c.id] || CATEGORY_ICONS.other,
+    label: c.label,
+    items: c.items.map((it, i) => ({ id: `${c.id}-${i}-${it.name}`, name: it.name, quantity: it.quantity || '' })),
+  };
+}
+
 export default function GroceryListScreen() {
   const [selectedWeek, setSelectedWeek] = useState<'this' | 'next'>('this');
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  const [categories, setCategories] = useState<GroceryCategory[]>([]);
 
-  const totalItems = groceryCategories.reduce((sum, cat) => sum + cat.items.length, 0);
+  const load = useCallback(async () => {
+    try {
+      const res = await socialService.getGroceryList();
+      setCategories(res.categories.map(toCategory));
+    } catch (e) {
+      setCategories([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0);
 
   const toggleItem = (itemId: string) => {
     setCheckedItems((prev) => {
@@ -161,7 +194,7 @@ export default function GroceryListScreen() {
       <Text style={styles.summary}>{totalItems} items &middot; Est. $85</Text>
 
       {/* Categories */}
-      {groceryCategories.map((category) => {
+      {categories.map((category) => {
         const isCollapsed = collapsedSections.has(category.id);
         return (
           <View key={category.id} style={styles.categoryContainer}>

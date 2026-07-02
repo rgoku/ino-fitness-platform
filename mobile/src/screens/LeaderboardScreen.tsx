@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { CrownIcon } from '../components/icons';
+import { socialService, LeaderboardEntryDTO } from '../services/socialService';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -235,10 +236,46 @@ function LeaderboardRow({
 
 // ─── Main Screen ────────────────────────────────────────────────────────────
 
+const AVATAR_PALETTE = ['#6366F1', '#EC4899', '#F97316', '#2563EB', '#10B981', '#8B5CF6', '#14B8A6', '#F59E0B'];
+
+function toEntry(e: LeaderboardEntryDTO, index: number): LeaderboardEntry {
+  const initials = (e.name || '?')
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+  return {
+    id: e.id,
+    name: e.name,
+    initials,
+    avatarColor: AVATAR_PALETTE[index % AVATAR_PALETTE.length],
+    compliance: e.compliance,
+    streak: e.streak,
+    volume: e.volume,
+    trend: 'same',
+    isCurrentUser: e.is_current_user,
+  };
+}
+
 export default function LeaderboardScreen() {
   const [activeTab, setActiveTab] = useState<TabKey>('compliance');
+  const [data, setData] = useState<LeaderboardEntry[]>([]);
 
-  const sorted = useMemo(() => sortByTab(leaderboardData, activeTab), [activeTab]);
+  const load = useCallback(async (tab: TabKey) => {
+    try {
+      const res = await socialService.getLeaderboard(tab);
+      setData(res.entries.map(toEntry));
+    } catch (e) {
+      setData([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    load(activeTab);
+  }, [activeTab, load]);
+
+  const sorted = useMemo(() => sortByTab(data, activeTab), [data, activeTab]);
 
   return (
     <View style={styles.container}>

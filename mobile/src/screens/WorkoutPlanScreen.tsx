@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { WorkoutPlan, Exercise } from '../types';
 import { apiService } from '../services/apiService';
@@ -62,7 +63,10 @@ const ExerciseRow = React.memo(({ item, index, onStartCamera }: { item: Exercise
       )}
       <View style={styles.exerciseActions}>
         {item.videoUrl ? (
-          <TouchableOpacity style={styles.demoButton}>
+          <TouchableOpacity
+            style={styles.demoButton}
+            onPress={() => item.videoUrl && Linking.openURL(item.videoUrl)}
+          >
             <Text style={styles.demoButtonText}>Watch Demo</Text>
           </TouchableOpacity>
         ) : null}

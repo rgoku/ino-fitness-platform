@@ -76,10 +76,13 @@ async def get_client(
     current_user: User = Depends(require_coach),
     db: Session = Depends(get_db),
 ):
-    """Get a single client by id."""
+    """Get a single client by id (scoped to the requesting coach)."""
     user = db.query(User).filter(User.id == client_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Client not found")
+    # IDOR guard: a coach may only view their own clients (or as-yet-unassigned ones).
+    if user.coach_id not in (None, current_user.id):
+        raise HTTPException(status_code=403, detail="This client is not assigned to you.")
     sessions = db.query(WorkoutSession).filter(WorkoutSession.user_id == client_id).all()
     plan_count = db.query(WorkoutPlan).filter(WorkoutPlan.user_id == client_id).count()
     return _client_to_dto(user, {client_id: sessions}, {client_id: plan_count})

@@ -1,6 +1,8 @@
 import asyncio
 import os
+import logging
 import anthropic
+logger = logging.getLogger(__name__)
 from typing import Optional
 import json
 import cv2
@@ -547,9 +549,13 @@ Return JSON with keys: {{"summary": "...", "evidence_level": "high|moderate|prel
     
     async def analyze_exercise_form(self, exercise_name: str, file_content: bytes, file_type: str) -> dict:
         """Analyze exercise form from video/image using MediaPipe pose detection"""
+        import tempfile
+        temp_path = None
         try:
-            # Save temporary file
-            temp_path = f"/tmp/exercise_{exercise_name}.mp4"
+            # Write to a randomly-named temp file (no user-controlled path)
+            suffix = ".mp4" if (file_type or "").startswith("video") else ".jpg"
+            fd, temp_path = tempfile.mkstemp(prefix="exercise_", suffix=suffix)
+            os.close(fd)
             with open(temp_path, 'wb') as f:
                 f.write(file_content)
             
@@ -581,6 +587,12 @@ Return JSON with keys: {{"summary": "...", "evidence_level": "high|moderate|prel
                 "score": 0,
                 "error": str(e)
             }
+        finally:
+            if temp_path:
+                try:
+                    os.remove(temp_path)
+                except OSError:
+                    pass
     
     def _extract_frames_from_video(self, video_path: str, sample_rate: int = 5) -> list:
         """Extract frames from video file"""
@@ -763,30 +775,85 @@ Return JSON with keys: {{"summary": "...", "evidence_level": "high|moderate|prel
                 "safety_level": "moderate"
             }
     
+    @staticmethod
+    def _detect_image_media_type(data: bytes) -> str:
+        if data[:3] == b"\xff\xd8\xff":
+            return "image/jpeg"
+        if data[:8] == b"\x89PNG\r\n\x1a\n":
+            return "image/png"
+        if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+            return "image/webp"
+        if data[:6] in (b"GIF87a", b"GIF89a"):
+            return "image/gif"
+        return "image/jpeg"
+
     async def analyze_food_photo(self, image_content: bytes) -> dict:
-        """Analyze food photo and extract macros"""
-        prompt = """
-        Analyze this food photo and identify:
-        1. All food items visible
-        2. Estimated portion size
-        3. Nutritional information (calories, protein, carbs, fat)
-        4. Meal type (breakfast/lunch/dinner/snack)
-        
-        Return JSON with keys: foods, macros, portion_size, meal_type, confidence
-        """
-        
-        # Mock response
-        return {
-            "foods": ["Chicken", "Rice", "Broccoli"],
-            "calories": 650,
-            "protein": 50,
-            "carbs": 65,
-            "fat": 18,
-            "portion_size": "Large",
-            "meal_type": "lunch",
-            "confidence": 0.85
-        }
-    
+        """Analyze a food photo with Claude vision and extract macros.
+
+        Falls back to a clearly-labelled low-confidence result (not fabricated
+        macros) when ANTHROPIC_API_KEY is not configured, so the UI never shows
+        invented numbers as if they were real."""
+        import base64
+
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            return {
+                "foods": [],
+                "calories": 0,
+                "protein": 0,
+                "carbs": 0,
+                "fat": 0,
+                "portion_size": "unknown",
+                "meal_type": "unknown",
+                "confidence": 0,
+                "note": "AI food analysis is unavailable (ANTHROPIC_API_KEY not set). Enter macros manually.",
+            }
+
+        prompt = (
+            "Analyze this food photo. Identify the food items, estimate the portion size, and estimate nutrition. Respond with ONLY valid JSON (no prose, no code fences) using exactly these keys: "
+            '{"foods": ["item", ...], "calories": number, "protein": number, "carbs": number, "fat": number, "portion_size": "small|medium|large", "meal_type": "breakfast|lunch|dinner|snack", "confidence": number_between_0_and_1}. '
+            "If no food is visible, return foods: [] and confidence: 0."
+        )
+        try:
+            media_type = self._detect_image_media_type(image_content)
+            b64 = base64.standard_b64encode(image_content).decode()
+            message = await self._create_message(
+                model=self.model,
+                max_tokens=700,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": b64}},
+                        {"type": "text", "text": prompt},
+                    ],
+                }],
+            )
+            text = message.content[0].text
+            json_str = text[text.find("{"): text.rfind("}") + 1]
+            data = json.loads(json_str)
+            # Coerce numeric fields defensively
+            for k in ("calories", "protein", "carbs", "fat", "confidence"):
+                try:
+                    data[k] = float(data.get(k, 0) or 0)
+                except (TypeError, ValueError):
+                    data[k] = 0
+            data.setdefault("foods", [])
+            data.setdefault("portion_size", "unknown")
+            data.setdefault("meal_type", "unknown")
+            return data
+        except Exception as e:
+            logger.warning("Food photo analysis failed: %s", e)
+            return {
+                "foods": [],
+                "calories": 0,
+                "protein": 0,
+                "carbs": 0,
+                "fat": 0,
+                "portion_size": "unknown",
+                "meal_type": "unknown",
+                "confidence": 0,
+                "error": "Could not analyze image. Please try again or enter macros manually.",
+            }
+
     async def get_motivation(self, user_id: str) -> str:
         """Get personalized motivational message. Falls back to a canned line when no API key."""
         if not os.environ.get("ANTHROPIC_API_KEY"):

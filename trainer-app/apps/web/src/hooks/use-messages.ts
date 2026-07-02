@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { mockMessages, type MockMessage } from '@/lib/mock-data';
 import { api, USE_API } from '@/lib/api';
+import { POLL_INTERVALS } from '@/lib/polling';
 
 export interface Conversation {
   clientId: string;
@@ -44,6 +45,7 @@ function deriveConversations(messages: MockMessage[]): Conversation[] {
 export function useConversations() {
   return useQuery({
     queryKey: ['conversations'],
+    refetchInterval: POLL_INTERVALS.conversations,
     queryFn: async (): Promise<Conversation[]> => {
       if (USE_API) {
         const messages = await api.get<MockMessage[]>('/api/v1/coaching/messages');
@@ -58,6 +60,7 @@ export function useConversations() {
 export function useMessages(clientId: string | null) {
   return useQuery({
     queryKey: ['messages', clientId],
+    refetchInterval: POLL_INTERVALS.messages,
     queryFn: async (): Promise<MockMessage[]> => {
       if (USE_API) {
         return api.get<MockMessage[]>(`/api/v1/coaching/messages?client_id=${clientId}`);

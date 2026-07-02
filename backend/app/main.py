@@ -28,7 +28,27 @@ from slowapi import _rate_limit_exceeded_handler
 from app.core.config import get_cors_origins
 from app.infrastructure.database import SessionLocal
 from app.domain.reminders import reminder_service
-from app.routes import auth, workouts, diet, progress, coaching, ai_coach, users, reminders, subscriptions, engine, body_analysis
+from app.routes import (
+    auth,
+    workouts,
+    diet,
+    progress,
+    coaching,
+    ai_coach,
+    users,
+    reminders,
+    subscriptions,
+    engine,
+    body_analysis,
+    workout_builder,
+    templates,
+    habits,
+    programs,
+    bookings,
+    challenges,
+    social,
+    grocery,
+)
 from app.utils.logging import setup_logging
 from app.utils.error_handler import (
     global_exception_handler,
@@ -57,10 +77,14 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+_cors_origins = get_cors_origins()
+# A wildcard origin is incompatible with credentialed requests (browsers reject
+# it). If "*" is configured, disable credentials so the policy stays valid.
+_allow_credentials = "*" not in _cors_origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=get_cors_origins(),
-    allow_credentials=True,
+    allow_origins=_cors_origins,
+    allow_credentials=_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -101,6 +125,14 @@ app.include_router(reminders.router, prefix="/api/v1", tags=["Reminders"])
 app.include_router(subscriptions.router, prefix="/api/v1/subscriptions", tags=["Subscriptions"])
 app.include_router(engine.router, prefix="/api/v1/engine", tags=["Exercise Intelligence Engine"])
 app.include_router(body_analysis.router, prefix="/api/v1/body-analysis", tags=["Body Analysis"])
+app.include_router(workout_builder.router, prefix="/api/v1/builder", tags=["Workout Builder"])
+app.include_router(templates.router, prefix="/api/v1", tags=["Workout Templates"])
+app.include_router(habits.router, prefix="/api/v1/habits", tags=["Habits"])
+app.include_router(programs.router, prefix="/api/v1/programs", tags=["Programs"])
+app.include_router(bookings.router, prefix="/api/v1/bookings", tags=["Bookings"])
+app.include_router(challenges.router, prefix="/api/v1/challenges", tags=["Challenges"])
+app.include_router(social.router, prefix="/api/v1/social", tags=["Social"])
+app.include_router(grocery.router, prefix="/api/v1/grocery", tags=["Grocery"])
 
 
 @app.on_event("startup")

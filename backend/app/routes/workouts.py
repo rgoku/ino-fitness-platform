@@ -9,6 +9,7 @@ from app.core.security import require_coach
 from app.ai_service import AIService
 from app.domain.ai.budget import check_and_increment
 from app.middleware.rate_limit import limiter
+from app.core.uploads import read_validated_upload
 
 router = APIRouter()
 ai_service = AIService()
@@ -163,8 +164,8 @@ async def analyze_exercise_form(
 ):
     """Analyze exercise form from uploaded video with real-time pattern recognition"""
     try:
-        # Save and process file
-        content = await file.read()
+        # Validate (type + size cap) then read the upload
+        content = await read_validated_upload(file)
         
         # Use AI service with MediaPipe pose detection
         feedback = await ai_service.analyze_exercise_form(

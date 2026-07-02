@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import {
   CheckIcon,
   type IconProps,
 } from '../components/icons';
+import { habitsService, HabitLog } from '../services/habitsService';
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 
@@ -61,14 +62,56 @@ interface DayStatus {
 
 // ─── Mock Data ──────────────────────────────────────────────────────────────
 
-const initialHabits: Habit[] = [
-  { id: '1', name: 'Drink 3L water', iconKey: 'water', iconColor: '#3B82F6', completed: true, streak: 12 },
-  { id: '2', name: '10,000 steps', iconKey: 'steps', iconColor: '#10B981', completed: true, streak: 5 },
-  { id: '3', name: '8h sleep', iconKey: 'sleep', iconColor: '#8B5CF6', completed: false, streak: 3 },
-  { id: '4', name: 'Hit protein goal', iconKey: 'protein', iconColor: '#EF4444', completed: true, streak: 8 },
-  { id: '5', name: 'Take supplements', iconKey: 'supplements', iconColor: '#F97316', completed: true, streak: 21 },
-  { id: '6', name: 'Stretch 10min', iconKey: 'stretch', iconColor: '#22C55E', completed: false, streak: 0 },
+// Display template; `completed`/`streak` are populated from the backend.
+const HABIT_TEMPLATE: Habit[] = [
+  { id: 'water', name: 'Drink 3L water', iconKey: 'water', iconColor: '#3B82F6', completed: false, streak: 0 },
+  { id: 'steps', name: '10,000 steps', iconKey: 'steps', iconColor: '#10B981', completed: false, streak: 0 },
+  { id: 'sleep', name: '8h sleep', iconKey: 'sleep', iconColor: '#8B5CF6', completed: false, streak: 0 },
+  { id: 'protein', name: 'Hit protein goal', iconKey: 'protein', iconColor: '#EF4444', completed: false, streak: 0 },
+  { id: 'supplements', name: 'Take supplements', iconKey: 'supplements', iconColor: '#F97316', completed: false, streak: 0 },
+  { id: 'stretch', name: 'Stretch 10min', iconKey: 'stretch', iconColor: '#22C55E', completed: false, streak: 0 },
 ];
+
+function isDone(value: number, target: number | null): boolean {
+  return value >= (target && target > 0 ? target : 1);
+}
+
+// Consecutive-day streak (ending at the most recent logged day) for a habit type.
+function computeStreak(history: HabitLog[], habitType: string): number {
+  const doneDays = new Set(
+    history.filter((h) => h.habit_type === habitType && isDone(h.value, h.target)).map((h) => h.date),
+  );
+  let streak = 0;
+  const d = new Date();
+  for (let i = 0; i < 60; i++) {
+    const key = d.toISOString().slice(0, 10);
+    if (doneDays.has(key)) {
+      streak += 1;
+    } else if (i > 0) {
+      break;
+    }
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+function computeWeekly(history: HabitLog[]): DayStatus[] {
+  const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const out: DayStatus[] = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const rows = history.filter((h) => h.date === key);
+    const done = rows.filter((h) => isDone(h.value, h.target)).length;
+    let status: DayStatus['status'] = 'missed';
+    if (rows.length > 0 && done === rows.length) status = 'full';
+    else if (done > 0) status = 'partial';
+    out.push({ day: labels[d.getDay()], status });
+  }
+  return out;
+}
 
 const weeklyOverview: DayStatus[] = [
   { day: 'Mon', status: 'full' },
@@ -203,19 +246,53 @@ function HabitCard({
 // ─── Main Screen ────────────────────────────────────────────────────────────
 
 export default function HabitsScreen() {
-  const [habits, setHabits] = useState<Habit[]>(initialHabits);
+  const [habits, setHabits] = useState<Habit[]>(HABIT_TEMPLATE);
+  const [weekly, setWeekly] = useState<DayStatus[]>([]);
+
+  const load = useCallback(async () => {
+    try {
+      const [today, history] = await Promise.all([
+        habitsService.getToday(),
+        habitsService.getHistory(30),
+      ]);
+      const byType = new Map(today.habits.map((h) => [h.habit_type, h]));
+      setHabits(
+        HABIT_TEMPLATE.map((h) => {
+          const row = byType.get(h.iconKey);
+          return {
+            ...h,
+            completed: row ? isDone(row.value, row.target) : false,
+            streak: computeStreak(history, h.iconKey),
+          };
+        }),
+      );
+      setWeekly(computeWeekly(history));
+    } catch (e) {
+      // Offline / not signed in: keep the template (all unchecked).
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const completedCount = useMemo(
     () => habits.filter((h) => h.completed).length,
     [habits]
   );
 
-  const toggleHabit = (id: string) => {
-    setHabits((prev) =>
-      prev.map((h) =>
-        h.id === id ? { ...h, completed: !h.completed } : h
-      )
-    );
+  const toggleHabit = async (id: string) => {
+    const habit = habits.find((h) => h.id === id);
+    if (!habit) return;
+    const next = !habit.completed;
+    setHabits((prev) => prev.map((h) => (h.id === id ? { ...h, completed: next } : h)));
+    try {
+      await habitsService.logHabit(habit.iconKey, next ? 1 : 0, 1);
+      load();
+    } catch (e) {
+      // Revert on failure
+      setHabits((prev) => prev.map((h) => (h.id === id ? { ...h, completed: !next } : h)));
+    }
   };
 
   return (
@@ -234,7 +311,7 @@ export default function HabitsScreen() {
         <ProgressBar completed={completedCount} total={habits.length} />
 
         {/* Weekly Overview */}
-        <WeeklyOverviewRow days={weeklyOverview} />
+        <WeeklyOverviewRow days={weekly.length ? weekly : weeklyOverview} />
 
         {/* Habits List */}
         <View style={styles.habitsSection}>

@@ -1,0 +1,36 @@
+{
+  "cli": {
+    "version": ">= 5.9.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://10.0.2.2:8095",
+        "EXPO_PUBLIC_API_VERSION": "v1",
+        "EXPO_PUBLIC_ENVIRONMENT": "development"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://ino-fitness-api.onrender.com",
+        "EXPO_PUBLIC_API_VERSION": "v1",
+        "EXPO_PUBLIC_ENVIRONMENT": "preview"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://ino-fitness-api.onrender.com",
+        "EXPO_PUBLIC_API_VERSION": "v1",
+        "EXPO_PUBLIC_ENVIRONMENT": "production"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

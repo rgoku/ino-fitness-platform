@@ -7,7 +7,7 @@ interface AuthUser {
   id: string;
   email: string;
   name: string;
-  role: 'trainer' | 'admin';
+  role: 'trainer' | 'admin' | 'coach' | 'client';
   avatar_url?: string;
 }
 

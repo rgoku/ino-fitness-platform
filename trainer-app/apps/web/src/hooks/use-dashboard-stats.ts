@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { mockClients } from '@/lib/mock-data';
 import { api, USE_API } from '@/lib/api';
+import { POLL_INTERVALS } from '@/lib/polling';
 
 interface DashboardStats {
   totalClients: number;
@@ -12,6 +13,7 @@ interface DashboardStats {
 export function useDashboardStats() {
   return useQuery({
     queryKey: ['dashboard-stats'],
+    refetchInterval: POLL_INTERVALS.dashboard,
     queryFn: async (): Promise<DashboardStats> => {
       if (USE_API) {
         // Derive stats from the real clients endpoint

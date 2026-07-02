@@ -14,6 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Message } from '../types';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../context/AuthContext';
+import { usePolling } from '../hooks/usePolling';
+import { POLL_INTERVALS } from '../config/polling';
 import { BotIcon, CoachIcon } from '../components/icons';
 
 const MessageItem = React.memo(({ item }: { item: Message }) => {
@@ -85,11 +87,8 @@ const ChatScreen = React.memo(({ route }: any) => {
     }
   }, [coachId]);
 
-  useEffect(() => {
-    loadMessages();
-    const interval = setInterval(loadMessages, 5000);
-    return () => clearInterval(interval);
-  }, [loadMessages]);
+  // Foreground-only polling (pauses when the app is backgrounded).
+  usePolling(loadMessages, POLL_INTERVALS.messages);
 
   const generateAIResponse = useCallback(
     async (userMessage: string) => {

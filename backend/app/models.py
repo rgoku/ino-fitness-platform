@@ -17,6 +17,16 @@ from app.infrastructure.database.models import (
     BodyAnalysisSession,
     MuscleSnapshot,
     FormAnalysisResult,
+    ExerciseDefinition,
+    WorkoutTemplate,
+    TemplateExercise,
+    Workout,
+    WorkoutExercise,
+    HabitLog,
+    RefreshToken,
+    Booking,
+    Challenge,
+    ChallengeParticipant,
 )
 
 __all__ = [
@@ -37,4 +47,14 @@ __all__ = [
     "BodyAnalysisSession",
     "MuscleSnapshot",
     "FormAnalysisResult",
+    "ExerciseDefinition",
+    "WorkoutTemplate",
+    "TemplateExercise",
+    "Workout",
+    "WorkoutExercise",
+    "HabitLog",
+    "RefreshToken",
+    "Booking",
+    "Challenge",
+    "ChallengeParticipant",
 ]

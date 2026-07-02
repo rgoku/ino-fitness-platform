@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api, USE_API } from '@/lib/api';
+import { POLL_INTERVALS } from '@/lib/polling';
 
 export type AlertSeverity = 'critical' | 'warn' | 'info';
 export type AlertType =
@@ -38,7 +39,7 @@ export function useAlerts() {
       }
       return [];
     },
-    refetchInterval: 60_000,
+    refetchInterval: POLL_INTERVALS.alerts,
   });
 }
 
@@ -51,6 +52,6 @@ export function useAlertSummary() {
       }
       return { critical: 0, warn: 0, info: 0, total: 0 };
     },
-    refetchInterval: 60_000,
+    refetchInterval: POLL_INTERVALS.alerts,
   });
 }

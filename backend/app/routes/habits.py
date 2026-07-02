@@ -14,7 +14,8 @@ from app.infrastructure.database.models import HabitLog, User
 router = APIRouter()
 
 
-_ALLOWED_HABITS = {"water", "sleep", "steps", "workout", "meditation", "custom"}
+_ALLOWED_HABITS = {"water", "sleep", "steps", "workout", "meditation",
+                   "protein", "supplements", "stretch", "custom"}
 
 
 class HabitLogCreate(BaseModel):

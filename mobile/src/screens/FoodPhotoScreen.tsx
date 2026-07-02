@@ -203,7 +203,26 @@ const FoodPhotoScreen = () => {
               {/* Add Button */}
               <TouchableOpacity
                 style={styles.primaryButton}
-                onPress={() => Alert.alert('Success', 'Macros added to daily log')}
+                onPress={async () => {
+                  try {
+                    await apiService.post('/diet/food', {
+                      food_name:
+                        result.foods.map((f) => f.name).filter(Boolean).join(', ') ||
+                        'Logged meal',
+                      meal_type: 'snack',
+                      calories: result.macros.calories,
+                      protein: result.macros.protein,
+                      carbs: result.macros.carbs,
+                      fat: result.macros.fat,
+                      confidence: result.confidence ?? null,
+                    });
+                    Alert.alert('Added', 'Macros added to your daily log.');
+                    setImage(null);
+                    setResult(null);
+                  } catch (e) {
+                    Alert.alert('Error', "Couldn't add to log. Please try again.");
+                  }
+                }}
               >
                 <Text style={styles.primaryButtonText}>Add to Daily Log</Text>
               </TouchableOpacity>

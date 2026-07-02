@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { mockClients, type MockClient } from '@/lib/mock-data';
 import { api, USE_API } from '@/lib/api';
+import { POLL_INTERVALS } from '@/lib/polling';
 
 export function useClients() {
   return useQuery({
     queryKey: ['clients'],
+    refetchInterval: POLL_INTERVALS.clients,
     queryFn: async (): Promise<MockClient[]> => {
       if (USE_API) {
         return api.get<MockClient[]>('/api/v1/coaching/clients');

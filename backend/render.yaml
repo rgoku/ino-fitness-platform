@@ -1,3 +1,5 @@
+# Canonical production deploy config for the INO Fitness backend.
+# Render is the single supported deploy target — see backend/DEPLOYMENT.md.
 services:
   - type: web
     name: ino-fitness-api
@@ -12,19 +14,23 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: DATABASE_URL
-        sync: false   # set manually — use Render Postgres internal URL
+        sync: false   # set to the Render Postgres internal connection string
       - key: SECRET_KEY
-        generateValue: true
-      - key: PUBLIC_BASE_URL
-        sync: false   # set to https://<your-service>.onrender.com
+        generateValue: true   # signs JWT access tokens (app.core.security)
+      - key: JWT_SECRET
+        generateValue: true   # checked by the startup env validator
+      - key: ANTHROPIC_API_KEY
+        sync: false   # required for AI features (workout/diet/chat/food vision)
+      - key: STRIPE_SECRET_KEY
+        sync: false   # required for subscriptions/payments
+      - key: SENTRY_DSN
+        sync: false   # optional but recommended (error monitoring)
       - key: CORS_ORIGINS
-        sync: false   # set to: https://your-domain.com,exp://192.168.x.x:8081
-      - key: JWT_ACCESS_EXPIRE_MINUTES
-        value: "60"
-      - key: JWT_REFRESH_EXPIRE_DAYS
-        value: "14"
+        sync: false   # comma-separated, e.g. https://app.yourdomain.com
+      - key: JWT_EXPIRATION_HOURS
+        value: "24"
       - key: REDIS_URL
-        value: ""     # leave empty — rate limiting fails-open without Redis
+        sync: false   # optional; without it rate limiting/Celery degrade gracefully
       - key: PYTHONUNBUFFERED
         value: "1"
 
