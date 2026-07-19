@@ -4,8 +4,19 @@ from sqlalchemy.orm import Session
 from app.models import User
 from app.database import get_db
 from app.auth import get_current_user
+from app.core.security import ensure_own_or_coach
 
 router = APIRouter()
+
+# Fields a user is allowed to change on their own profile. Deliberately
+# excludes role, coach_id, subscription_tier, hashed_password, id and email so
+# a client cannot self-escalate to coach, grant themselves a paid tier, or
+# overwrite their credential/identity via mass assignment.
+EDITABLE_PROFILE_FIELDS = {
+    "name", "age", "gender", "weight", "height",
+    "fitness_goal", "experience_level", "biometrics_enabled",
+}
+
 
 @router.get("/{user_id}")
 async def get_user_profile(
@@ -14,6 +25,8 @@ async def get_user_profile(
     db: Session = Depends(get_db)
 ):
     """Get user profile"""
+    # Only the owner, or a coach who owns this client, may read the profile.
+    ensure_own_or_coach(user_id, current_user, db)
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -42,13 +55,17 @@ async def update_user_profile(
     """Update user profile"""
     if user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Unauthorized")
-    
+
     user = db.query(User).filter(User.id == user_id).first()
-    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Allowlist only user-editable fields; silently ignore privileged keys
+    # (role, coach_id, subscription_tier, hashed_password, ...).
     for key, value in updates.items():
-        if hasattr(user, key):
+        if key in EDITABLE_PROFILE_FIELDS:
             setattr(user, key, value)
-    
+
     db.commit()
     return {"status": "updated"}
 

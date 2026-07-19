@@ -185,18 +185,30 @@ async def validate_environment():
     is_prod = os.environ.get("ENVIRONMENT") == "production"
     warnings = []
     if is_prod:
-        required = ["DATABASE_URL", "JWT_SECRET", "STRIPE_SECRET_KEY"]
+        required = ["DATABASE_URL", "STRIPE_SECRET_KEY"]
         for var in required:
             if not os.environ.get(var):
                 warnings.append(f"CRITICAL: {var} is not set")
+        # Auth signing key: accept the primary name (SECRET_KEY, used by
+        # core/security.py) or the legacy alias (JWT_SECRET). One MUST be set.
+        if not (os.environ.get("SECRET_KEY") or os.environ.get("JWT_SECRET")):
+            warnings.append("CRITICAL: SECRET_KEY (or JWT_SECRET) is not set")
         recommended = ["SENTRY_DSN", "REDIS_URL", "ANTHROPIC_API_KEY"]
         for var in recommended:
             if not os.environ.get(var):
                 warnings.append(f"WARNING: {var} is not set (recommended)")
-    if os.environ.get("JWT_SECRET", "").startswith("ino-dev"):
-        warnings.append("WARNING: Using default JWT_SECRET — change in production")
+    # The signing key that is actually used to mint/verify tokens.
+    secret = os.environ.get("SECRET_KEY") or os.environ.get("JWT_SECRET") or ""
+    if secret in ("", "change-me") or secret.startswith("ino-dev"):
+        warnings.append(
+            "WARNING: JWT signing key is unset or a known default — set a strong SECRET_KEY"
+        )
     for w in warnings:
         logger.warning(w)
+    # Fail closed: never serve production traffic with a missing critical var.
+    criticals = [w for w in warnings if w.startswith("CRITICAL")]
+    if is_prod and criticals:
+        raise RuntimeError("Startup aborted — " + "; ".join(criticals))
 
 
 @app.get("/")

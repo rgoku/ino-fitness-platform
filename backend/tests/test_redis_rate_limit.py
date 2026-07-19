@@ -115,7 +115,8 @@ class TestRedisRateLimitMiddleware:
     ):
         mock_get_user_id.return_value = "user1"
         mock_get_tier.return_value = "free"
-        mock_check.return_value = (False, 21, AI_LIMIT_BASIC, 1800)
+        # Request targets the /reminders resource, so the reported limit is the reminders limit.
+        mock_check.return_value = (False, 21, REMINDERS_LIMIT_BASIC, 1800)
         client = TestClient(app)
         response = client.post(
             "/api/v1/reminders",
@@ -158,4 +159,6 @@ class TestRedisRateLimitMiddleware:
         response = client.get("/api/v1/ai/motivation?user_id=u1")
         # No Authorization header -> middleware passes through; route may return 401
         mock_check.assert_not_called()
-        assert response.status_code in (401, 422)
+        # HTTPBearer returns 403 when the Authorization header is absent; 401 when a
+        # token is present but invalid. Either means "auth rejected before rate-limiting".
+        assert response.status_code in (401, 403, 422)

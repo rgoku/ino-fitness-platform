@@ -13,7 +13,6 @@ import {
   type MuscleSlug,
   type BodyView,
   type MuscleVolume,
-  type ThemeColors,
 } from './core';
 import { cn } from '@/lib/utils';
 

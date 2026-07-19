@@ -10,14 +10,147 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
+:root {
+  --ino-bg: #0A0A0A;
+  --ino-text: #E8E8E8;
+  --ino-text-strong: #FFFFFF;
+  --ino-border: rgba(255, 255, 255, 0.06);
+  --ino-surface: rgba(255, 255, 255, 0.02);
+}
+
+html[data-theme='light'] {
+  --ino-bg: #FAFAFA;
+  --ino-text: #2A2A2A;
+  --ino-text-strong: #0A0A0A;
+  --ino-border: rgba(0, 0, 0, 0.08);
+  --ino-surface: rgba(0, 0, 0, 0.02);
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #E8E8E8;
-  background-color: #0A0A0A;
+  color: var(--ino-text);
+  background-color: var(--ino-bg);
   letter-spacing: -0.018em;
   overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* ── Light theme — comprehensive overrides ──
+   Dark stays the default. Light remaps surface + text tokens, leaves brand
+   accents (#3A86FF, #10B981, gradients) intact, and bumps the floor for
+   muted text so dim labels stay legible against white.
+
+   Contrast floor: any white/35 or lower goes to 0.50 black — anything below
+   that disappears on white. White/50 → 0.62 for "medium dim" gets a slight
+   nudge for legibility. */
+
+/* Page-level surfaces */
+html[data-theme='light'] .bg-\[\#0A0A0A\]            { background-color: #FAFAFA !important; }
+html[data-theme='light'] .bg-\[\#0A0A0A\]\/85       { background-color: rgba(250, 250, 250, 0.85) !important; }
+html[data-theme='light'] .bg-\[\#0A0F1E\]            { background-color: #F4F6FA !important; }
+html[data-theme='light'] .bg-\[\#0C1220\]            { background-color: #FFFFFF !important; }
+html[data-theme='light'] .bg-black                   { background-color: #1A1A1A !important; }   /* notch, etc. — slight lift but stays dark */
+html[data-theme='light'] .bg-black\/40               { background-color: rgba(0, 0, 0, 0.04) !important; }
+html[data-theme='light'] .bg-black\/60               { background-color: rgba(0, 0, 0, 0.06) !important; }
+
+/* Text — high contrast for headings, calibrated dim for body/labels */
+html[data-theme='light'] .text-white                 { color: #0A0A0A !important; }
+html[data-theme='light'] .text-white\/90             { color: rgba(10, 10, 10, 0.92) !important; }
+html[data-theme='light'] .text-white\/85             { color: rgba(10, 10, 10, 0.88) !important; }
+html[data-theme='light'] .text-white\/80             { color: rgba(10, 10, 10, 0.82) !important; }
+html[data-theme='light'] .text-white\/75             { color: rgba(10, 10, 10, 0.78) !important; }
+html[data-theme='light'] .text-white\/70             { color: rgba(10, 10, 10, 0.74) !important; }
+html[data-theme='light'] .text-white\/65             { color: rgba(10, 10, 10, 0.70) !important; }
+html[data-theme='light'] .text-white\/60             { color: rgba(10, 10, 10, 0.68) !important; }
+html[data-theme='light'] .text-white\/55             { color: rgba(10, 10, 10, 0.64) !important; }
+html[data-theme='light'] .text-white\/50             { color: rgba(10, 10, 10, 0.62) !important; }
+html[data-theme='light'] .text-white\/45             { color: rgba(10, 10, 10, 0.58) !important; }
+html[data-theme='light'] .text-white\/40             { color: rgba(10, 10, 10, 0.55) !important; }
+html[data-theme='light'] .text-white\/35             { color: rgba(10, 10, 10, 0.52) !important; }
+html[data-theme='light'] .text-white\/30             { color: rgba(10, 10, 10, 0.50) !important; }
+html[data-theme='light'] .text-white\/25             { color: rgba(10, 10, 10, 0.50) !important; }
+html[data-theme='light'] .text-white\/15             { color: rgba(10, 10, 10, 0.45) !important; }
+
+/* Borders */
+html[data-theme='light'] .border-white\/25           { border-color: rgba(0, 0, 0, 0.16) !important; }
+html[data-theme='light'] .border-white\/15           { border-color: rgba(0, 0, 0, 0.12) !important; }
+html[data-theme='light'] .border-white\/10           { border-color: rgba(0, 0, 0, 0.1) !important; }
+html[data-theme='light'] .border-white\/8            { border-color: rgba(0, 0, 0, 0.09) !important; }
+html[data-theme='light'] .border-white\/6            { border-color: rgba(0, 0, 0, 0.08) !important; }
+html[data-theme='light'] .border-white\/5            { border-color: rgba(0, 0, 0, 0.07) !important; }
+
+/* Subtle backgrounds (cards, hover wells, dividers) */
+html[data-theme='light'] .bg-white\/\[0\.01\]        { background-color: rgba(0, 0, 0, 0.02) !important; }
+html[data-theme='light'] .bg-white\/\[0\.012\]       { background-color: rgba(0, 0, 0, 0.022) !important; }
+html[data-theme='light'] .bg-white\/\[0\.015\]       { background-color: rgba(0, 0, 0, 0.025) !important; }
+html[data-theme='light'] .bg-white\/\[0\.02\]        { background-color: rgba(0, 0, 0, 0.03) !important; }
+html[data-theme='light'] .bg-white\/\[0\.03\]        { background-color: rgba(0, 0, 0, 0.035) !important; }
+html[data-theme='light'] .bg-white\/\[0\.04\]        { background-color: rgba(0, 0, 0, 0.045) !important; }
+html[data-theme='light'] .bg-white\/\[0\.06\]        { background-color: rgba(0, 0, 0, 0.055) !important; }
+html[data-theme='light'] .bg-white\/\[0\.1\]         { background-color: rgba(0, 0, 0, 0.08) !important; }
+html[data-theme='light'] .from-white\/\[0\.03\]      { --tw-gradient-from: rgba(0, 0, 0, 0.035) !important; }
+html[data-theme='light'] .to-white\/\[0\.01\]        { --tw-gradient-to: rgba(0, 0, 0, 0.01) !important; }
+
+/* CTAs that invert white → black in dark mode need the opposite in light mode */
+html[data-theme='light'] .bg-white                   { background-color: #0A0A0A !important; }
+html[data-theme='light'] .hover\:bg-white\/90:hover  { background-color: rgba(10, 10, 10, 0.9) !important; }
+html[data-theme='light'] .text-black                 { color: #FAFAFA !important; }
+
+/* Composite components */
+html[data-theme='light'] .card-cinematic {
+  background: rgba(0, 0, 0, 0.025);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+html[data-theme='light'] .card-cinematic:hover {
+  background: rgba(58, 134, 255, 0.04);
+  border-color: rgba(58, 134, 255, 0.3);
+  box-shadow: 0 20px 50px rgba(58, 134, 255, 0.08), 0 0 30px rgba(58, 134, 255, 0.04);
+}
+html[data-theme='light'] .grid-pattern {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+}
+html[data-theme='light'] .noise::before { mix-blend-mode: multiply; opacity: 0.5; }
+html[data-theme='light'] .cursor-ball-small { background: #0A0A0A; }
+html[data-theme='light'] .cursor-ball-big   { border-color: rgba(0, 0, 0, 0.4); }
+html[data-theme='light'] .cursor-ball-big.hovering {
+  border-color: rgba(58, 134, 255, 0.9);
+  background: rgba(58, 134, 255, 0.08);
+}
+
+/* Selection + scrollbar — calibrated for the white canvas */
+html[data-theme='light'] ::selection { background: rgba(58, 134, 255, 0.18); color: #0A0A0A; }
+html[data-theme='light'] ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); }
+html[data-theme='light'] ::-webkit-scrollbar-thumb:hover { background: rgba(58, 134, 255, 0.5); }
+
+/* Glow accents — soften so they don't read as smudges on white */
+html[data-theme='light'] .glow-accent {
+  box-shadow: 0 0 60px rgba(58, 134, 255, 0.04), 0 0 160px rgba(58, 134, 255, 0.02);
+}
+
+/* ── Theme wipe — L→R cover, then R→L uncover ──
+   `--wipe-bg` is set inline at fire-time so the curtain renders the
+   destination theme's bg color (looks like the wipe is *carrying* the
+   new theme across the screen). */
+@keyframes ino-wipe {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(0%); }     /* full cover — theme swaps here */
+  100% { transform: translateX(-100%); }  /* slides back the way it came */
+}
+.ino-theme-wipe {
+  position: fixed;
+  inset: 0;
+  background: var(--wipe-bg, #FAFAFA);
+  z-index: 9998;
+  pointer-events: none;
+  transform: translateX(-100%);
+  will-change: transform;
+}
+.ino-theme-wipe.firing {
+  animation: ino-wipe 900ms cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
 /* ── Custom Cursor (scoped — only active when .custom-cursor-active is on a parent) ── */

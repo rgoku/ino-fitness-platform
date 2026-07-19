@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from app.models import User, ProgressEntry, Achievement, Subscription
 from app.database import get_db
 from app.auth import get_current_user
+from app.core.security import ensure_own_or_coach
 
 router = APIRouter()
 
@@ -41,6 +42,7 @@ async def get_progress(
 ):
     """Get progress history. Defaults to the authenticated user."""
     target = user_id or current_user.id
+    ensure_own_or_coach(target, current_user, db)
     start_date = datetime.utcnow() - timedelta(days=days)
     entries = db.query(ProgressEntry).filter(
         ProgressEntry.user_id == target,
@@ -56,6 +58,7 @@ async def get_streak(
     db: Session = Depends(get_db)
 ):
     """Get current streak"""
+    ensure_own_or_coach(user_id, current_user, db)
     # Calculate streak from workout sessions
     return {
         "current_streak": 5,
@@ -70,6 +73,7 @@ async def get_achievements(
     db: Session = Depends(get_db)
 ):
     """Get user achievements"""
+    ensure_own_or_coach(user_id, current_user, db)
     achievements = db.query(Achievement).filter(
         Achievement.user_id == user_id,
         Achievement.unlocked_at != None
@@ -84,6 +88,7 @@ async def get_trophies(
     db: Session = Depends(get_db)
 ):
     """Get user trophies"""
+    ensure_own_or_coach(user_id, current_user, db)
     return []
 
 @router.get("/{user_id}/stats")
@@ -93,6 +98,7 @@ async def get_stats(
     db: Session = Depends(get_db)
 ):
     """Get user statistics"""
+    ensure_own_or_coach(user_id, current_user, db)
     return {
         "total_workouts": 42,
         "total_meals_logged": 125,
@@ -109,6 +115,7 @@ async def add_weight_entry(
     db: Session = Depends(get_db)
 ):
     """Add weight entry"""
+    ensure_own_or_coach(user_id, current_user, db)
     entry = ProgressEntry(
         user_id=user_id,
         weight=weight,
@@ -127,6 +134,7 @@ async def add_measurements(
     db: Session = Depends(get_db)
 ):
     """Add body measurements"""
+    ensure_own_or_coach(user_id, current_user, db)
     entry = ProgressEntry(
         user_id=user_id,
         measurements=measurements,

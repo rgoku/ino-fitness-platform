@@ -17,6 +17,9 @@ async def test_get_supplement_recommendations_monkeypatched(monkeypatch):
     async def fake_summarize(name, citations):
         return {"summary": f"{name} shows moderate evidence.", "evidence_level": "moderate"}
 
+    # Enrichment (PubMed + Claude summary) only runs when an API key is present;
+    # set one so the mocked enrichment path is exercised.
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     monkeypatch.setattr(svc, "_search_pubmed_research", fake_search_pubmed)
     monkeypatch.setattr(svc, "_summarize_citations_with_claude", fake_summarize)
 

@@ -86,6 +86,9 @@ coverage/
 *.temp
 .cache/
 
+# Local emulator/dev screenshots (not source)
+.emu-*.png
+
 # Package lock files (keep package-lock.json but ignore others)
 yarn.lock
 pnpm-lock.yaml

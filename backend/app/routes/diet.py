@@ -4,13 +4,14 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from app.models import User, DietPlan, Meal, FoodEntry
 from app.database import get_db
 from app.auth import get_current_user
-from app.core.security import require_coach
+from app.core.security import require_coach, ensure_own_or_coach
 from app.ai_service import AIService
 from app.domain.ai.budget import check_and_increment
 from app.middleware.rate_limit import limiter
 from app.core.uploads import read_validated_upload
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime, timedelta
 
 router = APIRouter()
 ai_service = AIService()
@@ -101,6 +102,7 @@ async def get_diet_plans(
 ):
     """Get all diet plans for user. Defaults to the authenticated user."""
     target = user_id or current_user.id
+    ensure_own_or_coach(target, current_user, db)
     plans = (
         db.query(DietPlan)
         .options(selectinload(DietPlan.meals))
@@ -119,6 +121,12 @@ async def analyze_food_photo(
     db: Session = Depends(get_db)
 ):
     """Analyze food photo and extract macros (image upload)."""
+    # Vision calls are among the most expensive AI operations — enforce the
+    # per-user/global AI budget before doing any Claude work.
+    tier = getattr(current_user, "subscription_tier", "free") or "free"
+    allowed, reason = check_and_increment(current_user.id, tier, "food_analysis")
+    if not allowed:
+        raise HTTPException(status_code=429, detail=reason)
     try:
         content = await read_validated_upload(file, allowed_prefixes=("image/",))
         result = await ai_service.analyze_food_photo(content)
@@ -200,16 +208,39 @@ async def get_daily_macros(
 ):
     """Get daily macro totals. Defaults to the authenticated user."""
     target = user_id or current_user.id
+    ensure_own_or_coach(target, current_user, db)
+
+    # FoodEntry.date is a DateTime column — filter by the [day, day+1) range.
+    # (Never LIKE/startswith on a timestamp; it raises on PostgreSQL.)
+    try:
+        day_start = datetime.fromisoformat(date[:10])
+    except ValueError:
+        raise HTTPException(status_code=400, detail="date must be ISO format YYYY-MM-DD")
+    day_end = day_start + timedelta(days=1)
     entries = db.query(FoodEntry).filter(
         FoodEntry.user_id == target,
-        FoodEntry.date.startswith(date)
+        FoodEntry.date >= day_start,
+        FoodEntry.date < day_end,
     ).all()
-    
-    total_calories = sum(e.calories for e in entries)
-    total_protein = sum(e.protein for e in entries)
-    total_carbs = sum(e.carbs for e in entries)
-    total_fat = sum(e.fat for e in entries)
-    
+
+    total_calories = sum(e.calories or 0 for e in entries)
+    total_protein = sum(e.protein or 0 for e in entries)
+    total_carbs = sum(e.carbs or 0 for e in entries)
+    total_fat = sum(e.fat or 0 for e in entries)
+
+    # Targets come from the user's most recent diet plan when available;
+    # fall back to sensible defaults so the screen still renders.
+    plan = (
+        db.query(DietPlan)
+        .filter(DietPlan.user_id == target)
+        .order_by(DietPlan.created_at.desc())
+        .first()
+    )
+    cal_t = plan.calorie_target if plan and plan.calorie_target else 2000
+    pro_t = plan.protein_target if plan and plan.protein_target else 150
+    carb_t = plan.carb_target if plan and plan.carb_target else 200
+    fat_t = plan.fat_target if plan and plan.fat_target else 65
+
     return {
         "date": date,
         "consumed": {
@@ -218,11 +249,17 @@ async def get_daily_macros(
             "carbs": total_carbs,
             "fat": total_fat
         },
+        "targets": {
+            "calories": cal_t,
+            "protein": pro_t,
+            "carbs": carb_t,
+            "fat": fat_t
+        },
         "remaining": {
-            "calories": 2000 - total_calories,
-            "protein": 150 - total_protein,
-            "carbs": 200 - total_carbs,
-            "fat": 65 - total_fat
+            "calories": cal_t - total_calories,
+            "protein": pro_t - total_protein,
+            "carbs": carb_t - total_carbs,
+            "fat": fat_t - total_fat
         }
     }
 

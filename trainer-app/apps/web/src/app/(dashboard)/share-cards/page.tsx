@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import {
-  Download, Instagram, Trophy, TrendingUp, Flame, Copy, Check,
+  Instagram, Trophy, TrendingUp, Flame, Copy, Check,
   Share2, MessageCircle, Mail, Facebook, Twitter, Music2, MessageSquare, ImageDown,
 } from 'lucide-react';
 import { toPng } from 'html-to-image';

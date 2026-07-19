@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from app.models import User, WorkoutPlan, Exercise, WorkoutSession
 from app.database import get_db
 from app.auth import get_current_user
-from app.core.security import require_coach
+from app.core.security import require_coach, ensure_own_or_coach
 from app.ai_service import AIService
 from app.domain.ai.budget import check_and_increment
 from app.middleware.rate_limit import limiter
@@ -83,6 +83,7 @@ async def get_workout_plans(
 ):
     """Get all workout plans for a user. Defaults to the authenticated user."""
     target = user_id or current_user.id
+    ensure_own_or_coach(target, current_user, db)
     plans = (
         db.query(WorkoutPlan)
         .options(selectinload(WorkoutPlan.exercises))
@@ -163,6 +164,11 @@ async def analyze_exercise_form(
     db: Session = Depends(get_db)
 ):
     """Analyze exercise form from uploaded video with real-time pattern recognition"""
+    # Video + Claude form analysis is expensive — enforce the AI budget first.
+    tier = getattr(current_user, "subscription_tier", "free") or "free"
+    allowed, reason = check_and_increment(current_user.id, tier, "form_analysis")
+    if not allowed:
+        raise HTTPException(status_code=429, detail=reason)
     try:
         # Validate (type + size cap) then read the upload
         content = await read_validated_upload(file)
@@ -202,6 +208,7 @@ async def get_workout_stats(
 ):
     """Get workout statistics for user. Defaults to the authenticated user."""
     target = user_id or current_user.id
+    ensure_own_or_coach(target, current_user, db)
     start_date = datetime.utcnow() - timedelta(days=days)
 
     sessions = db.query(WorkoutSession).filter(
@@ -249,6 +256,7 @@ async def get_workout_sessions(
 ):
     """Get recent workout sessions. Defaults to the authenticated user."""
     target = user_id or current_user.id
+    ensure_own_or_coach(target, current_user, db)
     sessions = (
         db.query(WorkoutSession)
         .options(selectinload(WorkoutSession.workout_plan))

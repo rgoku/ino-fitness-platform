@@ -13,11 +13,13 @@ import {
   type MuscleVolume,
 } from './core';
 
-const RED_SCALE = [
-  { max: 5, color: '#5a2d33' },
-  { max: 10, color: '#9c3530' },
-  { max: 18, color: '#e23b2e' },
-  { max: Infinity, color: '#ff5a3c' },
+// Emerald heatmap scale — matches the INÖ brand accent (#10B981) used across
+// the coach dashboard, the demo, and the rest of the mobile app.
+const HEAT_SCALE = [
+  { max: 5,        color: '#2a6a55' },
+  { max: 10,       color: '#149e72' },
+  { max: 18,       color: '#10B981' },
+  { max: Infinity, color: '#5ce0a8' },
 ];
 const C = {
   bg: '#0b0e13',
@@ -26,17 +28,17 @@ const C = {
   line: '#1e2530',
   ink: '#e8edf4',
   muted: '#7b8696',
-  accent: '#ff3b30',
+  accent: '#10B981',
   body: '#2b313c',
   edge: '#39414e',
-  up: '#39d98a',
+  up: '#10B981',
   down: '#ff6b6b',
 };
 
 function colorFor(value: number | undefined): string {
   if (!value || value <= 0) return C.body;
-  for (const step of RED_SCALE) if (value <= step.max) return step.color;
-  return RED_SCALE[RED_SCALE.length - 1].color;
+  for (const step of HEAT_SCALE) if (value <= step.max) return step.color;
+  return HEAT_SCALE[HEAT_SCALE.length - 1].color;
 }
 
 /**
@@ -252,14 +254,14 @@ export function MuscleHeatmapPro({
 
         {/* Legend */}
         <View style={styles.legend}>
-          {RED_SCALE.map((s, i) => (
+          {HEAT_SCALE.map((s, i) => (
             <View
               key={i}
               style={[
                 styles.legendSwatch,
                 { backgroundColor: s.color },
                 i === 0 && styles.legendFirst,
-                i === RED_SCALE.length - 1 && styles.legendLast,
+                i === HEAT_SCALE.length - 1 && styles.legendLast,
               ]}
             />
           ))}

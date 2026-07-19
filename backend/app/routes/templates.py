@@ -26,6 +26,7 @@ from app.models import (
     WorkoutExercise,
 )
 from app.auth import get_current_user
+from app.core.security import require_coach
 
 router = APIRouter(prefix="/templates", tags=["workout-templates"])
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ logger = logging.getLogger(__name__)
 @router.post("", response_model=WorkoutTemplate, status_code=status.HTTP_201_CREATED)
 async def create_template(
     template_data: WorkoutTemplateCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_coach),
     db: Session = Depends(get_db),
 ):
     """
@@ -139,7 +140,7 @@ async def list_templates(
 @router.post("/{template_id}/duplicate", response_model=WorkoutTemplate)
 async def duplicate_template(
     template_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_coach),
     db: Session = Depends(get_db),
 ):
     """
@@ -235,7 +236,7 @@ async def duplicate_template(
 async def update_template_exercises(
     template_id: str,
     exercises: List[TemplateExerciseCreate],
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_coach),
     db: Session = Depends(get_db),
 ):
     """
@@ -314,7 +315,7 @@ async def assign_template_to_client(
     template_id: str,
     client_id: str,
     start_date: Optional[str] = Form(None),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_coach),
     db: Session = Depends(get_db),
 ):
     """
@@ -344,6 +345,19 @@ async def assign_template_to_client(
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Cannot assign this template",
+            )
+
+        # Verify the target client belongs to this coach (or is unassigned).
+        # Prevents a coach from materializing workouts onto an arbitrary user.
+        client = db.query(User).filter(User.id == client_id).first()
+        if client is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Client not found"
+            )
+        if client.coach_id not in (None, current_user.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This client is not assigned to you",
             )
 
         # Parse start date
@@ -513,7 +527,7 @@ async def get_template_details(
 @router.delete("/{template_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_template(
     template_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_coach),
     db: Session = Depends(get_db),
 ):
     """

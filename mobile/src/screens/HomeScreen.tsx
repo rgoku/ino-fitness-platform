@@ -312,7 +312,16 @@ const HomeScreen = React.memo(({ navigation }: any) => {
   }, [loadDashboardData]);
 
   const onFoodPhoto = useCallback(() => navigation.navigate('FoodPhoto'), [navigation]);
-  const onWorkout = useCallback(() => navigation.navigate('WorkoutSession'), [navigation]);
+  // Start Workout needs a plan id, or WorkoutSession dead-ends on "plan not
+  // found". Use today's loaded plan; otherwise route to the Workout tab so the
+  // user can pick one.
+  const onWorkout = useCallback(() => {
+    if (todayWorkout?.id) {
+      navigation.navigate('WorkoutSession', { workoutPlanId: todayWorkout.id });
+    } else {
+      navigation.navigate('Workout');
+    }
+  }, [navigation, todayWorkout]);
   const onWorkoutCard = useCallback(() => navigation.navigate('Workout'), [navigation]);
 
   if (loading) {

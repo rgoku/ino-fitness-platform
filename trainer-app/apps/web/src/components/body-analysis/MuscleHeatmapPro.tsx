@@ -179,7 +179,7 @@ interface Props {
   defaultTheme?: ThemeId;
 }
 
-export function MuscleHeatmapPro({ thisWeek, lastWeek, defaultTheme = 'red' }: Props) {
+export function MuscleHeatmapPro({ thisWeek, lastWeek, defaultTheme = 'emerald' }: Props) {
   const [view, setView] = useState<BodyView>('front');
   const [selected, setSelected] = useState<MuscleSlug>('quadriceps');
   const [working, setWorking] = useState<MuscleVolume>(thisWeek);

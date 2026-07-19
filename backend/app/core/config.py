@@ -10,7 +10,21 @@ def get_database_url() -> str:
 
 
 def get_secret_key() -> str:
-    return os.getenv("SECRET_KEY", "change-me")
+    """Active JWT signing/verification key used by app.core.security.
+
+    Accepts SECRET_KEY (primary) or JWT_SECRET (legacy/ops alias) so a deploy
+    that provisions either name is secure. Fails closed in production rather
+    than silently signing every token with the public default 'change-me'
+    (which would allow anyone to forge a token for any user/coach)."""
+    key = os.getenv("SECRET_KEY") or os.getenv("JWT_SECRET")
+    if key and key != "change-me":
+        return key
+    if os.getenv("ENVIRONMENT") == "production":
+        raise RuntimeError(
+            "SECRET_KEY (or JWT_SECRET) must be set to a secure, non-default "
+            "value in production. Refusing to start with an insecure signing key."
+        )
+    return "change-me"
 
 
 def get_cors_origins() -> list[str]:

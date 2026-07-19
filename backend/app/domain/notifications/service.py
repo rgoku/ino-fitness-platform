@@ -9,6 +9,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -49,8 +50,6 @@ class PushNotification(NotificationChannel):
                 "error": "FCM_API_KEY not configured",
             }
         try:
-            import requests
-
             fcm_token = data.get("fcm_token") if data else None
             if not fcm_token:
                 return {

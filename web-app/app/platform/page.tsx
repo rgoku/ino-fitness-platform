@@ -14,6 +14,7 @@ import {
   MARQUEE_ITEMS,
 } from '@/lib/platform-data';
 import { CustomCursor } from '@/components/CustomCursor';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 /* ── Scroll reveal ── */
 function useReveal<T extends HTMLElement = HTMLDivElement>() {
@@ -128,9 +129,12 @@ export default function PlatformLandingPage() {
             <Link href="#pricing" className="text-sm text-white/50 hover:text-white/90 transition-colors">Pricing</Link>
             <Link href="/demo" className="text-sm text-white/50 hover:text-white/90 transition-colors">Demo</Link>
           </div>
-          <Link href="/demo" className="px-4 py-2 rounded-md bg-white text-black text-xs font-semibold hover:bg-white/90 transition-all">
-            Get Started
-          </Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link href="/demo" className="px-4 py-2 rounded-md bg-white text-black text-xs font-semibold hover:bg-white/90 transition-all">
+              Get Started
+            </Link>
+          </div>
         </div>
       </nav>
 

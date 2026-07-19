@@ -92,10 +92,12 @@ async def get_motivation(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get motivational message. Defaults to the authenticated user."""
+    """Get a motivational message for the authenticated user."""
     _enforce_budget(current_user, "motivation")
     try:
-        motivation = await ai_service.get_motivation(user_id or current_user.id)
+        # Always scope to the caller — never generate from an arbitrary user_id
+        # (that would leak another user's context and charge budget to the caller).
+        motivation = await ai_service.get_motivation(current_user.id)
         return {"message": motivation}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

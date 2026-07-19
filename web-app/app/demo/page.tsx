@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { DEMO_MEMBERS, DEMO_WORKOUTS } from '@/lib/platform-data';
 import { CustomCursor } from '@/components/CustomCursor';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 /* ══════════════════════════════════════════════════════════ */
 /*  BOOT SEQUENCE — Terminal Loader                         */
@@ -159,6 +160,7 @@ export default function DemoPage() {
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [completions, setCompletions] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<string | null>(null);
+  const [device, setDevice] = useState<'ios' | 'android'>('ios');
 
   const avgProgress = Math.round(
     DEMO_MEMBERS.reduce((a, m) => a + m.progress, 0) / DEMO_MEMBERS.length * 100
@@ -197,9 +199,12 @@ export default function DemoPage() {
             <div className="w-6 h-6 rounded bg-[#3A86FF] flex items-center justify-center text-white font-black text-[9px]">INÖ</div>
             <span className="font-semibold text-white/90 text-sm tracking-tight">Platform Demo</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#3A86FF]/10 border border-[#3A86FF]/20">
-            <span className="dot-accent" />
-            <span className="text-[10px] font-bold text-[#3A86FF] uppercase tracking-wider">Live</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#3A86FF]/10 border border-[#3A86FF]/20">
+              <span className="dot-accent" />
+              <span className="text-[10px] font-bold text-[#3A86FF] uppercase tracking-wider">Live</span>
+            </div>
+            <ThemeToggle />
           </div>
         </div>
       </nav>
@@ -235,14 +240,50 @@ export default function DemoPage() {
               ))}
             </div>
 
-            {/* Mini stats */}
-            <div className="mt-8 p-4 rounded-lg border border-white/6 bg-white/[0.02]">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-3">System</div>
-              <div className="space-y-2.5 font-mono text-[11px]">
-                <div className="flex justify-between"><span className="text-white/40">Coaches</span><span className="text-white/80">2,412</span></div>
-                <div className="flex justify-between"><span className="text-white/40">Clients</span><span className="text-white/80">58,941</span></div>
-                <div className="flex justify-between"><span className="text-white/40">Workouts/day</span><span className="text-[#00B4D8]">12,307</span></div>
-                <div className="flex justify-between"><span className="text-white/40">AI calls/min</span><span className="text-[#3A86FF]">847</span></div>
+            {/* System stats — live platform telemetry */}
+            <div className="mt-8 rounded-xl border border-white/8 bg-gradient-to-b from-white/[0.03] to-white/[0.01] backdrop-blur-xl p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="text-[10px] uppercase tracking-[0.22em] text-white/40 font-bold">System</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="relative flex w-1.5 h-1.5">
+                    <span className="absolute inset-0 rounded-full bg-[#10B981] opacity-70 animate-ping" />
+                    <span className="relative rounded-full bg-[#10B981] w-1.5 h-1.5" />
+                  </span>
+                  <span className="text-[9px] text-[#10B981] font-bold tracking-[0.18em]">LIVE</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { label: 'Coaches',        value: '2,412',  trend: null,     hot: false },
+                  { label: 'Clients',        value: '58,941', trend: null,     hot: false },
+                  { label: 'Workouts / day', value: '12,307', trend: '+4.2%',  hot: true  },
+                  { label: 'AI calls / min', value: '847',    trend: null,     hot: true  },
+                ].map((row) => (
+                  <div key={row.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-1 h-3.5 rounded-full ${
+                          row.hot ? 'bg-[#10B981]' : 'bg-white/15'
+                        }`}
+                      />
+                      <span className="text-[11px] text-white/55 tracking-wide">{row.label}</span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      {row.trend && (
+                        <span className="text-[9px] text-[#10B981] font-semibold tabular-nums">
+                          ▲ {row.trend}
+                        </span>
+                      )}
+                      <span
+                        className={`text-[13px] font-bold stat-number ${
+                          row.hot ? 'text-white' : 'text-white/90'
+                        }`}
+                      >
+                        {row.value}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -422,48 +463,175 @@ export default function DemoPage() {
           <div className="sticky top-24">
             <div className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-3 px-1">Client App · Live</div>
             <div className="mx-auto w-[300px]">
-              {/* Phone frame */}
-              <div className="relative rounded-[2.5rem] border border-white/10 bg-black/40 p-2 shadow-2xl shadow-[#3A86FF]/5">
-                <div className="rounded-[2rem] bg-[#0A0A0A] overflow-hidden border border-white/5">
-                  {/* Notch */}
-                  <div className="h-6 flex items-center justify-center">
-                    <div className="w-20 h-4 rounded-b-2xl bg-black" />
-                  </div>
-                  {/* App body */}
-                  <div className="px-5 pb-6 min-h-[480px]">
-                    <div className="flex items-center justify-between mb-5">
-                      <div>
-                        <div className="text-[10px] text-white/30 uppercase tracking-wider font-bold">Today</div>
-                        <div className="text-lg font-bold text-white">Push Day</div>
-                      </div>
-                      <div className="w-8 h-8 rounded-full bg-[#3A86FF]/10 border border-[#3A86FF]/20 flex items-center justify-center text-[#3A86FF] text-xs font-bold">JW</div>
+              {/* Phone frame — accent shadow matches the real app's emerald primary.
+                  Chrome (corner radius, notch vs punch-hole, status bar) swaps with `device`. */}
+              <div
+                className={`relative border border-white/10 bg-black/40 p-2 shadow-2xl shadow-[#10B981]/5 transition-all duration-300 ${
+                  device === 'ios' ? 'rounded-[2.5rem]' : 'rounded-[1.75rem]'
+                }`}
+              >
+                <div
+                  className={`bg-[#0A0F1E] overflow-hidden border border-white/5 ${
+                    device === 'ios' ? 'rounded-[2rem]' : 'rounded-[1.25rem]'
+                  }`}
+                >
+                  {device === 'ios' ? (
+                    /* iOS — Dynamic-Island-style pill */
+                    <div className="h-6 flex items-center justify-center">
+                      <div className="w-20 h-4 rounded-full bg-black" />
                     </div>
-                    {/* Progress ring mock */}
-                    <div className="card-cinematic rounded-xl p-4 mb-4">
-                      <div className="text-[10px] text-white/30 uppercase tracking-wider font-bold mb-2">Week streak</div>
-                      <div className="text-3xl font-black text-white stat-number">12 days</div>
-                      <div className="mt-2 flex gap-1">
-                        {[1,1,1,1,1,1,0].map((v, i) => (
-                          <div key={i} className={`flex-1 h-1 rounded-full ${v ? 'bg-[#3A86FF]' : 'bg-white/8'}`} />
-                        ))}
+                  ) : (
+                    /* Android — status bar with centered punch-hole camera */
+                    <div className="relative h-6 flex items-center justify-between px-4 text-[8px] font-mono text-white/55">
+                      <span>9:41</span>
+                      <div className="absolute left-1/2 -translate-x-1/2 top-1.5 w-2 h-2 rounded-full bg-black ring-1 ring-white/10" />
+                      <div className="flex items-center gap-1">
+                        {/* signal */}
+                        <svg width="9" height="7" viewBox="0 0 9 7" fill="currentColor"><rect x="0" y="5" width="1.5" height="2"/><rect x="2.5" y="3" width="1.5" height="4"/><rect x="5" y="1" width="1.5" height="6"/><rect x="7.5" y="0" width="1.5" height="7"/></svg>
+                        {/* battery */}
+                        <svg width="13" height="7" viewBox="0 0 13 7" fill="none" stroke="currentColor" strokeWidth="0.8"><rect x="0.5" y="0.5" width="10" height="6" rx="1"/><rect x="1.5" y="1.5" width="7" height="4" fill="currentColor"/><rect x="11" y="2" width="1.2" height="3" fill="currentColor"/></svg>
                       </div>
                     </div>
-                    {/* Exercise list */}
-                    <div className="space-y-1.5">
-                      {DEMO_WORKOUTS[0].exercises.slice(0, 4).map((ex) => (
-                        <div key={ex.name} className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/[0.02] border border-white/5">
-                          <span className="text-[12px] text-white/80 font-medium">{ex.name}</span>
-                          <span className="text-[10px] text-white/40 font-mono">{ex.sets}×{ex.reps}</span>
+                  )}
+
+                  {/* App body — mirrors mobile/src/screens/HomeScreen.tsx */}
+                  <div className="px-4 pb-5 min-h-[520px]">
+                    {/* Header: "GOOD MORNING" + greeting */}
+                    <div className="mb-4">
+                      <div className="text-[9px] text-white/35 uppercase tracking-[0.18em] font-bold">Good morning</div>
+                      <div className="text-[17px] font-bold text-white mt-0.5 tracking-tight">Let&apos;s train, Jordan.</div>
+                    </div>
+
+                    {/* Streak banner — flame icon + day count */}
+                    <div className="flex items-center gap-2.5 mb-4 p-3 rounded-xl bg-[#0C1220] border border-white/5">
+                      <div className="w-8 h-8 rounded-lg bg-[#F97316]/15 flex items-center justify-center">
+                        {/* Lucide flame */}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[13px] font-bold text-white">12 day streak</div>
+                        <div className="text-[10px] text-white/40">Longest: 28 days</div>
+                      </div>
+                    </div>
+
+                    {/* Today's Workout CTA — emerald primary */}
+                    <div className="rounded-xl p-3.5 mb-4 bg-gradient-to-br from-[#10B981]/12 to-[#10B981]/4 border border-[#10B981]/25">
+                      <div className="text-[9px] uppercase tracking-[0.18em] text-[#10B981] font-bold">Today&apos;s Workout</div>
+                      <div className="text-[15px] font-bold text-white mt-1">Upper Body Strength</div>
+                      <div className="flex items-center gap-1.5 mt-1 text-[10px] text-white/50">
+                        <span>4 exercises</span>
+                        <span className="w-1 h-1 rounded-full bg-white/30" />
+                        <span>45 min</span>
+                      </div>
+                      <button className="w-full mt-3 py-2 rounded-lg bg-[#10B981] text-white text-[11px] font-semibold hover:bg-[#0EA371] transition-colors">
+                        Start Workout
+                      </button>
+                    </div>
+
+                    {/* Today's Nutrition — 4 mini macro rings */}
+                    <div className="rounded-xl p-3 mb-4 bg-[#0C1220] border border-white/5">
+                      <div className="text-[9px] uppercase tracking-[0.18em] text-white/45 font-bold mb-2.5">Today&apos;s Nutrition</div>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[
+                          { value: 1420, max: 2000, label: 'Cal',    color: '#10B981' },
+                          { value: 98,   max: 150,  label: 'Protein',color: '#3B82F6' },
+                          { value: 162,  max: 250,  label: 'Carbs',  color: '#F97316' },
+                          { value: 41,   max: 65,   label: 'Fat',    color: '#8B5CF6' },
+                        ].map((m) => {
+                          const r = 14;
+                          const c = 2 * Math.PI * r;
+                          const pct = Math.min(m.value / m.max, 1);
+                          return (
+                            <div key={m.label} className="flex flex-col items-center gap-1">
+                              <div className="relative w-9 h-9">
+                                <svg width="36" height="36" viewBox="0 0 36 36" className="-rotate-90">
+                                  <circle cx="18" cy="18" r={r} fill="none" stroke="#1E293B" strokeWidth="3" />
+                                  <circle cx="18" cy="18" r={r} fill="none" stroke={m.color} strokeWidth="3"
+                                    strokeDasharray={c} strokeDashoffset={c - pct * c} strokeLinecap="round" />
+                                </svg>
+                                <div className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white tabular-nums">
+                                  {m.value}
+                                </div>
+                              </div>
+                              <span className="text-[8px] text-white/50 font-medium">{m.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* AI Insight card */}
+                    <div className="rounded-xl p-3 mb-4 bg-[#10B981]/8 border border-[#10B981]/20">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="px-1.5 py-0.5 rounded text-[8px] font-black tracking-wider bg-[#10B981] text-[#0A0F1E]">AI</span>
+                        <span className="text-[9px] uppercase tracking-[0.18em] text-[#10B981] font-bold">AI Insight</span>
+                      </div>
+                      <p className="text-[10px] leading-snug text-white/75">
+                        Protein 15% below target. A post-workout shake closes the gap.
+                      </p>
+                    </div>
+
+                    {/* Quick Actions row — Scan Food / Start Workout / Progress */}
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        { label: 'Scan Food', sub: 'Snap a meal',   color: '#10B981',
+                          icon: <><rect x="3" y="6" width="18" height="13" rx="2.5"/><circle cx="12" cy="12.5" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></> },
+                        { label: 'Workout',   sub: "Today's plan",  color: '#3B82F6',
+                          icon: <><line x1="6.5" y1="12" x2="17.5" y2="12"/><rect x="2" y="8" width="2.5" height="8" rx="0.5"/><rect x="5" y="6.5" width="2" height="11" rx="0.5"/><rect x="17" y="6.5" width="2" height="11" rx="0.5"/><rect x="19.5" y="8" width="2.5" height="8" rx="0.5"/></> },
+                        { label: 'Progress',  sub: 'Weekly stats',  color: '#8B5CF6',
+                          icon: <><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></> },
+                      ].map((a) => (
+                        <div key={a.label} className="rounded-lg p-2.5 bg-[#0C1220] border border-white/5">
+                          <div className="w-6 h-6 rounded-md flex items-center justify-center mb-1.5"
+                            style={{ backgroundColor: `${a.color}20` }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={a.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              {a.icon}
+                            </svg>
+                          </div>
+                          <div className="text-[9px] font-bold text-white leading-tight">{a.label}</div>
+                          <div className="text-[8px] text-white/40 leading-tight">{a.sub}</div>
                         </div>
                       ))}
                     </div>
-                    <button className="w-full mt-4 py-2.5 rounded-lg bg-[#3A86FF] text-white text-xs font-semibold hover:bg-[#5196FF] transition-colors">
-                      Start Workout
-                    </button>
                   </div>
                 </div>
               </div>
-              <div className="text-center mt-4 text-[10px] text-white/30 font-mono">ino.fit/app · iOS & Android</div>
+              {/* Device toggle — switches frame chrome above */}
+              <div className="mt-4 flex flex-col items-center gap-2">
+                <div className="flex items-center gap-1 p-1 rounded-full bg-white/[0.04] border border-white/10">
+                  {(['ios', 'android'] as const).map((d) => {
+                    const active = device === d;
+                    return (
+                      <button
+                        key={d}
+                        onClick={() => setDevice(d)}
+                        aria-pressed={active}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-semibold tracking-wide transition-all ${
+                          active
+                            ? 'bg-[#10B981] text-[#0A0F1E] shadow-md shadow-[#10B981]/20'
+                            : 'text-white/55 hover:text-white/85'
+                        }`}
+                      >
+                        {d === 'ios' ? (
+                          /* Apple logo */
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09M12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25"/>
+                          </svg>
+                        ) : (
+                          /* Android robot */
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85a.637.637 0 00-.83.22l-1.88 3.24a11.43 11.43 0 00-8.94 0L5.65 5.67a.643.643 0 00-.87-.2.633.633 0 00-.22.85L6.4 9.48A10.78 10.78 0 001 18h22a10.78 10.78 0 00-5.4-8.52zM7 15.25a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5zm10 0a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z"/>
+                          </svg>
+                        )}
+                        {d === 'ios' ? 'iOS' : 'Android'}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="text-[10px] text-white/30 font-mono">ino.fit/app</div>
+              </div>
             </div>
           </div>
         </aside>

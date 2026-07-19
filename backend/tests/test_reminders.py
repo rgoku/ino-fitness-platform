@@ -262,7 +262,9 @@ async def test_ai_service_supplement_recommendation_with_mock():
     async def fake_summarize(name, citations):
         return {"summary": f"{name} is effective.", "evidence_level": "moderate"}
     
-    with patch.object(ai, '_search_pubmed_research', side_effect=fake_pubmed):
+    # Enrichment only runs when an API key is present; set one so the mocks are exercised.
+    with patch.dict('os.environ', {'ANTHROPIC_API_KEY': 'test-key'}):
+      with patch.object(ai, '_search_pubmed_research', side_effect=fake_pubmed):
         with patch.object(ai, '_summarize_citations_with_claude', side_effect=fake_summarize):
             result = await ai.get_supplement_recommendations(
                 user_id="user_123",

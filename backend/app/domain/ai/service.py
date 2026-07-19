@@ -38,7 +38,9 @@ class AIService:
 
     def __init__(self):
         self.client = anthropic.Anthropic()
-        self.model = "claude-3-5-sonnet-20241022"
+        # Current Sonnet. The previous id (claude-3-5-sonnet-20241022) was
+        # retired by Anthropic and now 404s, which broke nearly every AI call.
+        self.model = "claude-sonnet-4-6"
         # Dedicated model for workout plan generation (latest Sonnet).
         self.workout_model = "claude-sonnet-4-6"
 
